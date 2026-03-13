@@ -1,5 +1,15 @@
 ;(function(){
 const DEFAULT_EXPENSE_CATEGORIES = ["Transport", "Food", "Grocery", "Other"]
+const TEXT_LIMITS = {
+  short: 80,
+  medium: 140,
+  note: 5000,
+  category: 40
+}
+
+function normalizeText(value, maxLength){
+  return String(value || "").trim().replace(/\s+/g, " ").slice(0, maxLength)
+}
 
 function formatDateKey(date){
   const year = date.getFullYear()
@@ -59,7 +69,7 @@ function createId(prefix){
 }
 
 function normalizeCategoryName(value){
-  return String(value || "").trim().replace(/\s+/g, " ")
+  return normalizeText(value, TEXT_LIMITS.category)
 }
 
 function normalizeCategoryList(value){
@@ -94,7 +104,7 @@ function normalizeExpense(entry){
     return null
   }
 
-  const name = String(entry.name || "").trim()
+  const name = normalizeText(entry.name, TEXT_LIMITS.short)
   const amount = Number(entry.amount)
 
   if(!name || !Number.isFinite(amount) || amount <= 0){
@@ -117,7 +127,7 @@ function normalizeBorrow(entry){
     return null
   }
 
-  const person = String(entry.person || "").trim()
+  const person = normalizeText(entry.person, TEXT_LIMITS.short)
   const amount = Number(entry.amount)
 
   if(!person || !Number.isFinite(amount) || amount <= 0){
@@ -134,7 +144,7 @@ function normalizeBorrow(entry){
 
 function normalizeGrocery(entry){
   if(typeof entry === "string"){
-    const name = entry.trim()
+    const name = normalizeText(entry, TEXT_LIMITS.short)
 
     if(!name){
       return null
@@ -143,7 +153,8 @@ function normalizeGrocery(entry){
     return {
       id: createId("grocery"),
       name,
-      done: false
+      done: false,
+      date: today()
     }
   }
 
@@ -151,7 +162,7 @@ function normalizeGrocery(entry){
     return null
   }
 
-  const name = String(entry.name || "").trim()
+  const name = normalizeText(entry.name, TEXT_LIMITS.short)
 
   if(!name){
     return null
@@ -160,17 +171,100 @@ function normalizeGrocery(entry){
   return {
     id: entry.id || createId("grocery"),
     name,
-    done: Boolean(entry.done)
+    done: Boolean(entry.done),
+    date: normalizeDateKey(entry.date)
   }
 }
 
 function normalizeSettings(value){
   const source = value && typeof value === "object" ? value : {}
   const monthlyBudget = Number(source.monthlyBudget)
+  const reminders = source.reminders && typeof source.reminders === "object" ? source.reminders : {}
+  const habitTime = /^\d{2}:\d{2}$/.test(String(reminders.habits?.time || "")) ? reminders.habits.time : "20:00"
+  const subscriptionTime = /^\d{2}:\d{2}$/.test(String(reminders.subscriptions?.time || "")) ? reminders.subscriptions.time : "09:00"
+  const subscriptionLeadDays = Number(reminders.subscriptions?.leadDays)
+  const sentLog = reminders.sentLog && typeof reminders.sentLog === "object" ? reminders.sentLog : {}
 
   return {
     monthlyBudget: Number.isFinite(monthlyBudget) && monthlyBudget > 0 ? monthlyBudget : null,
-    expenseCategories: normalizeCategoryList(source.expenseCategories)
+    expenseCategories: normalizeCategoryList(source.expenseCategories),
+    reminders: {
+      habits: {
+        enabled: Boolean(reminders.habits?.enabled),
+        time: habitTime
+      },
+      subscriptions: {
+        enabled: Boolean(reminders.subscriptions?.enabled),
+        time: subscriptionTime,
+        leadDays: Number.isInteger(subscriptionLeadDays) && subscriptionLeadDays >= 0 && subscriptionLeadDays <= 7
+          ? subscriptionLeadDays
+          : 1
+      },
+      sentLog
+    }
+  }
+}
+
+function normalizeHabit(entry){
+  if(!entry || typeof entry !== "object"){
+    return null
+  }
+
+  const name = normalizeText(entry.name, TEXT_LIMITS.short)
+
+  if(!name){
+    return null
+  }
+
+  const completions = Array.isArray(entry.completions)
+    ? entry.completions.map(normalizeDateKey).filter(Boolean)
+    : []
+
+  return {
+    id: entry.id || createId("habit"),
+    name,
+    completions: [...new Set(completions)].sort()
+  }
+}
+
+function normalizeNote(entry){
+  if(!entry || typeof entry !== "object"){
+    return null
+  }
+
+  const title = normalizeText(entry.title, TEXT_LIMITS.medium)
+  const body = String(entry.body || "").trim().slice(0, TEXT_LIMITS.note)
+
+  if(!title && !body){
+    return null
+  }
+
+  return {
+    id: entry.id || createId("note"),
+    title: title || "Untitled note",
+    body,
+    date: normalizeDateKey(entry.date)
+  }
+}
+
+function normalizeSubscription(entry){
+  if(!entry || typeof entry !== "object"){
+    return null
+  }
+
+  const name = normalizeText(entry.name, TEXT_LIMITS.short)
+  const amount = Number(entry.amount)
+
+  if(!name || !Number.isFinite(amount) || amount <= 0){
+    return null
+  }
+
+  return {
+    id: entry.id || createId("subscription"),
+    name,
+    amount,
+    billingDay: Math.max(1, Math.min(31, Number(entry.billingDay) || 1)),
+    date: normalizeDateKey(entry.date)
   }
 }
 
@@ -229,7 +323,7 @@ function transferUserData(fromUserId, toUserId){
     return
   }
 
-  ;["expenses", "borrow", "grocery", "settings"].forEach((key) => {
+  ;["expenses", "borrow", "grocery", "habits", "notes", "subscriptions", "settings"].forEach((key) => {
     const fromKey = getScopedKey(key, fromUserId)
     const toKey = getScopedKey(key, toUserId)
     const fromValue = localStorage.getItem(fromKey)
@@ -265,6 +359,21 @@ const storage = {
     storage.addExpenseCategory(nextEntry.category)
     return nextEntry
   },
+  updateExpense(id, nextEntry){
+    return storage.saveExpenses(
+      storage.getExpenses().map((entry) => {
+        if(entry.id !== id){
+          return entry
+        }
+
+        return {
+          ...entry,
+          ...nextEntry,
+          id: entry.id
+        }
+      })
+    )
+  },
   removeExpense(id){
     return storage.saveExpenses(
       storage.getExpenses().filter((entry) => entry.id !== id)
@@ -287,6 +396,21 @@ const storage = {
     items.push(nextEntry)
     storage.saveBorrow(items)
     return nextEntry
+  },
+  updateBorrow(id, nextEntry){
+    return storage.saveBorrow(
+      storage.getBorrow().map((entry) => {
+        if(entry.id !== id){
+          return entry
+        }
+
+        return {
+          ...entry,
+          ...nextEntry,
+          id: entry.id
+        }
+      })
+    )
   },
   removeBorrow(id){
     return storage.saveBorrow(
@@ -311,9 +435,160 @@ const storage = {
     storage.saveGrocery(items)
     return nextEntry
   },
+  updateGrocery(id, nextEntry){
+    return storage.saveGrocery(
+      storage.getGrocery().map((entry) => {
+        if(entry.id !== id){
+          return entry
+        }
+
+        return {
+          ...entry,
+          ...nextEntry,
+          id: entry.id
+        }
+      })
+    )
+  },
   removeGrocery(id){
     return storage.saveGrocery(
       storage.getGrocery().filter((entry) => entry.id !== id)
+    )
+  },
+  getHabits(){
+    return getNormalized("habits", [], (value) => normalizeList(value, normalizeHabit))
+  },
+  saveHabits(items){
+    return write("habits", normalizeList(items, normalizeHabit))
+  },
+  addHabit(entry){
+    const items = storage.getHabits()
+    const nextEntry = normalizeHabit(entry)
+
+    if(!nextEntry){
+      return null
+    }
+
+    items.push(nextEntry)
+    storage.saveHabits(items)
+    return nextEntry
+  },
+  updateHabit(id, nextEntry){
+    return storage.saveHabits(
+      storage.getHabits().map((entry) => {
+        if(entry.id !== id){
+          return entry
+        }
+
+        return {
+          ...entry,
+          ...nextEntry,
+          id: entry.id
+        }
+      })
+    )
+  },
+  toggleHabitCompletion(id, dateKey = today()){
+    return storage.saveHabits(
+      storage.getHabits().map((entry) => {
+        if(entry.id !== id){
+          return entry
+        }
+
+        const completions = new Set(entry.completions || [])
+
+        if(completions.has(dateKey)){
+          completions.delete(dateKey)
+        }else{
+          completions.add(dateKey)
+        }
+
+        return {
+          ...entry,
+          completions: [...completions].sort()
+        }
+      })
+    )
+  },
+  removeHabit(id){
+    return storage.saveHabits(
+      storage.getHabits().filter((entry) => entry.id !== id)
+    )
+  },
+  getNotes(){
+    return getNormalized("notes", [], (value) => normalizeList(value, normalizeNote))
+  },
+  saveNotes(items){
+    return write("notes", normalizeList(items, normalizeNote))
+  },
+  addNote(entry){
+    const items = storage.getNotes()
+    const nextEntry = normalizeNote(entry)
+
+    if(!nextEntry){
+      return null
+    }
+
+    items.push(nextEntry)
+    storage.saveNotes(items)
+    return nextEntry
+  },
+  updateNote(id, nextEntry){
+    return storage.saveNotes(
+      storage.getNotes().map((entry) => {
+        if(entry.id !== id){
+          return entry
+        }
+
+        return {
+          ...entry,
+          ...nextEntry,
+          id: entry.id
+        }
+      })
+    )
+  },
+  removeNote(id){
+    return storage.saveNotes(
+      storage.getNotes().filter((entry) => entry.id !== id)
+    )
+  },
+  getSubscriptions(){
+    return getNormalized("subscriptions", [], (value) => normalizeList(value, normalizeSubscription))
+  },
+  saveSubscriptions(items){
+    return write("subscriptions", normalizeList(items, normalizeSubscription))
+  },
+  addSubscription(entry){
+    const items = storage.getSubscriptions()
+    const nextEntry = normalizeSubscription(entry)
+
+    if(!nextEntry){
+      return null
+    }
+
+    items.push(nextEntry)
+    storage.saveSubscriptions(items)
+    return nextEntry
+  },
+  updateSubscription(id, nextEntry){
+    return storage.saveSubscriptions(
+      storage.getSubscriptions().map((entry) => {
+        if(entry.id !== id){
+          return entry
+        }
+
+        return {
+          ...entry,
+          ...nextEntry,
+          id: entry.id
+        }
+      })
+    )
+  },
+  removeSubscription(id){
+    return storage.saveSubscriptions(
+      storage.getSubscriptions().filter((entry) => entry.id !== id)
     )
   },
   getBudgetSettings(){
@@ -326,6 +601,29 @@ const storage = {
     })
 
     return write("settings", merged)
+  },
+  getReminderSettings(){
+    return storage.getBudgetSettings().reminders
+  },
+  saveReminderSettings(nextReminderSettings){
+    return storage.saveBudgetSettings({
+      reminders: {
+        ...storage.getReminderSettings(),
+        ...(nextReminderSettings || {}),
+        habits: {
+          ...storage.getReminderSettings().habits,
+          ...(nextReminderSettings?.habits || {})
+        },
+        subscriptions: {
+          ...storage.getReminderSettings().subscriptions,
+          ...(nextReminderSettings?.subscriptions || {})
+        },
+        sentLog: {
+          ...storage.getReminderSettings().sentLog,
+          ...(nextReminderSettings?.sentLog || {})
+        }
+      }
+    })
   },
   getExpenseCategoriesList(){
     return storage.getBudgetSettings().expenseCategories
@@ -349,6 +647,9 @@ const storage = {
       expenses: storage.getExpenses(),
       borrow: storage.getBorrow(),
       grocery: storage.getGrocery(),
+      habits: storage.getHabits(),
+      notes: storage.getNotes(),
+      subscriptions: storage.getSubscriptions(),
       settings: storage.getBudgetSettings()
     }
   },
@@ -360,6 +661,9 @@ const storage = {
     storage.saveExpenses(data.expenses || [])
     storage.saveBorrow(data.borrow || [])
     storage.saveGrocery(data.grocery || [])
+    storage.saveHabits(data.habits || [])
+    storage.saveNotes(data.notes || [])
+    storage.saveSubscriptions(data.subscriptions || [])
     storage.saveBudgetSettings(data.settings || {})
   },
   transferUserData

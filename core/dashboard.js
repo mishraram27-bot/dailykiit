@@ -87,6 +87,46 @@ function renderOnboarding(){
 `
 }
 
+function renderReportSummary(){
+  const host = document.getElementById("reportSummary")
+
+  if(!host || !window.DailyKitReports){
+    return
+  }
+
+  const report = DailyKitReports.getMonthlyReportData()
+
+  host.innerHTML = `
+<section class="report-panel">
+  <div class="panel-heading">
+    <div>
+      <p class="section-kicker">Reports</p>
+      <h3>${escapeHtml(report.monthLabel)} snapshot</h3>
+    </div>
+    <button type="button" class="secondary-btn" onclick="exportMonthlyReport()">Download Monthly CSV</button>
+  </div>
+  <div class="report-grid">
+    <article class="report-tile">
+      <span class="insight-label">Expenses</span>
+      <strong>${formatCurrency(report.totalExpense)}</strong>
+    </article>
+    <article class="report-tile">
+      <span class="insight-label">Borrow Added</span>
+      <strong>${formatCurrency(report.totalBorrow)}</strong>
+    </article>
+    <article class="report-tile">
+      <span class="insight-label">Grocery Added</span>
+      <strong>${report.groceryCount}</strong>
+    </article>
+    <article class="report-tile">
+      <span class="insight-label">Top Category</span>
+      <strong>${escapeHtml(report.topCategory)}</strong>
+    </article>
+  </div>
+</section>
+`
+}
+
 function generateInsights(expenses){
   const box = document.getElementById("insights")
 
@@ -266,6 +306,7 @@ function refreshDashboard(){
   updateDashboardStats()
   renderExpenseChart()
   renderWeeklyChart()
+  renderReportSummary()
 
   if(typeof window.runSearch === "function"){
     const searchInput = document.getElementById("globalSearch")
@@ -281,7 +322,8 @@ window.DailyKitDashboard = {
   renderExpenseChart,
   renderWeeklyChart,
   updateDashboardStats,
-  renderOnboarding
+  renderOnboarding,
+  renderReportSummary
 }
 
 window.refreshDashboard = refreshDashboard

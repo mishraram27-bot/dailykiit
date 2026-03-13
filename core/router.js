@@ -133,7 +133,10 @@ async function loadTools(){
   const descriptions = {
     expenses: "Capture spends fast",
     borrowed: "Track who owes what",
-    grocery: "Keep your list ready"
+    grocery: "Keep your list ready",
+    habits: "Stay consistent daily",
+    notes: "Capture quick thoughts",
+    subscriptions: "Watch recurring costs"
   }
 
   if(!container){

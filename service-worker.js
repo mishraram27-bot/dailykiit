@@ -1,4 +1,4 @@
-const CACHE_NAME = "dailykit-v8"
+const CACHE_NAME = "dailykit-v12"
 
 const urlsToCache = [
 "/",
@@ -10,6 +10,10 @@ const urlsToCache = [
 "/firebase-config.js",
 "/core/auth.js",
 "/core/storage.js",
+"/core/feedback.js",
+"/core/commandParser.js",
+"/core/reporting.js",
+"/core/reminders.js",
 "/core/searchEngine.js",
 "/core/router.js",
 "/core/dashboard.js",
@@ -18,6 +22,9 @@ const urlsToCache = [
 "/tools/expenses.js",
 "/tools/borrowed.js",
 "/tools/grocery.js",
+"/tools/habits.js",
+"/tools/notes.js",
+"/tools/subscriptions.js",
 
 "/icons/icon-192.png",
 "/icons/icon-512.png"

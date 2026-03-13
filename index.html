@@ -8,6 +8,7 @@
 <title>DailyKit</title>
 
 <meta name="theme-color" content="#2F6FED">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="DailyKit">
@@ -130,6 +131,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 </div>
 
 <div id="insights" class="insight-box"></div>
+<div id="reportSummary" class="report-box"></div>
 
 <div class="tools-header">
 <div>
@@ -153,12 +155,12 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <article class="backup-panel">
 <p class="section-kicker">Safety</p>
 <h3>Local Backup</h3>
-<p class="backup-copy">Keep a portable copy of your offline data whenever you want.</p>
+<p class="backup-copy">Keep a portable Excel-friendly CSV copy of your offline data whenever you want.</p>
 
 <div class="backup-actions">
-<button onclick="exportData()">Export Data</button>
+<button onclick="exportData()">Export CSV</button>
 
-<input type="file" id="importFile" hidden>
+<input type="file" id="importFile" accept=".csv,.json,text/csv,application/json" hidden>
 <button class="ghost-btn" onclick="document.getElementById('importFile').click()">Import Backup</button>
 </div>
 </article>
@@ -171,12 +173,17 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <script src="firebase-config.js" defer></script>
 <script src="core/auth.js" defer></script>
 <script src="core/storage.js" defer></script>
+<script src="core/feedback.js" defer></script>
+<script src="core/commandParser.js" defer></script>
+<script src="core/reporting.js" defer></script>
+<script src="core/reminders.js" defer></script>
 <script src="core/searchEngine.js" defer></script>
 <script src="core/router.js" defer></script>
 <script src="core/dashboard.js" defer></script>
 <script src="app.js" defer></script>
 
 <footer class="disclaimer">
+<span class="app-version">DailyKit Version 9</span>
 DailyKit is a personal data tracking tool.
 It does not provide financial, medical, or legal advice.
 <span class="footer-links">
@@ -195,6 +202,8 @@ It does not provide financial, medical, or legal advice.
 <button data-nav="import" onclick="importData()"><span class="nav-icon">&#11121;</span><span class="nav-label">Import</span></button>
 
 </nav>
+
+<div id="snackbarHost" class="snackbar-host" aria-live="polite" aria-atomic="true"></div>
 
 </body>
 </html>

@@ -1,6 +1,7 @@
 {
 "name": "DailyKit",
 "short_name": "DailyKit",
+"description": "DailyKit Version 9 offline personal toolkit",
 "id": "/",
 "scope": "/",
 "display": "standalone",

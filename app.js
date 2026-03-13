@@ -40,16 +40,418 @@ function applyLanguage(){
 
 function exportData(){
   const data = DailyKitStorage.exportBackup()
-  const json = JSON.stringify(data, null, 2)
-  const blob = new Blob([json], {type: "application/json"})
+  const csv = buildBackupCsv(data)
+  const blob = new Blob([csv], {type: "text/csv;charset=utf-8"})
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
 
   link.href = url
-  link.download = "dailykit-backup.json"
+  link.download = "dailykit-backup.csv"
   link.click()
 
   URL.revokeObjectURL(url)
+}
+
+function escapeCsvValue(value){
+  let stringValue = String(value ?? "")
+
+  if(/^[=+\-@]/.test(stringValue)){
+    stringValue = `'${stringValue}`
+  }
+
+  const normalized = stringValue.replaceAll('"', '""')
+  return /[",\n]/.test(normalized) ? `"${normalized}"` : normalized
+}
+
+function decodeCsvValue(value){
+  const stringValue = String(value ?? "")
+  return /^'[=+\-@]/.test(stringValue) ? stringValue.slice(1) : stringValue
+}
+
+function buildBackupCsv(data){
+  const rows = [[
+    "section",
+    "id",
+    "name",
+    "person",
+    "amount",
+    "date",
+    "category",
+    "done",
+    "value"
+  ]]
+
+  ;(data.expenses || []).forEach((entry) => {
+    rows.push([
+      "expense",
+      entry.id || "",
+      entry.name || "",
+      "",
+      entry.amount ?? "",
+      entry.date || "",
+      entry.category || "",
+      "",
+      ""
+    ])
+  })
+
+  ;(data.borrow || []).forEach((entry) => {
+    rows.push([
+      "borrow",
+      entry.id || "",
+      "",
+      entry.person || "",
+      entry.amount ?? "",
+      entry.date || "",
+      "",
+      "",
+      ""
+    ])
+  })
+
+  ;(data.grocery || []).forEach((entry) => {
+    rows.push([
+      "grocery",
+      entry.id || "",
+      entry.name || "",
+      "",
+      "",
+      entry.date || "",
+      "",
+      entry.done ? "true" : "false",
+      ""
+    ])
+  })
+
+  ;(data.habits || []).forEach((entry) => {
+    rows.push([
+      "habit",
+      entry.id || "",
+      entry.name || "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      (entry.completions || []).join("|")
+    ])
+  })
+
+  ;(data.notes || []).forEach((entry) => {
+    rows.push([
+      "note",
+      entry.id || "",
+      entry.title || "",
+      "",
+      "",
+      entry.date || "",
+      "",
+      "",
+      entry.body || ""
+    ])
+  })
+
+  ;(data.subscriptions || []).forEach((entry) => {
+    rows.push([
+      "subscription",
+      entry.id || "",
+      entry.name || "",
+      "",
+      entry.amount ?? "",
+      entry.date || "",
+      "",
+      "",
+      entry.billingDay ?? ""
+    ])
+  })
+
+  if(data.settings){
+    rows.push([
+      "setting",
+      "monthlyBudget",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      data.settings.monthlyBudget ?? ""
+    ])
+
+    rows.push([
+      "setting",
+      "habitReminderEnabled",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      data.settings.reminders?.habits?.enabled ? "true" : "false"
+    ])
+
+    rows.push([
+      "setting",
+      "habitReminderTime",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      data.settings.reminders?.habits?.time || ""
+    ])
+
+    rows.push([
+      "setting",
+      "subscriptionReminderEnabled",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      data.settings.reminders?.subscriptions?.enabled ? "true" : "false"
+    ])
+
+    rows.push([
+      "setting",
+      "subscriptionReminderTime",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      data.settings.reminders?.subscriptions?.time || ""
+    ])
+
+    rows.push([
+      "setting",
+      "subscriptionLeadDays",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      data.settings.reminders?.subscriptions?.leadDays ?? ""
+    ])
+
+    ;(data.settings.expenseCategories || []).forEach((category) => {
+      rows.push([
+        "category",
+        "",
+        category || "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ])
+    })
+  }
+
+  return rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n")
+}
+
+function parseCsvRows(text){
+  const rows = []
+  let row = []
+  let field = ""
+  let inQuotes = false
+
+  for(let index = 0; index < text.length; index += 1){
+    const char = text[index]
+    const nextChar = text[index + 1]
+
+    if(char === '"'){
+      if(inQuotes && nextChar === '"'){
+        field += '"'
+        index += 1
+      }else{
+        inQuotes = !inQuotes
+      }
+      continue
+    }
+
+    if(char === "," && !inQuotes){
+      row.push(field)
+      field = ""
+      continue
+    }
+
+    if((char === "\n" || char === "\r") && !inQuotes){
+      if(char === "\r" && nextChar === "\n"){
+        index += 1
+      }
+
+      row.push(field)
+      rows.push(row)
+      row = []
+      field = ""
+      continue
+    }
+
+    field += char
+  }
+
+  if(field || row.length){
+    row.push(field)
+    rows.push(row)
+  }
+
+  return rows.filter((entry) => entry.some((value) => String(value).trim() !== ""))
+}
+
+function parseCsvBackup(text){
+  const rows = parseCsvRows(text)
+
+  if(!rows.length){
+    throw new Error("CSV is empty.")
+  }
+
+  const header = rows[0].map((value) => String(value || "").trim())
+  const expectedHeader = ["section", "id", "name", "person", "amount", "date", "category", "done", "value"]
+
+  if(header.join("|") !== expectedHeader.join("|")){
+    throw new Error("CSV format is not a DailyKit backup.")
+  }
+  const data = {
+    expenses: [],
+    borrow: [],
+    grocery: [],
+    habits: [],
+    notes: [],
+    subscriptions: [],
+    settings: {
+      monthlyBudget: null,
+      expenseCategories: [],
+      reminders: {
+        habits: {},
+        subscriptions: {}
+      }
+    }
+  }
+
+  rows.slice(1).forEach((row) => {
+    const record = {}
+
+    header.forEach((key, index) => {
+      record[key] = decodeCsvValue(row[index] ?? "")
+    })
+
+    const section = String(record.section || "").trim().toLowerCase()
+
+    if(section === "expense"){
+      data.expenses.push({
+        id: record.id,
+        name: record.name,
+        amount: Number(record.amount),
+        date: record.date,
+        category: record.category
+      })
+      return
+    }
+
+    if(section === "borrow"){
+      data.borrow.push({
+        id: record.id,
+        person: record.person,
+        amount: Number(record.amount),
+        date: record.date
+      })
+      return
+    }
+
+    if(section === "grocery"){
+      data.grocery.push({
+        id: record.id,
+        name: record.name,
+        done: String(record.done).toLowerCase() === "true",
+        date: record.date
+      })
+      return
+    }
+
+    if(section === "habit"){
+      data.habits.push({
+        id: record.id,
+        name: record.name,
+        completions: String(record.value || "").split("|").filter(Boolean)
+      })
+      return
+    }
+
+    if(section === "note"){
+      data.notes.push({
+        id: record.id,
+        title: record.name,
+        body: record.value,
+        date: record.date
+      })
+      return
+    }
+
+    if(section === "subscription"){
+      data.subscriptions.push({
+        id: record.id,
+        name: record.name,
+        amount: Number(record.amount),
+        date: record.date,
+        billingDay: Number(record.value)
+      })
+      return
+    }
+
+    if(section === "setting" && record.id === "monthlyBudget"){
+      const budget = Number(record.value)
+      data.settings.monthlyBudget = Number.isFinite(budget) && budget > 0 ? budget : null
+      return
+    }
+
+    if(section === "setting" && record.id === "habitReminderEnabled"){
+      data.settings.reminders = data.settings.reminders || {habits: {}, subscriptions: {}}
+      data.settings.reminders.habits = data.settings.reminders.habits || {}
+      data.settings.reminders.habits.enabled = String(record.value).toLowerCase() === "true"
+      return
+    }
+
+    if(section === "setting" && record.id === "habitReminderTime"){
+      data.settings.reminders = data.settings.reminders || {habits: {}, subscriptions: {}}
+      data.settings.reminders.habits = data.settings.reminders.habits || {}
+      data.settings.reminders.habits.time = record.value
+      return
+    }
+
+    if(section === "setting" && record.id === "subscriptionReminderEnabled"){
+      data.settings.reminders = data.settings.reminders || {habits: {}, subscriptions: {}}
+      data.settings.reminders.subscriptions = data.settings.reminders.subscriptions || {}
+      data.settings.reminders.subscriptions.enabled = String(record.value).toLowerCase() === "true"
+      return
+    }
+
+    if(section === "setting" && record.id === "subscriptionReminderTime"){
+      data.settings.reminders = data.settings.reminders || {habits: {}, subscriptions: {}}
+      data.settings.reminders.subscriptions = data.settings.reminders.subscriptions || {}
+      data.settings.reminders.subscriptions.time = record.value
+      return
+    }
+
+    if(section === "setting" && record.id === "subscriptionLeadDays"){
+      data.settings.reminders = data.settings.reminders || {habits: {}, subscriptions: {}}
+      data.settings.reminders.subscriptions = data.settings.reminders.subscriptions || {}
+      data.settings.reminders.subscriptions.leadDays = Number(record.value)
+      return
+    }
+
+    if(section === "category" && record.name){
+      data.settings.expenseCategories.push(record.name)
+    }
+  })
+
+  return data
 }
 
 function renderSearchResults(){
@@ -124,6 +526,12 @@ function selectSearchResult(index){
   }
 
   closeSearchResults()
+
+  if(typeof result.action === "function"){
+    result.action()
+    return
+  }
+
   DailyKitRouter.openTool(result.toolId)
 }
 
@@ -200,19 +608,28 @@ function handleImportFileChange(event){
     return
   }
 
+  if(file.size > 2 * 1024 * 1024){
+    event.target.value = ""
+    DailyKitFeedback.error("Backup file is too large. Keep imports under 2 MB.")
+    return
+  }
+
   const reader = new FileReader()
 
   reader.onload = function(loadEvent){
     try{
-      const data = JSON.parse(loadEvent.target.result)
+      const text = String(loadEvent.target.result || "")
+      const data = text.trim().startsWith("{")
+        ? JSON.parse(text)
+        : parseCsvBackup(text)
       DailyKitStorage.importBackup(data)
       event.target.value = ""
-      alert("Backup restored successfully.")
+      DailyKitFeedback.success("Backup restored successfully.")
       DailyKitDashboard.refreshDashboard()
       rerenderActiveTool()
     }catch(error){
       event.target.value = ""
-      alert("Backup file is invalid.")
+      DailyKitFeedback.error("Backup file is invalid. Use a DailyKit CSV backup or a legacy JSON backup.")
     }
   }
 
@@ -331,10 +748,12 @@ async function bootSessionUi(){
   await DailyKitRouter.loadTools()
   DailyKitDashboard.refreshDashboard()
   DailyKitRouter.showHome()
+  DailyKitReminders?.start?.()
 }
 
 function resetForSignedOutState(){
   closeSearchResults()
+  DailyKitReminders?.stop?.()
   DailyKitRouter.syncNavState("home")
   const home = document.getElementById("screenHome")
   const toolArea = document.getElementById("toolArea")
@@ -382,3 +801,5 @@ window.runSearch = runSearch
 window.exportData = exportData
 window.importData = importData
 window.installApp = installApp
+window.rerenderActiveTool = rerenderActiveTool
+window.exportMonthlyReport = () => window.DailyKitReports?.downloadMonthlyReport()

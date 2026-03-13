@@ -16,5 +16,23 @@
     "name": "Grocery",
     "icon": "\uD83D\uDED2",
     "script": "tools/grocery.js"
+  },
+  {
+    "id": "habits",
+    "name": "Habits",
+    "icon": "\u2705",
+    "script": "tools/habits.js"
+  },
+  {
+    "id": "notes",
+    "name": "Notes",
+    "icon": "\uD83D\uDCDD",
+    "script": "tools/notes.js"
+  },
+  {
+    "id": "subscriptions",
+    "name": "Subscriptions",
+    "icon": "\uD83D\uDD04",
+    "script": "tools/subscriptions.js"
   }
 ]
