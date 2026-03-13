@@ -1,5 +1,6 @@
 let languageData = {}
 let deferredPrompt = null
+let listenersBound = false
 
 const searchState = {
   results: [],
@@ -184,6 +185,14 @@ function importData(){
   }
 }
 
+function rerenderActiveTool(){
+  const activeToolId = DailyKitRouter.getActiveToolId()
+
+  if(activeToolId && typeof renderTool === "function"){
+    renderTool()
+  }
+}
+
 function handleImportFileChange(event){
   const file = event.target.files[0]
 
@@ -200,12 +209,7 @@ function handleImportFileChange(event){
       event.target.value = ""
       alert("Backup restored successfully.")
       DailyKitDashboard.refreshDashboard()
-
-      const activeToolId = DailyKitRouter.getActiveToolId()
-
-      if(activeToolId && typeof renderTool === "function"){
-        renderTool()
-      }
+      rerenderActiveTool()
     }catch(error){
       event.target.value = ""
       alert("Backup file is invalid.")
@@ -213,16 +217,6 @@ function handleImportFileChange(event){
   }
 
   reader.readAsText(file)
-}
-
-function showWelcome(){
-  const first = localStorage.getItem("dailykit_welcome")
-
-  if(first){
-    return
-  }
-
-  localStorage.setItem("dailykit_welcome", "yes")
 }
 
 function installApp(){
@@ -241,13 +235,14 @@ function initInstallPrompt(){
     const button = document.getElementById("installBtn")
 
     if(button){
-      button.style.display = "block"
+      button.style.display = "inline-flex"
     }
   })
 
   const button = document.getElementById("installBtn")
 
-  if(button){
+  if(button && !button.dataset.bound){
+    button.dataset.bound = "true"
     button.addEventListener("click", async () => {
       if(!deferredPrompt){
         return
@@ -290,10 +285,10 @@ function initServiceWorker(){
   })
 }
 
-async function initApp(){
-  showWelcome()
-  await DailyKitRouter.loadTools()
-  DailyKitDashboard.refreshDashboard()
+function bindGlobalListeners(){
+  if(listenersBound){
+    return
+  }
 
   const languageSelect = document.getElementById("languageSelect")
   const savedLanguage = localStorage.getItem("language") || "en"
@@ -302,8 +297,6 @@ async function initApp(){
     languageSelect.value = savedLanguage
     languageSelect.addEventListener("change", (event) => loadLanguage(event.target.value))
   }
-
-  await loadLanguage(savedLanguage)
 
   const searchInput = document.getElementById("globalSearch")
 
@@ -324,6 +317,60 @@ async function initApp(){
   }
 
   document.addEventListener("click", handleDocumentClick)
+  window.addEventListener("dailykit:cloud-restored", () => {
+    DailyKitDashboard.refreshDashboard()
+    rerenderActiveTool()
+  })
+
+  listenersBound = true
+}
+
+async function bootSessionUi(){
+  const savedLanguage = localStorage.getItem("language") || "en"
+  await loadLanguage(savedLanguage)
+  await DailyKitRouter.loadTools()
+  DailyKitDashboard.refreshDashboard()
+  DailyKitRouter.showHome()
+}
+
+function resetForSignedOutState(){
+  closeSearchResults()
+  DailyKitRouter.syncNavState("home")
+  const home = document.getElementById("screenHome")
+  const toolArea = document.getElementById("toolArea")
+
+  if(home){
+    home.hidden = false
+    home.classList.add("is-active")
+    home.classList.remove("is-entering")
+  }
+
+  if(toolArea){
+    toolArea.hidden = true
+    toolArea.classList.remove("is-active", "is-entering")
+  }
+}
+
+async function handleSessionChange(){
+  if(DailyKitAuth.hasSession()){
+    await bootSessionUi()
+    return
+  }
+
+  resetForSignedOutState()
+}
+
+async function initApp(){
+  await DailyKitAuth.init()
+  bindGlobalListeners()
+
+  if(DailyKitAuth.hasSession()){
+    await bootSessionUi()
+  }else{
+    resetForSignedOutState()
+  }
+
+  window.addEventListener("dailykit:session-changed", handleSessionChange)
 }
 
 window.addEventListener("DOMContentLoaded", initApp)

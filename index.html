@@ -8,15 +8,46 @@
 <title>DailyKit</title>
 
 <meta name="theme-color" content="#2F6FED">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DailyKit">
 
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="icon" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 
 </head>
 
 <body>
+
+<div id="authGate" class="auth-gate">
+<section class="auth-card">
+<p class="hero-kicker">Your offline workspace</p>
+<h2>Start DailyKit your way</h2>
+<p class="auth-copy">
+Use a guest profile with a random user ID on this device and start tracking instantly.
+</p>
+
+<div class="auth-benefits">
+<article>
+<strong>Guest Mode</strong>
+<span>Instant access with a random local user ID.</span>
+</article>
+<article>
+<strong>Private by default</strong>
+<span>Your current release keeps data on this device unless you export it.</span>
+</article>
+</div>
+
+<div class="auth-actions">
+<button id="guestLoginBtn" type="button">Continue as Guest</button>
+</div>
+
+<p id="authHint" class="auth-hint"></p>
+</section>
+</div>
 
 <header class="hero-header">
 
@@ -42,7 +73,9 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 </select>
 </label>
 
-<button id="installBtn" class="ghost-btn" style="display:none">Install App</button>
+<div id="sessionBadge" class="session-badge">Guest</div>
+<button id="switchAccountBtn" class="ghost-btn" type="button">Switch Account</button>
+<button id="installBtn" class="ghost-btn" style="display:none" type="button">Install App</button>
 </div>
 
 </div>
@@ -51,7 +84,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 
 <main>
 
-<section id="screenHome">
+<section id="screenHome" class="screen-panel is-active">
 
 <div class="dashboard">
 
@@ -61,6 +94,8 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <h2 class="section-title">Daily pulse</h2>
 </div>
 </section>
+
+<div id="onboarding" class="onboarding-host" hidden></div>
 
 <div class="summary">
 
@@ -109,14 +144,15 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 
 </section>
 
-<section id="toolArea" class="tool-section">
+<section id="toolArea" class="tool-section screen-panel">
   <div id="toolContainer"></div>
 </section>
 
 <section class="backup-section">
 
+<article class="backup-panel">
 <p class="section-kicker">Safety</p>
-<h3>Data Backup</h3>
+<h3>Local Backup</h3>
 <p class="backup-copy">Keep a portable copy of your offline data whenever you want.</p>
 
 <div class="backup-actions">
@@ -125,12 +161,15 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <input type="file" id="importFile" hidden>
 <button class="ghost-btn" onclick="document.getElementById('importFile').click()">Import Backup</button>
 </div>
+</article>
 
 </section>
 
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="firebase-config.js" defer></script>
+<script src="core/auth.js" defer></script>
 <script src="core/storage.js" defer></script>
 <script src="core/searchEngine.js" defer></script>
 <script src="core/router.js" defer></script>
@@ -140,16 +179,20 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <footer class="disclaimer">
 DailyKit is a personal data tracking tool.
 It does not provide financial, medical, or legal advice.
+<span class="footer-links">
+<a href="pages/privacy.html">Privacy Policy</a>
+<a href="pages/terms.html">Terms &amp; Conditions</a>
+</span>
 </footer>
 
 <nav class="bottom-nav">
 
-<button onclick="showHome()"><span class="nav-icon">&#127968;</span><span class="nav-label">Home</span></button>
-<button onclick="openTool('expenses')"><span class="nav-icon">&#128176;</span><span class="nav-label">Expenses</span></button>
-<button onclick="openTool('borrowed')"><span class="nav-icon">&#129309;</span><span class="nav-label">Borrowed</span></button>
-<button onclick="openTool('grocery')"><span class="nav-icon">&#128722;</span><span class="nav-label">Grocery</span></button>
-<button onclick="exportData()"><span class="nav-icon">&#11123;</span><span class="nav-label">Export</span></button>
-<button onclick="importData()"><span class="nav-icon">&#11121;</span><span class="nav-label">Import</span></button>
+<button data-nav="home" onclick="showHome()"><span class="nav-icon">&#127968;</span><span class="nav-label">Home</span></button>
+<button data-nav="expenses" onclick="openTool('expenses')"><span class="nav-icon">&#128176;</span><span class="nav-label">Expenses</span></button>
+<button data-nav="borrowed" onclick="openTool('borrowed')"><span class="nav-icon">&#129309;</span><span class="nav-label">Borrowed</span></button>
+<button data-nav="grocery" onclick="openTool('grocery')"><span class="nav-icon">&#128722;</span><span class="nav-label">Grocery</span></button>
+<button data-nav="export" onclick="exportData()"><span class="nav-icon">&#11123;</span><span class="nav-label">Export</span></button>
+<button data-nav="import" onclick="importData()"><span class="nav-icon">&#11121;</span><span class="nav-label">Import</span></button>
 
 </nav>
 

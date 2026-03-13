@@ -1,10 +1,14 @@
-const CACHE_NAME = "dailykit-v4"
+const CACHE_NAME = "dailykit-v8"
 
 const urlsToCache = [
 "/",
 "/index.html",
+"/pages/privacy.html",
+"/pages/terms.html",
 "/style.css",
 "/app.js",
+"/firebase-config.js",
+"/core/auth.js",
 "/core/storage.js",
 "/core/searchEngine.js",
 "/core/router.js",

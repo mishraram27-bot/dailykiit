@@ -2,6 +2,13 @@
 let toolRegistry = []
 let toolRegistryPromise = null
 let activeToolId = null
+const SCREEN_REVEAL_MS = 360
+
+function syncNavState(activeId){
+  document.querySelectorAll(".bottom-nav button[data-nav]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.nav === activeId)
+  })
+}
 
 async function ensureToolRegistry(){
   if(toolRegistry.length){
@@ -32,10 +39,41 @@ function getActiveToolId(){
   return activeToolId
 }
 
+function revealScreen(element){
+  if(!element){
+    return
+  }
+
+  element.hidden = false
+  element.classList.add("is-active")
+  element.classList.remove("is-entering")
+
+  void element.offsetWidth
+  element.classList.add("is-entering")
+
+  window.clearTimeout(element._revealTimer)
+  element._revealTimer = window.setTimeout(() => {
+    element.classList.remove("is-entering")
+  }, SCREEN_REVEAL_MS)
+}
+
+function hideScreen(element){
+  if(!element){
+    return
+  }
+
+  element.classList.remove("is-active", "is-entering")
+  element.hidden = true
+}
+
 function showHome(){
+  const home = document.getElementById("screenHome")
+  const toolArea = document.getElementById("toolArea")
+
   activeToolId = null
-  document.getElementById("screenHome").style.display = "block"
-  document.getElementById("toolArea").style.display = "none"
+  revealScreen(home)
+  hideScreen(toolArea)
+  syncNavState("home")
 
   if(typeof window.refreshDashboard === "function"){
     window.refreshDashboard()
@@ -59,6 +97,8 @@ function showSection(sectionId){
 async function openTool(toolId){
   const tools = await ensureToolRegistry()
   const tool = tools.find((entry) => entry.id === toolId)
+  const home = document.getElementById("screenHome")
+  const toolArea = document.getElementById("toolArea")
 
   if(!tool){
     return
@@ -69,8 +109,9 @@ async function openTool(toolId){
   const container = document.getElementById("toolContainer")
   container.innerHTML = ""
 
-  document.getElementById("screenHome").style.display = "none"
-  document.getElementById("toolArea").style.display = "block"
+  hideScreen(home)
+  revealScreen(toolArea)
+  syncNavState(toolId)
 
   document.querySelectorAll("script[data-tool]").forEach((script) => script.remove())
 
@@ -124,7 +165,8 @@ window.DailyKitRouter = {
   showHome,
   showSection,
   openTool,
-  loadTools
+  loadTools,
+  syncNavState
 }
 
 window.showHome = showHome

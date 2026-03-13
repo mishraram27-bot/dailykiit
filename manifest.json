@@ -1,9 +1,11 @@
 {
 "name": "DailyKit",
 "short_name": "DailyKit",
+"id": "/",
+"scope": "/",
 "display": "standalone",
 "start_url": "/",
-"theme_color": "#4a7bdc",
+"theme_color": "#2F6FED",
 "background_color": "#ffffff",
 "icons":[
 {
