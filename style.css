@@ -1,0 +1,287 @@
+body{
+font-family: Inter, Roboto, sans-serif;
+background:#F3F4F6;
+margin:0;
+padding:0;
+text-align:center;
+}
+
+.app-container{
+max-width:420px;
+margin:auto;
+padding:16px;
+}
+
+header{
+background:#3B82F6;
+color:white;
+padding:20px;
+font-size:22px;
+font-weight:600;
+position:relative;
+z-index:9999;
+}
+
+.summary{
+display:flex;
+justify-content:center;
+gap:16px;
+margin:20px;
+}
+
+.card{
+background:white;
+padding:16px;
+border-radius:12px;
+width:120px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+.home-tools button{
+
+padding:14px;
+margin:10px;
+border:none;
+border-radius:10px;
+background:#3B82F6;
+color:white;
+font-size:16px;
+
+}
+
+input[type="text"]{
+padding:10px;
+margin:6px;
+width:70%;
+border-radius:8px;
+border:1px solid #ddd;
+}
+
+.list-item{
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+
+background:white;
+margin:8px auto;
+padding:12px;
+
+width:85%;
+
+border-radius:10px;
+
+box-shadow:0 2px 6px rgba(0,0,0,0.05);
+
+font-size:14px;
+
+}
+
+.bottom-nav{
+
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+
+background:white;
+
+display:flex;
+justify-content:space-around;
+
+padding:12px;
+
+box-shadow:0 -2px 6px rgba(0,0,0,0.1);
+
+}
+
+.bottom-nav button{
+
+background:none;
+border:none;
+font-size:16px;
+
+}
+
+.home-tools{
+
+display:flex;
+justify-content:center;
+gap:10px;
+margin-top:10px;
+
+}
+
+body{
+
+padding-bottom:70px;
+
+}
+
+.backup-section{
+margin:30px auto;
+padding:20px;
+background:white;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
+max-width:380px;
+}
+
+.backup-section button{
+
+margin:8px;
+padding:8px 14px;
+
+background:#3B82F6;
+color:white;
+
+border:none;
+border-radius:6px;
+
+cursor:pointer;
+
+}
+
+#homeChart {
+max-width: 350px;
+margin: auto;
+}
+
+#expenseChart {
+width: 100% !important;
+height: auto !important;
+}
+
+.dashboard{
+padding:20px;
+max-width:500px;
+margin:auto;
+}
+
+.chart-section{
+margin-top:20px;
+background:white;
+padding:15px;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
+max-width:380px;
+margin-left:auto;
+margin-right:auto;
+}
+
+#expenseChart{
+width:100% !important;
+height:250px !important;
+}
+
+.insight-box{
+background:white;
+padding:15px;
+margin-top:15px;
+border-radius:12px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+text-align:left;
+}
+
+.stats{
+display:flex;
+gap:12px;
+margin-top:10px;
+}
+
+.stat-card{
+flex:1;
+background:white;
+padding:16px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.05);
+text-align:center;
+}
+
+.quick-tools{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+justify-content:center;
+margin-top:10px;
+}
+
+.quick-tools button{
+background:#f1f1f1;
+border:none;
+padding:8px 12px;
+border-radius:8px;
+cursor:pointer;
+}
+
+canvas{
+max-width:100%;
+}
+
+.tool-section{
+
+background:white;
+padding:16px;
+
+margin:20px auto;
+
+width:90%;
+max-width:380px;
+
+border-radius:12px;
+
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
+
+}
+
+.search-box{
+position:relative;
+display:inline-block;
+}
+
+#searchResults{
+position:absolute;
+top:100%;
+left:0;
+width:100%;
+max-height:200px;
+overflow:auto;
+border-radius:8px;
+background:white;
+box-shadow:0 4px 10px rgba(0,0,0,0.15);
+display:none;
+z-index:9999;
+color:#333;
+}
+
+#searchResults div{
+padding:10px;
+border-bottom:1px solid #eee;
+font-size:14px;
+text-align:left;
+}
+
+#searchResults div:hover{
+background:#f3f4f6;
+cursor:pointer;
+}
+
+.backup-section{
+margin:30px auto;
+padding:20px;
+background:white;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
+max-width:380px;
+}
+
+#importFile{
+display:none;
+}
+
+#globalSearch{
+width:260px;
+border-radius:8px;
+border:1px solid #ddd;
+padding:10px;
+}

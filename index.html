@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>DailyKit</title>
+
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/favicon.png">
+
+</head>
+
+<body>
+
+<header>
+
+<h1>DailyKit</h1>
+
+<div class="search-box">
+<input id="globalSearch" placeholder="Search DailyKit">
+<div id="searchResults"></div>
+</div>
+<select id="languageSelect">
+<option value="en">English</option>
+<option value="hi">हिन्दी</option>
+</select>
+
+</header>
+
+<main>
+
+<section id="screenHome">
+
+<div class="dashboard">
+
+<div class="summary">
+
+<div class="card">
+<h3 id="todayExpense">₹0</h3>
+<p data-text="todayExpense">Today's Expense</p>
+</div>
+
+<div class="card">
+<h3 id="borrowedTotal">₹0</h3>
+<p data-text="borrowedPending">Borrowed Pending</p>
+</div>
+
+</div>
+
+<div class="chart-section">
+<h3>Expense Categories</h3>
+<canvas id="expenseChart"></canvas>
+</div>
+
+<div id="insights"></div>
+
+<h2 data-text="quickTools">Quick Tools</h2>
+
+<div class="home-tools"></div>
+
+</div>
+
+</section>
+
+<section id="toolArea" class="tool-section">
+  <div id="toolContainer"></div>
+</section>
+
+<section class="backup-section">
+
+<h3>Data Backup</h3>
+
+<button onclick="exportData()">Export Data</button>
+
+<input type="file" id="importFile" hidden>
+<button onclick="document.getElementById('importFile').click()">Import Backup</button>
+
+</section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="app.js" defer></script>
+
+<footer class="disclaimer">
+DailyKit is a personal data tracking tool.
+It does not provide financial, medical, or legal advice.
+</footer>
+
+<nav class="bottom-nav">
+
+<button onclick="showHome()">🏠 Home</button>
+<button onclick="openTool('expenses')">💰 Expenses</button>
+<button onclick="openTool('borrowed')">🤝 Borrowed</button>
+<button onclick="openTool('grocery')">🛒 Grocery</button>
+
+</nav>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "expenses",
+    "name": "Expenses",
+    "icon": "💰",
+    "script": "tools/expenses.js"
+  },
+  {
+    "id": "borrowed",
+    "name": "Borrowed",
+    "icon": "🤝",
+    "script": "tools/borrowed.js"
+  },
+  {
+    "id": "grocery",
+    "name": "Grocery",
+    "icon": "🛒",
+    "script": "tools/grocery.js"
+  }
+]
