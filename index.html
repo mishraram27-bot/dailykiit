@@ -29,6 +29,16 @@
 <option value="hi">हिन्दी</option>
 </select>
 
+<div id="installBanner" style="display:none;background:#fff;padding:10px;color:#333">
+
+Install DailyKit for faster access.
+
+<button onclick="installApp()">Install</button>
+
+</div>
+
+<button id="installBtn" style="display:none">Install App</button>
+
 </header>
 
 <main>
@@ -52,8 +62,19 @@
 </div>
 
 <div class="chart-section">
-<h3>Expense Categories</h3>
-<canvas id="expenseChart"></canvas>
+
+  <h3>Expense Categories</h3>
+
+  <canvas id="expenseChart"></canvas>
+
+</div>
+
+<div class="chart-section">
+
+<h3>Weekly Spending</h3>
+
+<canvas id="weeklyChart"></canvas>
+
 </div>
 
 <div id="insights"></div>
@@ -84,6 +105,8 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="core/storage.js" defer></script>
+<script src="core/searchEngine.js" defer></script>
 <script src="app.js" defer></script>
 
 <footer class="disclaimer">
@@ -97,6 +120,8 @@ It does not provide financial, medical, or legal advice.
 <button onclick="openTool('expenses')">💰 Expenses</button>
 <button onclick="openTool('borrowed')">🤝 Borrowed</button>
 <button onclick="openTool('grocery')">🛒 Grocery</button>
+<button onclick="exportData()">Export Backup</button>
+<button onclick="importData()">Import Backup</button>
 
 </nav>
 

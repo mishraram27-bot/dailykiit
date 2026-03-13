@@ -1,129 +1,82 @@
 function renderTool(){
+  const area = document.getElementById("toolContainer")
 
-const area = document.getElementById("toolContainer")
-
-area.innerHTML = `
-
+  area.innerHTML = `
 <h2>Expenses</h2>
-
 <input id="expenseInput" placeholder="item amount">
-
 <button onclick="addExpense()">Add</button>
-
 <div id="expenseList"></div>
-
 `
 
-loadExpenses()
-
-renderExpenseChart()
-
+  loadExpenses()
 }
 
 function addExpense(){
+  const inputElement = document.getElementById("expenseInput")
 
-let inputElement = document.getElementById("expenseInput")
+  if(!inputElement){
+    return
+  }
 
-if(!inputElement) return
+  const input = inputElement.value.trim()
 
-let input = inputElement.value.trim()
+  if(!input){
+    alert("Enter expense")
+    return
+  }
 
-if(!input) return alert("Enter expense")
+  const parts = input.split(/\s+/)
+  const amount = Number(parts.pop())
+  const name = parts.join(" ").trim()
 
-let parts = input.split(" ")
+  if(!name){
+    alert("Enter item name")
+    return
+  }
 
-let amount = parseFloat(parts.pop())
-let name = parts.join(" ")
+  if(!Number.isFinite(amount) || amount <= 0){
+    alert("Invalid amount")
+    return
+  }
 
-if(!name) return alert("Enter item name")
-if(isNaN(amount) || amount <= 0) return alert("Invalid amount")
+  DailyKitStorage.addExpense({name, amount})
+  inputElement.value = ""
 
-let today = new Date().toISOString().split("T")[0]
+  loadExpenses()
 
-let data = JSON.parse(localStorage.getItem("expenses")) || []
-
-data.push({
-name:name,
-amount:amount,
-date:today
-})
-
-localStorage.setItem("expenses", JSON.stringify(data))
-
-inputElement.value=""
-
-loadExpenses()
-
-renderExpenseChart()
-
+  if(typeof refreshDashboard === "function"){
+    refreshDashboard()
+  }
 }
 
 function loadExpenses(){
+  const data = DailyKitStorage.getExpenses()
+  const list = document.getElementById("expenseList")
 
-let data=JSON.parse(localStorage.getItem("expenses"))||[]
+  if(!list){
+    return
+  }
 
-let list=document.getElementById("expenseList")
+  list.innerHTML = ""
 
-if(!list) return
+  const today = new Date().toISOString().slice(0, 10)
+  const todayExpenses = data.filter((entry) => entry.date === today)
 
-list.innerHTML=""
-
-let today=new Date().toISOString().split("T")[0]
-
-let total=0
-
-data.forEach((e,index)=>{
-
-if(e.date===today){
-
-total+=e.amount
-
-list.innerHTML+=`
+  todayExpenses.forEach((entry) => {
+    list.innerHTML += `
 <div class="list-item">
-${e.name} ₹${e.amount}
-<button onclick="deleteExpense(${index})">❌</button>
+${entry.name} \u20B9${entry.amount}
+<button onclick='deleteExpense(${JSON.stringify(entry.id)})'>Delete</button>
 </div>
 `
+  })
 }
 
-})
+function deleteExpense(id){
+  DailyKitStorage.removeExpense(id)
+  loadExpenses()
 
-document.getElementById("todayExpense").innerText="₹"+total
-
-renderExpenseChart()
-
-}
-
-
-
-function deleteExpense(index){
-
-let data = JSON.parse(localStorage.getItem("expenses")) || []
-
-data.splice(index,1)
-
-localStorage.setItem("expenses", JSON.stringify(data))
-
-loadExpenses()
-
-renderExpenseChart()
-
-}
-
-function updateDashboard(){
-
-let data = JSON.parse(localStorage.getItem("expenses")) || []
-
-let today = new Date().toISOString().split("T")[0]
-
-let total = 0
-
-data.forEach(item=>{
- if(item.date === today){
-  total += item.amount
- }
-})
-
-document.getElementById("todayExpense").innerText = "₹" + total
-
+  if(typeof refreshDashboard === "function"){
+    refreshDashboard()
+  }
 }

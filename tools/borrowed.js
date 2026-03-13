@@ -1,82 +1,69 @@
 function renderTool(){
+  const area = document.getElementById("toolContainer")
 
-const area = document.getElementById("toolContainer")
-
-area.innerHTML = `
-
+  area.innerHTML = `
 <h2>Borrowed Money</h2>
-
 <input id="person" placeholder="Person">
-
 <input id="amount" placeholder="Amount">
-
 <button onclick="addBorrow()">Add</button>
-
 <div id="borrowList"></div>
-
 `
 
-loadBorrow()
-
+  loadBorrow()
 }
 
 function addBorrow(){
+  const personInput = document.getElementById("person")
+  const amountInput = document.getElementById("amount")
+  const person = personInput.value.trim()
+  const amount = Number(amountInput.value)
 
-let person=document.getElementById("person").value.trim()
+  if(!person){
+    alert("Enter person name")
+    return
+  }
 
-if(!person) return alert("Enter person name")
+  if(!Number.isFinite(amount) || amount <= 0){
+    alert("Invalid amount")
+    return
+  }
 
-let amount=parseFloat(document.getElementById("amount").value)
+  DailyKitStorage.addBorrow({person, amount})
+  personInput.value = ""
+  amountInput.value = ""
 
-if(!amount) return alert("Invalid amount")
+  loadBorrow()
 
-let data=JSON.parse(localStorage.getItem("borrow"))||[]
-
-data.push({person,amount})
-
-localStorage.setItem("borrow",JSON.stringify(data))
-
-loadBorrow()
-
+  if(typeof refreshDashboard === "function"){
+    refreshDashboard()
+  }
 }
 
 function loadBorrow(){
+  const data = DailyKitStorage.getBorrow()
+  const list = document.getElementById("borrowList")
 
-let data=JSON.parse(localStorage.getItem("borrow"))||[]
+  if(!list){
+    return
+  }
 
-let list=document.getElementById("borrowList")
+  list.innerHTML = ""
 
-if(!list) return
-
-list.innerHTML=""
-
-let total=0
-
-data.forEach((b,index)=>{
-
-total+=b.amount
-
-list.innerHTML+=`
+  data.forEach((entry) => {
+    list.innerHTML += `
 <div class="list-item">
-${b.person} owes ₹${b.amount}
-<button onclick="deleteBorrow(${index})">❌</button>
+${entry.person} owes \u20B9${entry.amount}
+<button onclick='deleteBorrow(${JSON.stringify(entry.id)})'>Delete</button>
 </div>
 `
-
-})
-
-document.getElementById("borrowedTotal").innerText="₹"+total
-
+  })
 }
 
-function deleteBorrow(index){
+function deleteBorrow(id){
+  DailyKitStorage.removeBorrow(id)
+  loadBorrow()
 
-let data=JSON.parse(localStorage.getItem("borrow"))||[]
-
-data.splice(index,1)
-
-localStorage.setItem("borrow",JSON.stringify(data))
-
-loadBorrow()
-
+  if(typeof refreshDashboard === "function"){
+    refreshDashboard()
+  }
 }

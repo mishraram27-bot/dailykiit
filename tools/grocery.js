@@ -1,83 +1,61 @@
 function renderTool(){
+  const area = document.getElementById("toolContainer")
 
-const area = document.getElementById("toolContainer")
-
-area.innerHTML = `
-
+  area.innerHTML = `
 <h2>Grocery List</h2>
-
 <input id="groceryInput" placeholder="Item name">
-
 <button onclick="addGrocery()">Add</button>
-
 <div id="groceryList"></div>
-
 `
 
-loadGroceries()
-
+  loadGroceries()
 }
-
-
 
 function addGrocery(){
+  const input = document.getElementById("groceryInput")
 
-let input = document.getElementById("groceryInput")
+  if(!input){
+    return
+  }
 
-if(!input) return
+  const value = input.value.trim()
 
-let value = input.value.trim()
+  if(!value){
+    return
+  }
 
-if(!value) return
+  DailyKitStorage.addGrocery({name: value})
+  input.value = ""
+  loadGroceries()
 
-let data = JSON.parse(localStorage.getItem("grocery")) || []
-
-data.push(value)
-
-localStorage.setItem("grocery", JSON.stringify(data))
-
-input.value=""
-
-loadGroceries()
-
+  if(typeof refreshDashboard === "function"){
+    refreshDashboard()
+  }
 }
-
-
 
 function loadGroceries(){
+  const data = DailyKitStorage.getGrocery()
+  const list = document.getElementById("groceryList")
 
-let data = JSON.parse(localStorage.getItem("grocery")) || []
+  if(!list){
+    return
+  }
 
-let list = document.getElementById("groceryList")
+  list.innerHTML = ""
 
-if(!list) return
-
-list.innerHTML=""
-
-data.forEach((item,index)=>{
-
-let div = document.createElement("div")
-
-div.className="list-item"
-
-div.innerHTML = item + ` <button onclick="removeGrocery(${index})">❌</button>`
-
-list.appendChild(div)
-
-})
-
+  data.forEach((item) => {
+    const div = document.createElement("div")
+    div.className = "list-item"
+    div.innerHTML = `${item.name} <button onclick='removeGrocery(${JSON.stringify(item.id)})'>Delete</button>`
+    list.appendChild(div)
+  })
 }
 
+function removeGrocery(id){
+  DailyKitStorage.removeGrocery(id)
+  loadGroceries()
 
-
-function removeGrocery(index){
-
-let data = JSON.parse(localStorage.getItem("grocery")) || []
-
-data.splice(index,1)
-
-localStorage.setItem("grocery", JSON.stringify(data))
-
-loadGroceries()
-
+  if(typeof refreshDashboard === "function"){
+    refreshDashboard()
+  }
 }

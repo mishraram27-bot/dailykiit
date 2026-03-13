@@ -1,335 +1,582 @@
+let languageData = {}
+let toolRegistry = []
+let toolRegistryPromise = null
+let expenseChartInstance = null
+let weeklyChartInstance = null
+let deferredPrompt = null
+let activeToolId = null
+
+const searchState = {
+  results: [],
+  activeIndex: -1
+}
+
+function formatCurrency(amount){
+  return `\u20B9${Number(amount) || 0}`
+}
+
+function escapeHtml(value){
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;")
+}
+
+async function ensureToolRegistry(){
+  if(toolRegistry.length){
+    return toolRegistry
+  }
+
+  if(!toolRegistryPromise){
+    toolRegistryPromise = fetch("tools/tools.json")
+      .then((response) => response.json())
+      .then((tools) => {
+        toolRegistry = Array.isArray(tools) ? tools : []
+        return toolRegistry
+      })
+      .catch((error) => {
+        toolRegistryPromise = null
+        throw error
+      })
+  }
+
+  return toolRegistryPromise
+}
+
 function showHome(){
-
-document.getElementById("screenHome").style.display="block"
-document.getElementById("toolArea").style.display="none"
-
-renderExpenseChart()
-
+  activeToolId = null
+  document.getElementById("screenHome").style.display = "block"
+  document.getElementById("toolArea").style.display = "none"
+  refreshDashboard()
 }
 
 function showSection(sectionId){
+  const sections = document.querySelectorAll(".page-section")
 
-const sections = document.querySelectorAll(".page-section")
+  sections.forEach((section) => {
+    section.style.display = "none"
+  })
 
-sections.forEach(section=>{
-section.style.display="none"
-})
+  const target = document.getElementById(sectionId)
 
-document.getElementById(sectionId).style.display="block"
-
+  if(target){
+    target.style.display = "block"
+  }
 }
 
 async function openTool(toolId){
+  const tools = await ensureToolRegistry()
+  const tool = tools.find((entry) => entry.id === toolId)
 
-const res = await fetch("tools/tools.json")
-const tools = await res.json()
+  if(!tool){
+    return
+  }
 
-const tool = tools.find(t => t.id === toolId)
+  activeToolId = toolId
 
-if(!tool) return
+  const container = document.getElementById("toolContainer")
+  container.innerHTML = ""
 
-let container = document.getElementById("toolContainer")
+  document.getElementById("screenHome").style.display = "none"
+  document.getElementById("toolArea").style.display = "block"
 
-container.innerHTML = ""
+  document.querySelectorAll("script[data-tool]").forEach((script) => script.remove())
 
-document.getElementById("screenHome").style.display="none"
-document.getElementById("toolArea").style.display="block"
+  const script = document.createElement("script")
+  script.src = tool.script
+  script.dataset.tool = toolId
+  script.onload = () => {
+    if(typeof renderTool === "function"){
+      renderTool()
+    }
+  }
 
-// remove old script
-let oldScript = document.querySelector(`script[data-tool="${toolId}"]`)
-if(oldScript) oldScript.remove()
-
-// load fresh script
-let script = document.createElement("script")
-script.src = tool.script
-script.dataset.tool = toolId
-
-script.onload = ()=>{
-if(typeof renderTool === "function"){
-renderTool()
+  document.body.appendChild(script)
 }
-}
-
-document.body.appendChild(script)
-
-}
-
-
-
-if("serviceWorker" in navigator){
-
-window.addEventListener("load", ()=>{
-
-navigator.serviceWorker.register("service-worker.js")
-.then(()=>{
-
-console.log("Service Worker Registered")
-
-})
-
-})
-
-}
-
-let languageData = {}
 
 async function loadLanguage(lang){
+  const response = await fetch(`languages/${lang}.json`)
+  languageData = await response.json()
 
-const res = await fetch(`languages/${lang}.json`)
-languageData = await res.json()
-
-applyLanguage()
-
-localStorage.setItem("language", lang)
-
+  applyLanguage()
+  localStorage.setItem("language", lang)
 }
 
 function applyLanguage(){
+  const nodes = {
+    todayExpense: document.querySelector('[data-text="todayExpense"]'),
+    borrowedPending: document.querySelector('[data-text="borrowedPending"]'),
+    quickTools: document.querySelector('[data-text="quickTools"]')
+  }
 
-document.querySelector('[data-text="todayExpense"]').innerText = languageData.todayExpense
-document.querySelector('[data-text="borrowedPending"]').innerText = languageData.borrowedPending
-document.querySelector('[data-text="quickTools"]').innerText = languageData.quickTools
-
+  Object.entries(nodes).forEach(([key, node]) => {
+    if(node && languageData[key]){
+      node.innerText = languageData[key]
+    }
+  })
 }
-
-
-window.addEventListener("load",()=>{
-
-loadTools()
-
-renderExpenseChart()
-
-let lang = localStorage.getItem("language") || "en"
-
-document.getElementById("languageSelect").value = lang
-
-loadLanguage(lang)
-
-document.getElementById("languageSelect").addEventListener("change",(e)=>{
-
-loadLanguage(e.target.value)
-
-})
-
-document.getElementById("globalSearch").addEventListener("input", runSearch)
-
-})
 
 function exportData(){
+  const data = DailyKitStorage.exportBackup()
+  const json = JSON.stringify(data, null, 2)
+  const blob = new Blob([json], {type: "application/json"})
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
 
-let data = {
+  link.href = url
+  link.download = "dailykit-backup.json"
+  link.click()
 
-expenses: JSON.parse(localStorage.getItem("expenses")) || [],
-borrow: JSON.parse(localStorage.getItem("borrow")) || [],
-grocery: JSON.parse(localStorage.getItem("grocery")) || []
-
-}
-
-let json = JSON.stringify(data)
-
-let blob = new Blob([json], {type:"application/json"})
-
-let url = URL.createObjectURL(blob)
-
-let a = document.createElement("a")
-
-a.href = url
-a.download = "dailykit-backup.json"
-
-a.click()
-
+  URL.revokeObjectURL(url)
 }
 
 async function loadTools(){
+  const tools = await ensureToolRegistry()
+  const container = document.querySelector(".home-tools")
 
-const res = await fetch("tools/tools.json")
+  if(!container){
+    return
+  }
 
-const tools = await res.json()
+  container.innerHTML = ""
 
-const container = document.querySelector(".home-tools")
-
-container.innerHTML=""
-
-tools.forEach(tool=>{
-
-const btn = document.createElement("button")
-
-btn.innerHTML = tool.icon + " " + tool.name
-
-btn.onclick = () => openTool(tool.id)
-
-container.appendChild(btn)
-
-})
-
+  tools.forEach((tool) => {
+    const button = document.createElement("button")
+    button.innerHTML = `${tool.icon} ${tool.name}`
+    button.onclick = () => openTool(tool.id)
+    container.appendChild(button)
+  })
 }
 
-window.addEventListener("load",()=>{
-
-let importInput = document.getElementById("importFile")
-
-if(importInput){
-
-importInput.addEventListener("change", function(e){
-
-let file = e.target.files[0]
-
-if(!file) return
-
-let reader = new FileReader()
-
-reader.onload = function(event){
-
-let data = JSON.parse(event.target.result)
-
-localStorage.setItem("expenses", JSON.stringify(data.expenses || []))
-localStorage.setItem("borrow", JSON.stringify(data.borrow || []))
-localStorage.setItem("grocery", JSON.stringify(data.grocery || []))
-
-alert("Backup Restored Successfully")
-
-location.reload()
-
+function getExpenseCategories(expenses){
+  return expenses.reduce((categories, entry) => {
+    const category = entry.category || DailyKitStorage.inferExpenseCategory(entry.name)
+    categories[category] = (categories[category] || 0) + entry.amount
+    return categories
+  }, {})
 }
-
-reader.readAsText(file)
-
-})
-
-}
-
-})
-
-let expenseChartInstance = null
 
 function renderExpenseChart(){
+  const canvas = document.getElementById("expenseChart")
 
-let canvas = document.getElementById("expenseChart")
+  if(!canvas){
+    return
+  }
 
-if(!canvas) return
+  const expenses = DailyKitStorage.getExpenses()
+  const insightsBox = document.getElementById("insights")
 
-let data = JSON.parse(localStorage.getItem("expenses")) || []
+  if(!expenses.length){
+    if(expenseChartInstance){
+      expenseChartInstance.destroy()
+      expenseChartInstance = null
+    }
 
-let categories = {}
+    if(insightsBox){
+      insightsBox.innerHTML = "<p style='color:#777'>No expenses yet. Add your first expense.</p>"
+    }
 
-data.forEach(item=>{
+    return
+  }
 
-let name = item.name.toLowerCase()
+  const categories = getExpenseCategories(expenses)
 
-let category="Other"
+  generateInsights(categories)
 
-let transport = ["bus","train","flight","taxi","uber","auto","metro","petrol"]
-let food = ["tea","coffee","lunch","dinner","breakfast","snack","food"]
-let grocery = ["milk","bread","vegetable","fruit","rice","grocery"]
+  if(expenseChartInstance){
+    expenseChartInstance.destroy()
+  }
 
-if(transport.some(t=>name.includes(t))) category="Transport"
-if(food.some(t=>name.includes(t))) category="Food"
-if(grocery.some(t=>name.includes(t))) category="Grocery"
-
-if(!categories[category]) categories[category]=0
-
-categories[category]+=item.amount
-
-})
-
-let labels = Object.keys(categories)
-
-let values = Object.values(categories)
-
-generateInsights(categories)
-
-if(expenseChartInstance){
-expenseChartInstance.destroy()
-}
-
-expenseChartInstance = new Chart(canvas,{
-type:"pie",
-data:{
-labels:labels,
-datasets:[{
-data:values
-}]
-}
-})
-
+  expenseChartInstance = new Chart(canvas, {
+    type: "pie",
+    data: {
+      labels: Object.keys(categories),
+      datasets: [{
+        data: Object.values(categories),
+        backgroundColor: ["#3B82F6", "#F59E0B", "#10B981", "#EF4444"]
+      }]
+    }
+  })
 }
 
 function generateInsights(categories){
+  const values = Object.values(categories)
+  const box = document.getElementById("insights")
 
-let total = Object.values(categories).reduce((a,b)=>a+b,0)
+  if(!box){
+    return
+  }
 
-let topCategory = Object.keys(categories).reduce((a,b)=>
-categories[a]>categories[b]?a:b
-)
+  if(!values.length){
+    box.innerHTML = "<p style='text-align:center;color:#888'>No data yet</p>"
+    return
+  }
 
-let dailyAvg = Math.round(total/30)
+  const total = values.reduce((sum, value) => sum + value, 0)
+  const topCategory = Object.keys(categories).reduce((best, current) => {
+    return categories[best] > categories[current] ? best : current
+  })
+  const dailyAvg = Math.round(total / 30)
 
-document.getElementById("insights").innerHTML = `
-<div class="insight-box">
-<p><b>Top Category:</b> ${topCategory}</p>
-<p><b>Monthly Spend:</b> ₹${total}</p>
-<p><b>Daily Average:</b> ₹${dailyAvg}</p>
-</div>
+  box.innerHTML = `
+<p><b>Top Category:</b> ${escapeHtml(topCategory)}</p>
+<p><b>Monthly Spend:</b> ${formatCurrency(total)}</p>
+<p><b>Daily Average:</b> ${formatCurrency(dailyAvg)}</p>
 `
 }
 
+function renderSearchResults(){
+  const resultsBox = document.getElementById("searchResults")
+
+  if(!resultsBox){
+    return
+  }
+
+  if(!searchState.results.length){
+    resultsBox.innerHTML = "<div class='search-empty'>No results found</div>"
+    resultsBox.style.display = "block"
+    return
+  }
+
+  resultsBox.innerHTML = searchState.results.map((result, index) => {
+    const activeClass = index === searchState.activeIndex ? " active" : ""
+
+    return `
+<button type="button" class="search-item${activeClass}" data-index="${index}">
+<span class="search-title">${escapeHtml(result.title)}</span>
+<span class="search-subtitle">${escapeHtml(result.subtitle)}</span>
+</button>
+`
+  }).join("")
+
+  resultsBox.style.display = "block"
+}
+
+function closeSearchResults(){
+  const resultsBox = document.getElementById("searchResults")
+
+  searchState.results = []
+  searchState.activeIndex = -1
+
+  if(resultsBox){
+    resultsBox.innerHTML = ""
+    resultsBox.style.display = "none"
+  }
+}
+
 function runSearch(){
+  const input = document.getElementById("globalSearch")
 
-let input = document.getElementById("globalSearch")
-let div = document.getElementById("searchResults")
+  if(!input){
+    return
+  }
 
-if(!input || !div) return
+  const query = input.value.trim()
 
-let q = input.value.toLowerCase().trim()
+  if(!query){
+    closeSearchResults()
+    return
+  }
 
-if(q === ""){
-div.style.display = "none"
-div.innerHTML = ""
-return
+  searchState.results = DailyKitSearch.buildResults(query, toolRegistry)
+  searchState.activeIndex = searchState.results.length ? 0 : -1
+
+  renderSearchResults()
 }
 
-let results = []
+function selectSearchResult(index){
+  const result = searchState.results[index]
+  const input = document.getElementById("globalSearch")
 
-let expenses = JSON.parse(localStorage.getItem("expenses")) || []
+  if(!result){
+    return
+  }
 
-expenses.forEach(e=>{
-let name = (e.name || "").toLowerCase()
+  if(input){
+    input.value = ""
+  }
 
-if(name.includes(q)){
-results.push("Expense: " + e.name + " ₹" + e.amount)
-}
-})
-
-let grocery = JSON.parse(localStorage.getItem("grocery")) || []
-
-grocery.forEach(g=>{
-let item = (g.name || "").toLowerCase()
-
-if(item.includes(q)){
-results.push("Grocery: " + g.name)
-}
-})
-
-let borrow = JSON.parse(localStorage.getItem("borrow")) || []
-
-borrow.forEach(b=>{
-let person = (b.person || "").toLowerCase()
-
-if(person.includes(q)){
-results.push("Borrow: " + b.person + " ₹" + b.amount)
-}
-})
-
-if(results.length === 0){
-
-div.innerHTML = "<div style='padding:10px'>No results found</div>"
-
-}else{
-
-div.innerHTML = results.map(r => `<div>${r}</div>`).join("")
-
+  closeSearchResults()
+  openTool(result.toolId)
 }
 
-div.style.display = "block"
+function handleSearchKeydown(event){
+  if(!searchState.results.length){
+    if(event.key === "Escape"){
+      closeSearchResults()
+    }
 
+    return
+  }
+
+  if(event.key === "ArrowDown"){
+    event.preventDefault()
+    searchState.activeIndex = (searchState.activeIndex + 1) % searchState.results.length
+    renderSearchResults()
+    return
+  }
+
+  if(event.key === "ArrowUp"){
+    event.preventDefault()
+    searchState.activeIndex =
+      (searchState.activeIndex - 1 + searchState.results.length) % searchState.results.length
+    renderSearchResults()
+    return
+  }
+
+  if(event.key === "Enter"){
+    event.preventDefault()
+    selectSearchResult(searchState.activeIndex >= 0 ? searchState.activeIndex : 0)
+    return
+  }
+
+  if(event.key === "Escape"){
+    closeSearchResults()
+  }
 }
+
+function handleDocumentClick(event){
+  const searchItem = event.target.closest(".search-item")
+
+  if(searchItem){
+    selectSearchResult(Number(searchItem.dataset.index))
+    return
+  }
+
+  const searchBox = document.querySelector(".search-box")
+
+  if(searchBox && !searchBox.contains(event.target)){
+    closeSearchResults()
+  }
+}
+
+function importData(){
+  const input = document.getElementById("importFile")
+
+  if(input){
+    input.click()
+  }
+}
+
+function handleImportFileChange(event){
+  const file = event.target.files[0]
+
+  if(!file){
+    return
+  }
+
+  const reader = new FileReader()
+
+  reader.onload = function(loadEvent){
+    try{
+      const data = JSON.parse(loadEvent.target.result)
+      DailyKitStorage.importBackup(data)
+      event.target.value = ""
+      alert("Backup restored successfully.")
+      refreshDashboard()
+
+      if(activeToolId && typeof renderTool === "function"){
+        renderTool()
+      }
+    }catch(error){
+      event.target.value = ""
+      alert("Backup file is invalid.")
+    }
+  }
+
+  reader.readAsText(file)
+}
+
+function updateDashboardStats(){
+  const expenses = DailyKitStorage.getExpenses()
+  const borrow = DailyKitStorage.getBorrow()
+  const today = new Date().toISOString().slice(0, 10)
+
+  const todayTotal = expenses.reduce((sum, entry) => {
+    return entry.date === today ? sum + entry.amount : sum
+  }, 0)
+
+  const borrowTotal = borrow.reduce((sum, entry) => sum + entry.amount, 0)
+
+  document.getElementById("todayExpense").innerText = formatCurrency(todayTotal)
+  document.getElementById("borrowedTotal").innerText = formatCurrency(borrowTotal)
+}
+
+function renderWeeklyChart(){
+  const canvas = document.getElementById("weeklyChart")
+
+  if(!canvas){
+    return
+  }
+
+  canvas.style.height = "220px"
+  canvas.style.maxHeight = "220px"
+  canvas.height = 220
+
+  const expenses = DailyKitStorage.getExpenses()
+  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+  const totals = [0,0,0,0,0,0,0]
+
+  expenses.forEach((entry) => {
+    const date = new Date(entry.date)
+
+    if(Number.isNaN(date.getTime())){
+      return
+    }
+
+    totals[date.getDay()] += entry.amount
+  })
+
+  if(weeklyChartInstance){
+    weeklyChartInstance.destroy()
+  }
+
+  weeklyChartInstance = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: days,
+      datasets: [{
+        label: "Weekly Spending",
+        data: totals,
+        backgroundColor: "#3B82F6"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  })
+}
+
+function refreshDashboard(){
+  updateDashboardStats()
+  renderExpenseChart()
+  renderWeeklyChart()
+
+  const searchInput = document.getElementById("globalSearch")
+
+  if(searchInput && searchInput.value.trim()){
+    runSearch()
+  }
+}
+
+function showWelcome(){
+  const first = localStorage.getItem("dailykit_welcome")
+
+  if(first){
+    return
+  }
+
+  alert("Welcome to DailyKit!\n\nTrack expenses, groceries and borrowed money easily.")
+  localStorage.setItem("dailykit_welcome", "yes")
+}
+
+function installApp(){
+  if(!deferredPrompt){
+    return
+  }
+
+  deferredPrompt.prompt()
+}
+
+function initInstallPrompt(){
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault()
+    deferredPrompt = event
+
+    const button = document.getElementById("installBtn")
+
+    if(button){
+      button.style.display = "block"
+    }
+  })
+
+  const button = document.getElementById("installBtn")
+
+  if(button){
+    button.addEventListener("click", async () => {
+      if(!deferredPrompt){
+        return
+      }
+
+      deferredPrompt.prompt()
+      await deferredPrompt.userChoice
+      deferredPrompt = null
+      button.style.display = "none"
+    })
+  }
+}
+
+function initServiceWorker(){
+  if(!("serviceWorker" in navigator)){
+    return
+  }
+
+  const isLocalDev =
+    location.hostname === "localhost" ||
+    location.hostname === "127.0.0.1"
+
+  if(isLocalDev){
+    window.addEventListener("load", async () => {
+      const registrations = await navigator.serviceWorker.getRegistrations()
+
+      await Promise.all(registrations.map((registration) => registration.unregister()))
+
+      if("caches" in window){
+        const keys = await caches.keys()
+        await Promise.all(keys.map((key) => caches.delete(key)))
+      }
+    })
+
+    return
+  }
+
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js")
+  })
+}
+
+async function initApp(){
+  showWelcome()
+  await loadTools()
+  refreshDashboard()
+
+  const languageSelect = document.getElementById("languageSelect")
+  const savedLanguage = localStorage.getItem("language") || "en"
+
+  if(languageSelect){
+    languageSelect.value = savedLanguage
+    languageSelect.addEventListener("change", (event) => loadLanguage(event.target.value))
+  }
+
+  await loadLanguage(savedLanguage)
+
+  const searchInput = document.getElementById("globalSearch")
+
+  if(searchInput){
+    searchInput.addEventListener("input", runSearch)
+    searchInput.addEventListener("keydown", handleSearchKeydown)
+    searchInput.addEventListener("focus", () => {
+      if(searchInput.value.trim()){
+        runSearch()
+      }
+    })
+  }
+
+  const importInput = document.getElementById("importFile")
+
+  if(importInput){
+    importInput.addEventListener("change", handleImportFileChange)
+  }
+
+  document.addEventListener("click", handleDocumentClick)
+}
+
+window.addEventListener("DOMContentLoaded", initApp)
+
+initInstallPrompt()
+initServiceWorker()
+
+window.refreshDashboard = refreshDashboard

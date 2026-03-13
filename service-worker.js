@@ -1,13 +1,20 @@
+const CACHE_NAME = "dailykit-v2"
+
 const urlsToCache = [
 "/",
 "/index.html",
 "/style.css",
 "/app.js",
+"/core/storage.js",
+"/core/searchEngine.js",
 "/manifest.json",
 
 "/tools/expenses.js",
 "/tools/borrowed.js",
-"/tools/grocery.js"
+"/tools/grocery.js",
+
+"/icons/icon-192.png",
+"/icons/icon-512.png"
 ]
 
 self.addEventListener("install", event => {
