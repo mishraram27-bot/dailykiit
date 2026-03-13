@@ -7,6 +7,8 @@
 
 <title>DailyKit</title>
 
+<meta name="theme-color" content="#2F6FED">
+
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
@@ -16,28 +18,34 @@
 
 <body>
 
-<header>
+<header class="hero-header">
 
+<div class="hero-inner">
+
+<p class="hero-kicker">Offline personal toolkit</p>
 <h1>DailyKit</h1>
+<p class="hero-copy">
+Track spending, groceries, and borrowed money in one clean dashboard that still works offline.
+</p>
 
 <div class="search-box">
-<input id="globalSearch" placeholder="Search DailyKit">
+<input id="globalSearch" placeholder="Search DailyKit or try coffee 50" autocomplete="off">
 <div id="searchResults"></div>
 </div>
+
+<div class="header-controls">
+<label class="select-wrap" for="languageSelect">
+<span>Language</span>
 <select id="languageSelect">
 <option value="en">English</option>
-<option value="hi">हिन्दी</option>
+<option value="hi">&#2361;&#2367;&#2344;&#2381;&#2342;&#2368;</option>
 </select>
+</label>
 
-<div id="installBanner" style="display:none;background:#fff;padding:10px;color:#333">
-
-Install DailyKit for faster access.
-
-<button onclick="installApp()">Install</button>
-
+<button id="installBtn" class="ghost-btn" style="display:none">Install App</button>
 </div>
 
-<button id="installBtn" style="display:none">Install App</button>
+</div>
 
 </header>
 
@@ -47,15 +55,24 @@ Install DailyKit for faster access.
 
 <div class="dashboard">
 
+<section class="summary-header">
+<div>
+<p class="section-kicker">Overview</p>
+<h2 class="section-title">Daily pulse</h2>
+</div>
+</section>
+
 <div class="summary">
 
 <div class="card">
-<h3 id="todayExpense">₹0</h3>
+<p class="card-label">Today</p>
+<h3 id="todayExpense">&#8377;0</h3>
 <p data-text="todayExpense">Today's Expense</p>
 </div>
 
 <div class="card">
-<h3 id="borrowedTotal">₹0</h3>
+<p class="card-label">Open</p>
+<h3 id="borrowedTotal">&#8377;0</h3>
 <p data-text="borrowedPending">Borrowed Pending</p>
 </div>
 
@@ -63,9 +80,9 @@ Install DailyKit for faster access.
 
 <div class="chart-section">
 
-  <h3>Expense Categories</h3>
+<h3>Expense Categories</h3>
 
-  <canvas id="expenseChart"></canvas>
+<canvas id="expenseChart"></canvas>
 
 </div>
 
@@ -77,9 +94,14 @@ Install DailyKit for faster access.
 
 </div>
 
-<div id="insights"></div>
+<div id="insights" class="insight-box"></div>
 
-<h2 data-text="quickTools">Quick Tools</h2>
+<div class="tools-header">
+<div>
+<p class="section-kicker">Shortcuts</p>
+<h2 class="section-title" data-text="quickTools">Quick Tools</h2>
+</div>
+</div>
 
 <div class="home-tools"></div>
 
@@ -93,12 +115,16 @@ Install DailyKit for faster access.
 
 <section class="backup-section">
 
+<p class="section-kicker">Safety</p>
 <h3>Data Backup</h3>
+<p class="backup-copy">Keep a portable copy of your offline data whenever you want.</p>
 
+<div class="backup-actions">
 <button onclick="exportData()">Export Data</button>
 
 <input type="file" id="importFile" hidden>
-<button onclick="document.getElementById('importFile').click()">Import Backup</button>
+<button class="ghost-btn" onclick="document.getElementById('importFile').click()">Import Backup</button>
+</div>
 
 </section>
 
@@ -107,6 +133,8 @@ Install DailyKit for faster access.
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="core/storage.js" defer></script>
 <script src="core/searchEngine.js" defer></script>
+<script src="core/router.js" defer></script>
+<script src="core/dashboard.js" defer></script>
 <script src="app.js" defer></script>
 
 <footer class="disclaimer">
@@ -116,12 +144,12 @@ It does not provide financial, medical, or legal advice.
 
 <nav class="bottom-nav">
 
-<button onclick="showHome()">🏠 Home</button>
-<button onclick="openTool('expenses')">💰 Expenses</button>
-<button onclick="openTool('borrowed')">🤝 Borrowed</button>
-<button onclick="openTool('grocery')">🛒 Grocery</button>
-<button onclick="exportData()">Export Backup</button>
-<button onclick="importData()">Import Backup</button>
+<button onclick="showHome()"><span class="nav-icon">&#127968;</span><span class="nav-label">Home</span></button>
+<button onclick="openTool('expenses')"><span class="nav-icon">&#128176;</span><span class="nav-label">Expenses</span></button>
+<button onclick="openTool('borrowed')"><span class="nav-icon">&#129309;</span><span class="nav-label">Borrowed</span></button>
+<button onclick="openTool('grocery')"><span class="nav-icon">&#128722;</span><span class="nav-label">Grocery</span></button>
+<button onclick="exportData()"><span class="nav-icon">&#11123;</span><span class="nav-label">Export</span></button>
+<button onclick="importData()"><span class="nav-icon">&#11121;</span><span class="nav-label">Import</span></button>
 
 </nav>
 

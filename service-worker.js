@@ -1,4 +1,4 @@
-const CACHE_NAME = "dailykit-v2"
+const CACHE_NAME = "dailykit-v4"
 
 const urlsToCache = [
 "/",
@@ -7,6 +7,8 @@ const urlsToCache = [
 "/app.js",
 "/core/storage.js",
 "/core/searchEngine.js",
+"/core/router.js",
+"/core/dashboard.js",
 "/manifest.json",
 
 "/tools/expenses.js",

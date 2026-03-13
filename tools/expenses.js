@@ -2,10 +2,18 @@ function renderTool(){
   const area = document.getElementById("toolContainer")
 
   area.innerHTML = `
+<div class="tool-shell">
+<div class="tool-heading">
+<p class="section-kicker">Money</p>
 <h2>Expenses</h2>
+<p>Capture a spend in one line. Try entries like <strong>coffee 50</strong>.</p>
+</div>
+<div class="tool-form">
 <input id="expenseInput" placeholder="item amount">
-<button onclick="addExpense()">Add</button>
-<div id="expenseList"></div>
+<button onclick="addExpense()">Add Expense</button>
+</div>
+<div id="expenseList" class="list-group"></div>
+</div>
 `
 
   loadExpenses()
@@ -62,11 +70,22 @@ function loadExpenses(){
   const today = new Date().toISOString().slice(0, 10)
   const todayExpenses = data.filter((entry) => entry.date === today)
 
+  if(!todayExpenses.length){
+    list.innerHTML = "<div class='list-empty'>No expenses added for today yet.</div>"
+    return
+  }
+
   todayExpenses.forEach((entry) => {
     list.innerHTML += `
 <div class="list-item">
-${entry.name} \u20B9${entry.amount}
+<div class="list-copy">
+<strong>${entry.name}</strong>
+<span>Added today</span>
+</div>
+<div class="list-actions">
+<span class="list-amount">\u20B9${entry.amount}</span>
 <button onclick='deleteExpense(${JSON.stringify(entry.id)})'>Delete</button>
+</div>
 </div>
 `
   })

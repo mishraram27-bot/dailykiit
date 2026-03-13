@@ -1,18 +1,9 @@
 let languageData = {}
-let toolRegistry = []
-let toolRegistryPromise = null
-let expenseChartInstance = null
-let weeklyChartInstance = null
 let deferredPrompt = null
-let activeToolId = null
 
 const searchState = {
   results: [],
   activeIndex: -1
-}
-
-function formatCurrency(amount){
-  return `\u20B9${Number(amount) || 0}`
 }
 
 function escapeHtml(value){
@@ -22,78 +13,6 @@ function escapeHtml(value){
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;")
-}
-
-async function ensureToolRegistry(){
-  if(toolRegistry.length){
-    return toolRegistry
-  }
-
-  if(!toolRegistryPromise){
-    toolRegistryPromise = fetch("tools/tools.json")
-      .then((response) => response.json())
-      .then((tools) => {
-        toolRegistry = Array.isArray(tools) ? tools : []
-        return toolRegistry
-      })
-      .catch((error) => {
-        toolRegistryPromise = null
-        throw error
-      })
-  }
-
-  return toolRegistryPromise
-}
-
-function showHome(){
-  activeToolId = null
-  document.getElementById("screenHome").style.display = "block"
-  document.getElementById("toolArea").style.display = "none"
-  refreshDashboard()
-}
-
-function showSection(sectionId){
-  const sections = document.querySelectorAll(".page-section")
-
-  sections.forEach((section) => {
-    section.style.display = "none"
-  })
-
-  const target = document.getElementById(sectionId)
-
-  if(target){
-    target.style.display = "block"
-  }
-}
-
-async function openTool(toolId){
-  const tools = await ensureToolRegistry()
-  const tool = tools.find((entry) => entry.id === toolId)
-
-  if(!tool){
-    return
-  }
-
-  activeToolId = toolId
-
-  const container = document.getElementById("toolContainer")
-  container.innerHTML = ""
-
-  document.getElementById("screenHome").style.display = "none"
-  document.getElementById("toolArea").style.display = "block"
-
-  document.querySelectorAll("script[data-tool]").forEach((script) => script.remove())
-
-  const script = document.createElement("script")
-  script.src = tool.script
-  script.dataset.tool = toolId
-  script.onload = () => {
-    if(typeof renderTool === "function"){
-      renderTool()
-    }
-  }
-
-  document.body.appendChild(script)
 }
 
 async function loadLanguage(lang){
@@ -130,101 +49,6 @@ function exportData(){
   link.click()
 
   URL.revokeObjectURL(url)
-}
-
-async function loadTools(){
-  const tools = await ensureToolRegistry()
-  const container = document.querySelector(".home-tools")
-
-  if(!container){
-    return
-  }
-
-  container.innerHTML = ""
-
-  tools.forEach((tool) => {
-    const button = document.createElement("button")
-    button.innerHTML = `${tool.icon} ${tool.name}`
-    button.onclick = () => openTool(tool.id)
-    container.appendChild(button)
-  })
-}
-
-function getExpenseCategories(expenses){
-  return expenses.reduce((categories, entry) => {
-    const category = entry.category || DailyKitStorage.inferExpenseCategory(entry.name)
-    categories[category] = (categories[category] || 0) + entry.amount
-    return categories
-  }, {})
-}
-
-function renderExpenseChart(){
-  const canvas = document.getElementById("expenseChart")
-
-  if(!canvas){
-    return
-  }
-
-  const expenses = DailyKitStorage.getExpenses()
-  const insightsBox = document.getElementById("insights")
-
-  if(!expenses.length){
-    if(expenseChartInstance){
-      expenseChartInstance.destroy()
-      expenseChartInstance = null
-    }
-
-    if(insightsBox){
-      insightsBox.innerHTML = "<p style='color:#777'>No expenses yet. Add your first expense.</p>"
-    }
-
-    return
-  }
-
-  const categories = getExpenseCategories(expenses)
-
-  generateInsights(categories)
-
-  if(expenseChartInstance){
-    expenseChartInstance.destroy()
-  }
-
-  expenseChartInstance = new Chart(canvas, {
-    type: "pie",
-    data: {
-      labels: Object.keys(categories),
-      datasets: [{
-        data: Object.values(categories),
-        backgroundColor: ["#3B82F6", "#F59E0B", "#10B981", "#EF4444"]
-      }]
-    }
-  })
-}
-
-function generateInsights(categories){
-  const values = Object.values(categories)
-  const box = document.getElementById("insights")
-
-  if(!box){
-    return
-  }
-
-  if(!values.length){
-    box.innerHTML = "<p style='text-align:center;color:#888'>No data yet</p>"
-    return
-  }
-
-  const total = values.reduce((sum, value) => sum + value, 0)
-  const topCategory = Object.keys(categories).reduce((best, current) => {
-    return categories[best] > categories[current] ? best : current
-  })
-  const dailyAvg = Math.round(total / 30)
-
-  box.innerHTML = `
-<p><b>Top Category:</b> ${escapeHtml(topCategory)}</p>
-<p><b>Monthly Spend:</b> ${formatCurrency(total)}</p>
-<p><b>Daily Average:</b> ${formatCurrency(dailyAvg)}</p>
-`
 }
 
 function renderSearchResults(){
@@ -280,7 +104,7 @@ function runSearch(){
     return
   }
 
-  searchState.results = DailyKitSearch.buildResults(query, toolRegistry)
+  searchState.results = DailyKitSearch.buildResults(query, DailyKitRouter.getToolRegistry())
   searchState.activeIndex = searchState.results.length ? 0 : -1
 
   renderSearchResults()
@@ -299,7 +123,7 @@ function selectSearchResult(index){
   }
 
   closeSearchResults()
-  openTool(result.toolId)
+  DailyKitRouter.openTool(result.toolId)
 }
 
 function handleSearchKeydown(event){
@@ -375,7 +199,9 @@ function handleImportFileChange(event){
       DailyKitStorage.importBackup(data)
       event.target.value = ""
       alert("Backup restored successfully.")
-      refreshDashboard()
+      DailyKitDashboard.refreshDashboard()
+
+      const activeToolId = DailyKitRouter.getActiveToolId()
 
       if(activeToolId && typeof renderTool === "function"){
         renderTool()
@@ -389,79 +215,6 @@ function handleImportFileChange(event){
   reader.readAsText(file)
 }
 
-function updateDashboardStats(){
-  const expenses = DailyKitStorage.getExpenses()
-  const borrow = DailyKitStorage.getBorrow()
-  const today = new Date().toISOString().slice(0, 10)
-
-  const todayTotal = expenses.reduce((sum, entry) => {
-    return entry.date === today ? sum + entry.amount : sum
-  }, 0)
-
-  const borrowTotal = borrow.reduce((sum, entry) => sum + entry.amount, 0)
-
-  document.getElementById("todayExpense").innerText = formatCurrency(todayTotal)
-  document.getElementById("borrowedTotal").innerText = formatCurrency(borrowTotal)
-}
-
-function renderWeeklyChart(){
-  const canvas = document.getElementById("weeklyChart")
-
-  if(!canvas){
-    return
-  }
-
-  canvas.style.height = "220px"
-  canvas.style.maxHeight = "220px"
-  canvas.height = 220
-
-  const expenses = DailyKitStorage.getExpenses()
-  const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
-  const totals = [0,0,0,0,0,0,0]
-
-  expenses.forEach((entry) => {
-    const date = new Date(entry.date)
-
-    if(Number.isNaN(date.getTime())){
-      return
-    }
-
-    totals[date.getDay()] += entry.amount
-  })
-
-  if(weeklyChartInstance){
-    weeklyChartInstance.destroy()
-  }
-
-  weeklyChartInstance = new Chart(canvas, {
-    type: "bar",
-    data: {
-      labels: days,
-      datasets: [{
-        label: "Weekly Spending",
-        data: totals,
-        backgroundColor: "#3B82F6"
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false
-    }
-  })
-}
-
-function refreshDashboard(){
-  updateDashboardStats()
-  renderExpenseChart()
-  renderWeeklyChart()
-
-  const searchInput = document.getElementById("globalSearch")
-
-  if(searchInput && searchInput.value.trim()){
-    runSearch()
-  }
-}
-
 function showWelcome(){
   const first = localStorage.getItem("dailykit_welcome")
 
@@ -469,7 +222,6 @@ function showWelcome(){
     return
   }
 
-  alert("Welcome to DailyKit!\n\nTrack expenses, groceries and borrowed money easily.")
   localStorage.setItem("dailykit_welcome", "yes")
 }
 
@@ -540,8 +292,8 @@ function initServiceWorker(){
 
 async function initApp(){
   showWelcome()
-  await loadTools()
-  refreshDashboard()
+  await DailyKitRouter.loadTools()
+  DailyKitDashboard.refreshDashboard()
 
   const languageSelect = document.getElementById("languageSelect")
   const savedLanguage = localStorage.getItem("language") || "en"
@@ -579,4 +331,7 @@ window.addEventListener("DOMContentLoaded", initApp)
 initInstallPrompt()
 initServiceWorker()
 
-window.refreshDashboard = refreshDashboard
+window.runSearch = runSearch
+window.exportData = exportData
+window.importData = importData
+window.installApp = installApp

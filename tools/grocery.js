@@ -2,10 +2,18 @@ function renderTool(){
   const area = document.getElementById("toolContainer")
 
   area.innerHTML = `
+<div class="tool-shell">
+<div class="tool-heading">
+<p class="section-kicker">Shopping</p>
 <h2>Grocery List</h2>
+<p>Drop in items fast and keep a clean, ready-to-use list for the next run.</p>
+</div>
+<div class="tool-form">
 <input id="groceryInput" placeholder="Item name">
-<button onclick="addGrocery()">Add</button>
-<div id="groceryList"></div>
+<button onclick="addGrocery()">Add Item</button>
+</div>
+<div id="groceryList" class="list-group"></div>
+</div>
 `
 
   loadGroceries()
@@ -43,10 +51,23 @@ function loadGroceries(){
 
   list.innerHTML = ""
 
+  if(!data.length){
+    list.innerHTML = "<div class='list-empty'>No grocery items yet. Add your first item above.</div>"
+    return
+  }
+
   data.forEach((item) => {
     const div = document.createElement("div")
     div.className = "list-item"
-    div.innerHTML = `${item.name} <button onclick='removeGrocery(${JSON.stringify(item.id)})'>Delete</button>`
+    div.innerHTML = `
+<div class="list-copy">
+<strong>${item.name}</strong>
+<span>Ready to buy</span>
+</div>
+<div class="list-actions">
+<button onclick='removeGrocery(${JSON.stringify(item.id)})'>Delete</button>
+</div>
+`
     list.appendChild(div)
   })
 }

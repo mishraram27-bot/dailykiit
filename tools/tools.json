@@ -2,19 +2,19 @@
   {
     "id": "expenses",
     "name": "Expenses",
-    "icon": "💰",
+    "icon": "\uD83D\uDCB0",
     "script": "tools/expenses.js"
   },
   {
     "id": "borrowed",
     "name": "Borrowed",
-    "icon": "🤝",
+    "icon": "\uD83E\uDD1D",
     "script": "tools/borrowed.js"
   },
   {
     "id": "grocery",
     "name": "Grocery",
-    "icon": "🛒",
+    "icon": "\uD83D\uDED2",
     "script": "tools/grocery.js"
   }
 ]

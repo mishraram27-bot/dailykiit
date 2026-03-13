@@ -1,9 +1,9 @@
 {
-  "todayExpense": "आज का खर्च",
-  "borrowedPending": "उधार बाकी",
-  "quickTools": "त्वरित टूल",
-  "expenses": "खर्च",
-  "borrowed": "उधार",
-  "grocery": "किराना सूची",
-  "home": "होम"
+  "todayExpense": "\u0906\u091c \u0915\u093e \u0916\u0930\u094d\u091a",
+  "borrowedPending": "\u0909\u0927\u093e\u0930 \u092c\u093e\u0915\u0940",
+  "quickTools": "\u0924\u094d\u0935\u0930\u093f\u0924 \u091f\u0942\u0932",
+  "expenses": "\u0916\u0930\u094d\u091a",
+  "borrowed": "\u0909\u0927\u093e\u0930",
+  "grocery": "\u0915\u093f\u0930\u093e\u0928\u093e \u0938\u0942\u091a\u0940",
+  "home": "\u0939\u094b\u092e"
 }
