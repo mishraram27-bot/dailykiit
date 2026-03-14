@@ -1,4 +1,4 @@
-const CACHE_NAME = "dailykit-v12"
+const CACHE_NAME = "dailykit-v9.1"
 
 const urlsToCache = [
 "/",

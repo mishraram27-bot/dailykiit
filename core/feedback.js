@@ -33,12 +33,14 @@ function show(message, options = {}){
   } = options
 
   activeAction = typeof onAction === "function" ? onAction : null
+  const closeText = window.t ? window.t("common.close", "Close") : "Close"
+  const closeLabel = window.t ? window.t("common.closeNotification", "Close notification") : "Close notification"
   host.innerHTML = `
 <div class="snackbar snackbar-${type}">
   <span class="snackbar-message">${message}</span>
   <div class="snackbar-actions">
     ${actionLabel ? `<button type="button" class="snackbar-action">${actionLabel}</button>` : ""}
-    <button type="button" class="snackbar-close" aria-label="Close notification">Close</button>
+    <button type="button" class="snackbar-close" aria-label="${closeLabel}">${closeText}</button>
   </div>
 </div>
 `

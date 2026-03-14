@@ -71,6 +71,7 @@ function showHome(){
   const toolArea = document.getElementById("toolArea")
 
   activeToolId = null
+  window.toggleToolsPanel?.(false)
   revealScreen(home)
   hideScreen(toolArea)
   syncNavState("home")
@@ -109,6 +110,7 @@ async function openTool(toolId){
   const container = document.getElementById("toolContainer")
   container.innerHTML = ""
 
+  window.toggleToolsPanel?.(false)
   hideScreen(home)
   revealScreen(toolArea)
   syncNavState(toolId)
@@ -147,12 +149,15 @@ async function loadTools(){
 
   tools.forEach((tool) => {
     const button = document.createElement("button")
-    const description = descriptions[tool.id] || "Open this tool"
+    const description = window.t
+      ? window.t(`toolDesc.${tool.id}`, descriptions[tool.id] || "Open this tool")
+      : (descriptions[tool.id] || "Open this tool")
+    const title = window.t ? window.t(`tool.${tool.id}`, tool.name) : tool.name
 
     button.innerHTML = `
 <span class="tool-icon">${tool.icon}</span>
 <span class="tool-copy">
-<strong>${tool.name}</strong>
+<strong>${title}</strong>
 <span>${description}</span>
 </span>
 `

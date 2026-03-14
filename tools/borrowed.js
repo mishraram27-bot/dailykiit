@@ -4,6 +4,10 @@ const borrowState = {
   pageSize: 8
 }
 
+function tr(key, fallback, replacements){
+  return window.t ? window.t(key, fallback, replacements) : fallback
+}
+
 function formatBorrowCurrency(amount){
   return `\u20B9${Number(amount) || 0}`
 }
@@ -21,10 +25,10 @@ function formatBorrowDate(value){
   const date = DailyKitStorage.parseDateKey(value)
 
   if(!date){
-    return "Unknown date"
+    return tr("common.unknownDate", "Unknown date")
   }
 
-  return new Intl.DateTimeFormat("en-IN", {
+  return new Intl.DateTimeFormat(localStorage.getItem("language") === "hi" ? "hi-IN" : "en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric"
@@ -37,41 +41,41 @@ function renderTool(){
   area.innerHTML = `
 <div class="tool-shell">
 <div class="tool-heading">
-<p class="section-kicker">Shared money</p>
-<h2>Borrowed Money</h2>
-<p>Keep a neat running view of who owes what, edit entries quickly, and browse older records page by page.</p>
+<p class="section-kicker">${tr("tool.borrowedKicker", "Shared money")}</p>
+<h2>${tr("tool.borrowed", "Borrowed Money")}</h2>
+<p>${tr("tool.borrowedIntro", "Keep a neat running view of who owes what, edit entries quickly, and browse older records page by page.")}</p>
 </div>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Track</p>
-<h3 id="borrowFormTitle">Add borrowed entry</h3>
+<p class="section-kicker">${tr("borrow.track", "Track")}</p>
+<h3 id="borrowFormTitle">${tr("borrow.addEntry", "Add borrowed entry")}</h3>
 </div>
 </div>
 <div class="tool-form">
-<input id="person" placeholder="Person">
-<input id="amount" placeholder="Amount" inputmode="decimal">
-<button id="borrowSubmitBtn" type="button" onclick="saveBorrowEntry()">Add Entry</button>
-<button id="borrowCancelBtn" type="button" class="secondary-btn" onclick="cancelBorrowEdit()" hidden>Cancel</button>
+<input id="person" placeholder="${tr("borrow.person", "Person")}">
+<input id="amount" placeholder="${tr("common.amount", "Amount")}" inputmode="decimal">
+<button id="borrowSubmitBtn" type="button" onclick="saveBorrowEntry()">${tr("borrow.addButton", "Add Entry")}</button>
+<button id="borrowCancelBtn" type="button" class="secondary-btn" onclick="cancelBorrowEdit()" hidden>${tr("common.cancel", "Cancel")}</button>
 </div>
 </section>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">History</p>
-<h3>Borrow archive</h3>
+<p class="section-kicker">${tr("common.history", "History")}</p>
+<h3>${tr("borrow.archive", "Borrow archive")}</h3>
 </div>
-<p class="panel-copy">Use search plus pagination to review older borrowed entries as the list grows.</p>
+<p class="panel-copy">${tr("borrow.archiveCopy", "Use search plus pagination to review older borrowed entries as the list grows.")}</p>
 </div>
 <div class="filters-grid filters-grid-two">
-<input id="borrowSearchInput" placeholder="Search person name" oninput="loadBorrow(1)">
+<input id="borrowSearchInput" placeholder="${tr("borrow.search", "Search person name")}" oninput="loadBorrow(1)">
 <select id="borrowDateFilter" onchange="loadBorrow(1)">
-<option value="all">All time</option>
-<option value="today">Today</option>
-<option value="week">This week</option>
-<option value="month">This month</option>
+<option value="all">${tr("filters.allTime", "All time")}</option>
+<option value="today">${tr("filters.today", "Today")}</option>
+<option value="week">${tr("filters.thisWeek", "This week")}</option>
+<option value="month">${tr("filters.thisMonth", "This month")}</option>
 </select>
 </div>
 <div id="borrowHistoryMeta" class="history-meta"></div>
@@ -96,8 +100,8 @@ function setBorrowFormState(){
   }
 
   if(!borrowState.editingId){
-    title.textContent = "Add borrowed entry"
-    submitButton.textContent = "Add Entry"
+    title.textContent = tr("borrow.addEntry", "Add borrowed entry")
+    submitButton.textContent = tr("borrow.addButton", "Add Entry")
     cancelButton.hidden = true
     personInput.value = ""
     amountInput.value = ""
@@ -112,8 +116,8 @@ function setBorrowFormState(){
     return
   }
 
-  title.textContent = "Edit borrowed entry"
-  submitButton.textContent = "Save Changes"
+  title.textContent = tr("borrow.editEntry", "Edit borrowed entry")
+  submitButton.textContent = tr("common.saveChanges", "Save Changes")
   cancelButton.hidden = false
   personInput.value = entry.person
   amountInput.value = entry.amount
@@ -131,21 +135,21 @@ function saveBorrowEntry(){
   const amount = Number(amountInput?.value)
 
   if(!person){
-    DailyKitFeedback.error("Enter a person name first.")
+    DailyKitFeedback.error(tr("messages.enterPersonFirst", "Enter a person name first."))
     return
   }
 
   if(!Number.isFinite(amount) || amount <= 0){
-    DailyKitFeedback.error("Enter a valid amount.")
+    DailyKitFeedback.error(tr("messages.validAmount", "Enter a valid amount."))
     return
   }
 
   if(borrowState.editingId){
     DailyKitStorage.updateBorrow(borrowState.editingId, {person, amount})
-    DailyKitFeedback.success("Borrowed entry updated.")
+    DailyKitFeedback.success(tr("messages.borrowUpdated", "Borrowed entry updated."))
   }else{
     DailyKitStorage.addBorrow({person, amount})
-    DailyKitFeedback.success("Borrowed entry added.")
+    DailyKitFeedback.success(tr("messages.borrowAdded", "Borrowed entry added."))
   }
 
   borrowState.editingId = null
@@ -194,9 +198,9 @@ function renderBorrowPagination(totalItems){
   }
 
   pagination.innerHTML = `
-<button type="button" class="secondary-btn" ${borrowState.currentPage === 1 ? "disabled" : ""} onclick="changeBorrowPage(-1)">Previous</button>
-<span class="pagination-status">Page ${borrowState.currentPage} of ${pageCount}</span>
-<button type="button" class="secondary-btn" ${borrowState.currentPage === pageCount ? "disabled" : ""} onclick="changeBorrowPage(1)">Next</button>
+<button type="button" class="secondary-btn" ${borrowState.currentPage === 1 ? "disabled" : ""} onclick="changeBorrowPage(-1)">${tr("common.previous", "Previous")}</button>
+<span class="pagination-status">${tr("common.pageOf", "Page {page} of {count}", {page: borrowState.currentPage, count: pageCount})}</span>
+<button type="button" class="secondary-btn" ${borrowState.currentPage === pageCount ? "disabled" : ""} onclick="changeBorrowPage(1)">${tr("common.next", "Next")}</button>
 `
 }
 
@@ -239,21 +243,24 @@ function loadBorrow(resetPage){
 
   if(meta){
     meta.innerHTML = filtered.length
-      ? `Showing <strong>${filtered.length}</strong> entries - Pending total <strong>${formatBorrowCurrency(totalAmount)}</strong>`
-      : "No borrowed entries match the current search or date filter."
+      ? tr("borrow.meta", "Showing <strong>{count}</strong> entries - Pending total <strong>{total}</strong>", {
+        count: filtered.length,
+        total: formatBorrowCurrency(totalAmount)
+      })
+      : tr("borrow.noMatches", "No borrowed entries match the current search or date filter.")
   }
 
   list.innerHTML = ""
 
   if(!data.length){
-    list.innerHTML = "<div class='list-empty'><strong>No borrowed entries yet.</strong><span>Add one to start tracking who owes what.</span></div>"
+    list.innerHTML = `<div class='list-empty'><strong>${tr("borrow.emptyTitle", "No borrowed entries yet.")}</strong><span>${tr("borrow.emptyCopy", "Add one to start tracking who owes what.")}</span></div>`
     renderBorrowPagination(0)
     setBorrowFormState()
     return
   }
 
   if(!filtered.length){
-    list.innerHTML = "<div class='list-empty'>No borrowed entries match the current search or date filter.</div>"
+    list.innerHTML = `<div class='list-empty'>${tr("borrow.noMatches", "No borrowed entries match the current search or date filter.")}</div>`
     renderBorrowPagination(0)
     setBorrowFormState()
     return
@@ -264,12 +271,12 @@ function loadBorrow(resetPage){
 <div class="list-item">
 <div class="list-copy">
 <strong>${escapeBorrowHtml(entry.person)}</strong>
-<span>Pending amount - ${escapeBorrowHtml(formatBorrowDate(entry.date))}</span>
+<span>${tr("borrow.pendingSince", "Pending since {date}", {date: escapeBorrowHtml(formatBorrowDate(entry.date))})}</span>
 </div>
 <div class="list-actions">
 <span class="list-amount">${formatBorrowCurrency(entry.amount)}</span>
-<button class="secondary-btn" onclick='editBorrow(${JSON.stringify(entry.id)})'>Edit</button>
-<button onclick='deleteBorrow(${JSON.stringify(entry.id)})'>Delete</button>
+<button class="secondary-btn" onclick='editBorrow(${JSON.stringify(entry.id)})'>${tr("common.edit", "Edit")}</button>
+<button onclick='deleteBorrow(${JSON.stringify(entry.id)})'>${tr("common.delete", "Delete")}</button>
 </div>
 </div>
 `
@@ -300,14 +307,14 @@ function deleteBorrow(id){
 
   loadBorrow()
   refreshDashboard()
-  DailyKitFeedback.show(`Deleted ${entry.person}.`, {
+  DailyKitFeedback.show(tr("borrow.deleted", "Deleted {value}.", {value: entry.person}), {
     type: "info",
-    actionLabel: "Undo",
+    actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
       DailyKitStorage.addBorrow(entry)
       loadBorrow()
       refreshDashboard()
-      DailyKitFeedback.success("Borrowed entry restored.")
+      DailyKitFeedback.success(tr("borrow.restored", "Borrowed entry restored."))
     }
   })
 }

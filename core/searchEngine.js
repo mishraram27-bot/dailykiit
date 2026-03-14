@@ -1,4 +1,12 @@
 ;(function(){
+function tr(key, fallback, replacements){
+  if(!window.t){
+    return fallback
+  }
+
+  return window.t(key, fallback, replacements)
+}
+
 let cachedFingerprint = ""
 let cachedIndex = []
 
@@ -39,7 +47,10 @@ function buildIndex(tools){
       type: "expense",
       toolId: "expenses",
       title: expense.name,
-      subtitle: `Expense: ${expense.name} ${formatCurrency(expense.amount)}`,
+      subtitle: tr("search.expenseResult", "Expense: {name} {amount}", {
+        name: expense.name,
+        amount: formatCurrency(expense.amount)
+      }),
       keywords: `${expense.name} ${expense.category} ${expense.date}`.toLowerCase()
     })
   })
@@ -49,7 +60,7 @@ function buildIndex(tools){
       type: "grocery",
       toolId: "grocery",
       title: item.name,
-      subtitle: `Grocery: ${item.name}`,
+      subtitle: tr("search.groceryResult", "Grocery: {name}", {name: item.name}),
       keywords: `${item.name} ${item.date || ""}`.toLowerCase()
     })
   })
@@ -59,7 +70,10 @@ function buildIndex(tools){
       type: "borrow",
       toolId: "borrowed",
       title: entry.person,
-      subtitle: `Borrow: ${entry.person} ${formatCurrency(entry.amount)}`,
+      subtitle: tr("search.borrowResult", "Borrow: {name} {amount}", {
+        name: entry.person,
+        amount: formatCurrency(entry.amount)
+      }),
       keywords: `${entry.person} ${entry.amount} ${entry.date}`.toLowerCase()
     })
   })
@@ -69,7 +83,7 @@ function buildIndex(tools){
       type: "habit",
       toolId: "habits",
       title: entry.name,
-      subtitle: `Habit: ${entry.name}`,
+      subtitle: tr("search.habitResult", "Habit: {name}", {name: entry.name}),
       keywords: `${entry.name} ${(entry.completions || []).join(" ")}`.toLowerCase()
     })
   })
@@ -79,7 +93,7 @@ function buildIndex(tools){
       type: "note",
       toolId: "notes",
       title: entry.title,
-      subtitle: `Note: ${entry.title}`,
+      subtitle: tr("search.noteResult", "Note: {name}", {name: entry.title}),
       keywords: `${entry.title} ${entry.body} ${entry.date}`.toLowerCase()
     })
   })
@@ -89,7 +103,10 @@ function buildIndex(tools){
       type: "subscription",
       toolId: "subscriptions",
       title: entry.name,
-      subtitle: `Subscription: ${entry.name} ${formatCurrency(entry.amount)}`,
+      subtitle: tr("search.subscriptionResult", "Subscription: {name} {amount}", {
+        name: entry.name,
+        amount: formatCurrency(entry.amount)
+      }),
       keywords: `${entry.name} ${entry.amount} ${entry.billingDay}`.toLowerCase()
     })
   })
@@ -98,8 +115,8 @@ function buildIndex(tools){
     items.push({
       type: "tool",
       toolId: tool.id,
-      title: tool.name,
-      subtitle: `Open tool: ${tool.name}`,
+      title: tr(`tool.${tool.id}`, tool.name),
+      subtitle: tr("search.openTool", "Open tool: {name}", {name: tr(`tool.${tool.id}`, tool.name)}),
       keywords: `${tool.name} ${tool.id}`.toLowerCase()
     })
   })

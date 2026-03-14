@@ -4,6 +4,10 @@ const habitState = {
   pageSize: 8
 }
 
+function tr(key, fallback, replacements){
+  return window.t ? window.t(key, fallback, replacements) : fallback
+}
+
 function escapeHabitHtml(value){
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -21,54 +25,54 @@ function renderTool(){
   area.innerHTML = `
 <div class="tool-shell">
 <div class="tool-heading">
-<p class="section-kicker">Routine</p>
-<h2>Habits</h2>
-<p>Track the habits you want to repeat daily, mark them done, and keep your momentum visible offline.</p>
+<p class="section-kicker">${tr("tool.habitsKicker", "Routine")}</p>
+<h2>${tr("tool.habits", "Habits")}</h2>
+<p>${tr("tool.habitsIntro", "Track the habits you want to repeat daily, mark them done, and keep your momentum visible offline.")}</p>
 </div>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Build</p>
-<h3 id="habitFormTitle">Add habit</h3>
+<p class="section-kicker">${tr("habits.build", "Build")}</p>
+<h3 id="habitFormTitle">${tr("habits.addHabit", "Add habit")}</h3>
 </div>
 </div>
 <div class="tool-form">
-<input id="habitInput" placeholder="Habit name">
-<button id="habitSubmitBtn" type="button" onclick="saveHabitEntry()">Add Habit</button>
-<button id="habitCancelBtn" type="button" class="secondary-btn" onclick="cancelHabitEdit()" hidden>Cancel</button>
+<input id="habitInput" placeholder="${tr("habits.name", "Habit name")}">
+<button id="habitSubmitBtn" type="button" onclick="saveHabitEntry()">${tr("habits.addButton", "Add Habit")}</button>
+<button id="habitCancelBtn" type="button" class="secondary-btn" onclick="cancelHabitEdit()" hidden>${tr("common.cancel", "Cancel")}</button>
 </div>
 </section>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Reminders</p>
-<h3>Daily habit reminder</h3>
+<p class="section-kicker">${tr("reminders.kicker", "Reminders")}</p>
+<h3>${tr("habits.reminderTitle", "Daily habit reminder")}</h3>
 </div>
-<p class="panel-copy">Best-effort local reminders using your device time while the app is installed or open.</p>
+<p class="panel-copy">${tr("habits.reminderCopy", "Best-effort local reminders using your device time while the app is installed or open.")}</p>
 </div>
 <div class="tool-form">
 <input id="habitReminderTime" type="time" value="${reminderSettings.time}">
-<button type="button" class="secondary-btn" onclick="enableHabitNotifications()">Notification permission: ${notificationStatus}</button>
-<button type="button" onclick="saveHabitReminderSettings()">${reminderSettings.enabled ? "Update Reminder" : "Enable Reminder"}</button>
+<button type="button" class="secondary-btn" onclick="enableHabitNotifications()">${tr("reminders.permission", "Notification permission")}: ${notificationStatus}</button>
+<button type="button" onclick="saveHabitReminderSettings()">${reminderSettings.enabled ? tr("reminders.update", "Update Reminder") : tr("reminders.enable", "Enable Reminder")}</button>
 </div>
 </section>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Progress</p>
-<h3>Habit list</h3>
+<p class="section-kicker">${tr("habits.progress", "Progress")}</p>
+<h3>${tr("habits.list", "Habit list")}</h3>
 </div>
-<p class="panel-copy">Mark today's completion and browse older habits if your list grows.</p>
+<p class="panel-copy">${tr("habits.progressCopy", "Mark today's completion and browse older habits if your list grows.")}</p>
 </div>
 <div class="filters-grid filters-grid-two">
-<input id="habitSearchInput" placeholder="Search habits" oninput="loadHabits(1)">
+<input id="habitSearchInput" placeholder="${tr("habits.search", "Search habits")}" oninput="loadHabits(1)">
 <select id="habitStatusFilter" onchange="loadHabits(1)">
-<option value="all">All habits</option>
-<option value="done">Done today</option>
-<option value="pending">Pending today</option>
+<option value="all">${tr("habits.all", "All habits")}</option>
+<option value="done">${tr("habits.doneToday", "Done today")}</option>
+<option value="pending">${tr("habits.pendingToday", "Pending today")}</option>
 </select>
 </div>
 <div id="habitMeta" class="history-meta"></div>
@@ -92,8 +96,8 @@ function setHabitFormState(){
   }
 
   if(!habitState.editingId){
-    title.textContent = "Add habit"
-    submit.textContent = "Add Habit"
+    title.textContent = tr("habits.addHabit", "Add habit")
+    submit.textContent = tr("habits.addButton", "Add Habit")
     cancel.hidden = true
     input.value = ""
     return
@@ -107,8 +111,8 @@ function setHabitFormState(){
     return
   }
 
-  title.textContent = "Edit habit"
-  submit.textContent = "Save Changes"
+  title.textContent = tr("habits.editHabit", "Edit habit")
+  submit.textContent = tr("common.saveChanges", "Save Changes")
   cancel.hidden = false
   input.value = entry.name
 }
@@ -123,16 +127,16 @@ function saveHabitEntry(){
   const value = input?.value.trim()
 
   if(!value){
-    DailyKitFeedback.error("Enter a habit name first.")
+    DailyKitFeedback.error(tr("messages.enterHabitFirst", "Enter a habit name first."))
     return
   }
 
   if(habitState.editingId){
     DailyKitStorage.updateHabit(habitState.editingId, {name: value})
-    DailyKitFeedback.success("Habit updated.")
+    DailyKitFeedback.success(tr("messages.habitUpdated", "Habit updated."))
   }else{
     DailyKitStorage.addHabit({name: value, completions: []})
-    DailyKitFeedback.success("Habit added.")
+    DailyKitFeedback.success(tr("messages.habitAdded", "Habit added."))
   }
 
   habitState.editingId = null
@@ -149,7 +153,7 @@ function saveHabitReminderSettings(){
   const time = document.getElementById("habitReminderTime")?.value
 
   if(!/^\d{2}:\d{2}$/.test(String(time || ""))){
-    DailyKitFeedback.error("Choose a valid reminder time.")
+    DailyKitFeedback.error(tr("messages.validReminderTime", "Choose a valid reminder time."))
     return
   }
 
@@ -160,7 +164,7 @@ function saveHabitReminderSettings(){
     }
   })
   DailyKitReminders.runChecks()
-  DailyKitFeedback.success("Habit reminder saved.")
+  DailyKitFeedback.success(tr("messages.habitReminderSaved", "Habit reminder saved."))
 }
 
 function renderHabitPagination(totalItems){
@@ -179,9 +183,9 @@ function renderHabitPagination(totalItems){
   }
 
   pagination.innerHTML = `
-<button type="button" class="secondary-btn" ${habitState.currentPage === 1 ? "disabled" : ""} onclick="changeHabitPage(-1)">Previous</button>
-<span class="pagination-status">Page ${habitState.currentPage} of ${pageCount}</span>
-<button type="button" class="secondary-btn" ${habitState.currentPage === pageCount ? "disabled" : ""} onclick="changeHabitPage(1)">Next</button>
+<button type="button" class="secondary-btn" ${habitState.currentPage === 1 ? "disabled" : ""} onclick="changeHabitPage(-1)">${tr("common.previous", "Previous")}</button>
+<span class="pagination-status">${tr("common.pageOf", "Page {page} of {count}", {page: habitState.currentPage, count: pageCount})}</span>
+<button type="button" class="secondary-btn" ${habitState.currentPage === pageCount ? "disabled" : ""} onclick="changeHabitPage(1)">${tr("common.next", "Next")}</button>
 `
 }
 
@@ -219,21 +223,21 @@ function loadHabits(resetPage){
 
   if(meta){
     meta.innerHTML = filtered.length
-      ? `Showing <strong>${filtered.length}</strong> habits`
-      : "No habits match your current search or filter."
+      ? tr("habits.meta", "Showing <strong>{count}</strong> habits", {count: filtered.length})
+      : tr("habits.noMatches", "No habits match your current search or filter.")
   }
 
   list.innerHTML = ""
 
   if(!data.length){
-    list.innerHTML = "<div class='list-empty'><strong>No habits yet.</strong><span>Add one like Gym, Reading, or Walk and start marking it daily.</span></div>"
+    list.innerHTML = `<div class='list-empty'><strong>${tr("habits.emptyTitle", "No habits yet.")}</strong><span>${tr("habits.emptyCopy", "Add one like Gym, Reading, or Walk and start marking it daily.")}</span></div>`
     renderHabitPagination(0)
     setHabitFormState()
     return
   }
 
   if(!filtered.length){
-    list.innerHTML = "<div class='list-empty'>No habits match your current search or filter.</div>"
+    list.innerHTML = `<div class='list-empty'>${tr("habits.noMatches", "No habits match your current search or filter.")}</div>`
     renderHabitPagination(0)
     setHabitFormState()
     return
@@ -247,12 +251,12 @@ function loadHabits(resetPage){
 <div class="list-item">
 <div class="list-copy">
 <strong>${escapeHabitHtml(entry.name)}</strong>
-<span>${doneToday ? "Completed today" : "Pending today"} - ${completionCount} total check-ins</span>
+<span>${doneToday ? tr("habits.completedToday", "Completed today") : tr("habits.pendingToday", "Pending today")} - ${tr("habits.totalCheckins", "{count} total check-ins", {count: completionCount})}</span>
 </div>
 <div class="list-actions">
-<button class="secondary-btn" onclick='toggleHabitToday(${JSON.stringify(entry.id)})'>${doneToday ? "Undo Today" : "Mark Today"}</button>
-<button class="secondary-btn" onclick='editHabit(${JSON.stringify(entry.id)})'>Edit</button>
-<button onclick='deleteHabit(${JSON.stringify(entry.id)})'>Delete</button>
+<button class="secondary-btn" onclick='toggleHabitToday(${JSON.stringify(entry.id)})'>${doneToday ? tr("habits.undoToday", "Undo Today") : tr("habits.markToday", "Mark Today")}</button>
+<button class="secondary-btn" onclick='editHabit(${JSON.stringify(entry.id)})'>${tr("common.edit", "Edit")}</button>
+<button onclick='deleteHabit(${JSON.stringify(entry.id)})'>${tr("common.delete", "Delete")}</button>
 </div>
 </div>
 `
@@ -265,7 +269,7 @@ function loadHabits(resetPage){
 function toggleHabitToday(id){
   DailyKitStorage.toggleHabitCompletion(id)
   loadHabits()
-  DailyKitFeedback.success("Habit updated for today.")
+  DailyKitFeedback.success(tr("messages.habitUpdatedToday", "Habit updated for today."))
 }
 
 function editHabit(id){
@@ -288,13 +292,13 @@ function deleteHabit(id){
   }
 
   loadHabits()
-  DailyKitFeedback.show(`Deleted habit ${entry.name}.`, {
+  DailyKitFeedback.show(tr("habits.deleted", "Deleted habit {value}.", {value: entry.name}), {
     type: "info",
-    actionLabel: "Undo",
+    actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
       DailyKitStorage.addHabit(entry)
       loadHabits()
-      DailyKitFeedback.success("Habit restored.")
+      DailyKitFeedback.success(tr("habits.restored", "Habit restored."))
     }
   })
 }

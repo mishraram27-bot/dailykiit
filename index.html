@@ -25,25 +25,25 @@
 
 <div id="authGate" class="auth-gate">
 <section class="auth-card">
-<p class="hero-kicker">Your offline workspace</p>
-<h2>Start DailyKit your way</h2>
-<p class="auth-copy">
+<p class="hero-kicker" data-i18n="auth.kicker">Your offline workspace</p>
+<h2 data-i18n="auth.title">Start DailyKit your way</h2>
+<p class="auth-copy" data-i18n="auth.copy">
 Use a guest profile with a random user ID on this device and start tracking instantly.
 </p>
 
 <div class="auth-benefits">
 <article>
-<strong>Guest Mode</strong>
-<span>Instant access with a random local user ID.</span>
+<strong data-i18n="auth.guestTitle">Guest Mode</strong>
+<span data-i18n="auth.guestCopy">Instant access with a random local user ID.</span>
 </article>
 <article>
-<strong>Private by default</strong>
-<span>Your current release keeps data on this device unless you export it.</span>
+<strong data-i18n="auth.privateTitle">Private by default</strong>
+<span data-i18n="auth.privateCopy">Your current release keeps data on this device unless you export it.</span>
 </article>
 </div>
 
 <div class="auth-actions">
-<button id="guestLoginBtn" type="button">Continue as Guest</button>
+<button id="guestLoginBtn" type="button" data-i18n="auth.continueGuest">Continue as Guest</button>
 </div>
 
 <p id="authHint" class="auth-hint"></p>
@@ -54,29 +54,29 @@ Use a guest profile with a random user ID on this device and start tracking inst
 
 <div class="hero-inner">
 
-<p class="hero-kicker">Offline personal toolkit</p>
+<p class="hero-kicker" data-i18n="hero.kicker">Offline personal toolkit</p>
 <h1>DailyKit</h1>
-<p class="hero-copy">
+<p class="hero-copy" data-i18n="hero.copy">
 Track spending, groceries, and borrowed money in one clean dashboard that still works offline.
 </p>
 
 <div class="search-box">
-<input id="globalSearch" placeholder="Search DailyKit or try coffee 50" autocomplete="off">
+<input id="globalSearch" data-i18n-placeholder="search.placeholder" placeholder="Search DailyKit or try coffee 50" autocomplete="off">
 <div id="searchResults"></div>
 </div>
 
 <div class="header-controls">
 <label class="select-wrap" for="languageSelect">
-<span>Language</span>
+<span data-i18n="language.label">Language</span>
 <select id="languageSelect">
-<option value="en">English</option>
-<option value="hi">&#2361;&#2367;&#2344;&#2381;&#2342;&#2368;</option>
+<option value="en" data-i18n="language.english">English</option>
+<option value="hi" data-i18n="language.hindi">&#2361;&#2367;&#2344;&#2381;&#2342;&#2368;</option>
 </select>
 </label>
 
-<div id="sessionBadge" class="session-badge">Guest</div>
-<button id="switchAccountBtn" class="ghost-btn" type="button">Switch Account</button>
-<button id="installBtn" class="ghost-btn" style="display:none" type="button">Install App</button>
+<div id="sessionBadge" class="session-badge" data-i18n="auth.guestBadge">Guest</div>
+<button id="switchAccountBtn" class="ghost-btn" type="button" data-i18n="auth.switchAccount">Switch Account</button>
+<button id="installBtn" class="ghost-btn" style="display:none" type="button" data-i18n="install.button">Install App</button>
 </div>
 
 </div>
@@ -91,8 +91,8 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 
 <section class="summary-header">
 <div>
-<p class="section-kicker">Overview</p>
-<h2 class="section-title">Daily pulse</h2>
+<p class="section-kicker" data-i18n="dashboard.overview">Overview</p>
+<h2 class="section-title" data-i18n="dashboard.title">Daily pulse</h2>
 </div>
 </section>
 
@@ -101,13 +101,13 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <div class="summary">
 
 <div class="card">
-<p class="card-label">Today</p>
+<p class="card-label" data-i18n="dashboard.today">Today</p>
 <h3 id="todayExpense">&#8377;0</h3>
 <p data-text="todayExpense">Today's Expense</p>
 </div>
 
 <div class="card">
-<p class="card-label">Open</p>
+<p class="card-label" data-i18n="dashboard.open">Open</p>
 <h3 id="borrowedTotal">&#8377;0</h3>
 <p data-text="borrowedPending">Borrowed Pending</p>
 </div>
@@ -116,7 +116,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 
 <div class="chart-section">
 
-<h3>Expense Categories</h3>
+<h3 data-i18n="dashboard.expenseCategories">Expense Categories</h3>
 
 <canvas id="expenseChart"></canvas>
 
@@ -124,7 +124,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 
 <div class="chart-section">
 
-<h3>Weekly Spending</h3>
+<h3 data-i18n="dashboard.weeklySpending">Weekly Spending</h3>
 
 <canvas id="weeklyChart"></canvas>
 
@@ -135,7 +135,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 
 <div class="tools-header">
 <div>
-<p class="section-kicker">Shortcuts</p>
+<p class="section-kicker" data-i18n="dashboard.shortcuts">Shortcuts</p>
 <h2 class="section-title" data-text="quickTools">Quick Tools</h2>
 </div>
 </div>
@@ -153,15 +153,15 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <section class="backup-section">
 
 <article class="backup-panel">
-<p class="section-kicker">Safety</p>
-<h3>Local Backup</h3>
-<p class="backup-copy">Keep a portable Excel-friendly CSV copy of your offline data whenever you want.</p>
+<p class="section-kicker" data-i18n="backup.kicker">Safety</p>
+<h3 data-i18n="backup.title">Local Backup</h3>
+<p class="backup-copy" data-i18n="backup.copy">Keep a portable Excel-friendly CSV copy of your offline data whenever you want.</p>
 
 <div class="backup-actions">
-<button onclick="exportData()">Export CSV</button>
+<button onclick="exportData()" data-i18n="backup.export">Export CSV</button>
 
 <input type="file" id="importFile" accept=".csv,.json,text/csv,application/json" hidden>
-<button class="ghost-btn" onclick="document.getElementById('importFile').click()">Import Backup</button>
+<button class="ghost-btn" onclick="document.getElementById('importFile').click()" data-i18n="backup.import">Import Backup</button>
 </div>
 </article>
 
@@ -183,25 +183,39 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <script src="app.js" defer></script>
 
 <footer class="disclaimer">
-<span class="app-version">DailyKit Version 9</span>
-DailyKit is a personal data tracking tool.
-It does not provide financial, medical, or legal advice.
+<span class="app-version" data-i18n="app.version">DailyKit Version 9.1</span>
+<span data-i18n="footer.disclaimer">DailyKit is a personal data tracking tool. It does not provide financial, medical, or legal advice.</span>
 <span class="footer-links">
-<a href="pages/privacy.html">Privacy Policy</a>
-<a href="pages/terms.html">Terms &amp; Conditions</a>
+<a href="pages/privacy.html" data-i18n="footer.privacy">Privacy Policy</a>
+<a href="pages/terms.html" data-i18n="footer.terms">Terms &amp; Conditions</a>
 </span>
 </footer>
 
 <nav class="bottom-nav">
 
-<button data-nav="home" onclick="showHome()"><span class="nav-icon">&#127968;</span><span class="nav-label">Home</span></button>
-<button data-nav="expenses" onclick="openTool('expenses')"><span class="nav-icon">&#128176;</span><span class="nav-label">Expenses</span></button>
-<button data-nav="borrowed" onclick="openTool('borrowed')"><span class="nav-icon">&#129309;</span><span class="nav-label">Borrowed</span></button>
-<button data-nav="grocery" onclick="openTool('grocery')"><span class="nav-icon">&#128722;</span><span class="nav-label">Grocery</span></button>
-<button data-nav="export" onclick="exportData()"><span class="nav-icon">&#11123;</span><span class="nav-label">Export</span></button>
-<button data-nav="import" onclick="importData()"><span class="nav-icon">&#11121;</span><span class="nav-label">Import</span></button>
+<button data-nav="home" onclick="showHome()"><span class="nav-icon">&#127968;</span><span class="nav-label" data-i18n="nav.home">Home</span></button>
+<button data-nav="tools" onclick="toggleToolsPanel()"><span class="nav-icon">&#9776;</span><span class="nav-label" data-i18n="nav.tools">Tools</span></button>
+<button data-nav="expenses" onclick="openTool('expenses')"><span class="nav-icon">&#128176;</span><span class="nav-label" data-i18n="nav.expenses">Expenses</span></button>
+<button data-nav="borrowed" onclick="openTool('borrowed')"><span class="nav-icon">&#129309;</span><span class="nav-label" data-i18n="nav.borrowed">Borrowed</span></button>
+<button data-nav="grocery" onclick="openTool('grocery')"><span class="nav-icon">&#128722;</span><span class="nav-label" data-i18n="nav.grocery">Grocery</span></button>
+<button data-nav="export" onclick="exportData()"><span class="nav-icon">&#11123;</span><span class="nav-label" data-i18n="nav.export">Export</span></button>
+<button data-nav="import" onclick="importData()"><span class="nav-icon">&#11121;</span><span class="nav-label" data-i18n="nav.import">Import</span></button>
 
 </nav>
+
+<div id="toolsPanel" class="tools-panel" hidden>
+<div class="tools-panel-backdrop" onclick="toggleToolsPanel(false)"></div>
+<section class="tools-panel-card">
+<div class="panel-heading">
+<div>
+<p class="section-kicker" data-i18n="toolsPanel.kicker">Library</p>
+<h3 data-i18n="toolsPanel.title">All tools</h3>
+</div>
+<button type="button" class="secondary-btn" onclick="toggleToolsPanel(false)" data-i18n="common.close">Close</button>
+</div>
+<div id="toolsPanelList" class="tools-panel-list"></div>
+</section>
+</div>
 
 <div id="snackbarHost" class="snackbar-host" aria-live="polite" aria-atomic="true"></div>
 

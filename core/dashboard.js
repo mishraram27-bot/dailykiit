@@ -8,6 +8,10 @@ function formatCurrency(amount){
   return `\u20B9${Number(amount) || 0}`
 }
 
+function tr(key, fallback, replacements){
+  return window.t ? window.t(key, fallback, replacements) : fallback
+}
+
 function escapeHtml(value){
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -62,26 +66,26 @@ function renderOnboarding(){
   host.innerHTML = `
 <section class="onboarding-card">
 <div class="onboarding-copy">
-<p class="section-kicker">Start here</p>
-<h3>How to use DailyKit in under a minute</h3>
-<p>${hasStarted ? "You already have data here. Use these shortcuts to keep the flow simple." : "Your dashboard is ready. Start with one quick action, then the app will build around your routine."}</p>
+<p class="section-kicker">${tr("onboarding.kicker", "Start here")}</p>
+<h3>${tr("onboarding.title", "How to use DailyKit in under a minute")}</h3>
+<p>${hasStarted ? tr("onboarding.started", "You already have data here. Use these shortcuts to keep the flow simple.") : tr("onboarding.empty", "Your dashboard is ready. Start with one quick action, then the app will build around your routine.")}</p>
 </div>
 <div class="onboarding-grid">
 <article class="onboarding-step">
-<strong>1. Add something small</strong>
-<span>Open Expenses and try <b>coffee 50</b>, or add your next grocery item.</span>
+<strong>${tr("onboarding.step1Title", "1. Add something small")}</strong>
+<span>${tr("onboarding.step1Copy", "Open Expenses and try <b>coffee 50</b>, or add your next grocery item.")}</span>
 </article>
 <article class="onboarding-step">
-<strong>2. Check the dashboard</strong>
-<span>DailyKit updates totals, categories, and this week's spending automatically.</span>
+<strong>${tr("onboarding.step2Title", "2. Check the dashboard")}</strong>
+<span>${tr("onboarding.step2Copy", "DailyKit updates totals, categories, and this week's spending automatically.")}</span>
 </article>
 <article class="onboarding-step">
-<strong>3. Keep a backup</strong>
-<span>Use Export once in a while so your offline data stays portable and safe.</span>
+<strong>${tr("onboarding.step3Title", "3. Keep a backup")}</strong>
+<span>${tr("onboarding.step3Copy", "Use Export once in a while so your offline data stays portable and safe.")}</span>
 </article>
 </div>
 <div class="onboarding-actions">
-<button type="button" class="ghost-btn onboarding-btn" onclick="dismissOnboarding()">Hide tips</button>
+<button type="button" class="ghost-btn onboarding-btn" onclick="dismissOnboarding()">${tr("onboarding.hide", "Hide tips")}</button>
 </div>
 </section>
 `
@@ -100,26 +104,26 @@ function renderReportSummary(){
 <section class="report-panel">
   <div class="panel-heading">
     <div>
-      <p class="section-kicker">Reports</p>
-      <h3>${escapeHtml(report.monthLabel)} snapshot</h3>
+      <p class="section-kicker">${tr("reports.kicker", "Reports")}</p>
+      <h3>${escapeHtml(report.monthLabel)} ${tr("reports.snapshot", "snapshot")}</h3>
     </div>
-    <button type="button" class="secondary-btn" onclick="exportMonthlyReport()">Download Monthly CSV</button>
+    <button type="button" class="secondary-btn" onclick="exportMonthlyReport()">${tr("reports.downloadMonthly", "Download Monthly CSV")}</button>
   </div>
   <div class="report-grid">
     <article class="report-tile">
-      <span class="insight-label">Expenses</span>
+      <span class="insight-label">${tr("nav.expenses", "Expenses")}</span>
       <strong>${formatCurrency(report.totalExpense)}</strong>
     </article>
     <article class="report-tile">
-      <span class="insight-label">Borrow Added</span>
+      <span class="insight-label">${tr("reports.borrowAdded", "Borrow Added")}</span>
       <strong>${formatCurrency(report.totalBorrow)}</strong>
     </article>
     <article class="report-tile">
-      <span class="insight-label">Grocery Added</span>
+      <span class="insight-label">${tr("reports.groceryAdded", "Grocery Added")}</span>
       <strong>${report.groceryCount}</strong>
     </article>
     <article class="report-tile">
-      <span class="insight-label">Top Category</span>
+      <span class="insight-label">${tr("insights.topCategory", "Top Category")}</span>
       <strong>${escapeHtml(report.topCategory)}</strong>
     </article>
   </div>
@@ -135,7 +139,7 @@ function generateInsights(expenses){
   }
 
   if(!expenses.length){
-    box.innerHTML = "<div class='empty-state'>No spending trends yet. Add a few entries to unlock insights, budgets, and smarter weekly tracking.</div>"
+    box.innerHTML = `<div class='empty-state'>${tr("insights.empty", "No spending trends yet. Add a few entries to unlock insights, budgets, and smarter weekly tracking.")}</div>`
     return
   }
 
@@ -157,20 +161,20 @@ function generateInsights(expenses){
   box.innerHTML = `
 <div class="insight-grid">
 <article class="insight-tile">
-<span class="insight-label">Top Category</span>
+<span class="insight-label">${tr("insights.topCategory", "Top Category")}</span>
 <span class="insight-value">${escapeHtml(topCategory)}</span>
 </article>
 <article class="insight-tile">
-<span class="insight-label">Month Total</span>
+<span class="insight-label">${tr("insights.monthTotal", "Month Total")}</span>
 <span class="insight-value">${formatCurrency(total)}</span>
 </article>
 <article class="insight-tile">
-<span class="insight-label">Daily Average</span>
+<span class="insight-label">${tr("insights.dailyAverage", "Daily Average")}</span>
 <span class="insight-value">${formatCurrency(dailyAverage)}</span>
 </article>
 <article class="insight-tile">
-<span class="insight-label">${monthlyBudget ? "Budget Left" : "Budget"}</span>
-<span class="insight-value">${monthlyBudget ? formatCurrency(budgetRemaining) : "Set one"}</span>
+<span class="insight-label">${monthlyBudget ? tr("insights.budgetLeft", "Budget Left") : tr("insights.budget", "Budget")}</span>
+<span class="insight-value">${monthlyBudget ? formatCurrency(budgetRemaining) : tr("insights.setOne", "Set one")}</span>
 </article>
 </div>
 `
@@ -272,7 +276,7 @@ function renderWeeklyChart(){
     data: {
       labels: days,
       datasets: [{
-        label: "This Week",
+        label: tr("dashboard.thisWeek", "This Week"),
         data: totals,
         backgroundColor: "#3B82F6",
         borderRadius: 12,

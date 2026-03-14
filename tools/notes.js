@@ -4,6 +4,10 @@ const notesState = {
   pageSize: 8
 }
 
+function tr(key, fallback, replacements){
+  return window.t ? window.t(key, fallback, replacements) : fallback
+}
+
 function escapeNoteHtml(value){
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -17,10 +21,10 @@ function formatNoteDate(value){
   const date = DailyKitStorage.parseDateKey(value)
 
   if(!date){
-    return "Unknown date"
+    return tr("common.unknownDate", "Unknown date")
   }
 
-  return new Intl.DateTimeFormat("en-IN", {
+  return new Intl.DateTimeFormat(localStorage.getItem("language") === "hi" ? "hi-IN" : "en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric"
@@ -33,45 +37,45 @@ function renderTool(){
   area.innerHTML = `
 <div class="tool-shell">
 <div class="tool-heading">
-<p class="section-kicker">Capture</p>
-<h2>Notes</h2>
-<p>Save quick ideas, reminders, and reference notes without leaving your offline workspace.</p>
+<p class="section-kicker">${tr("tool.notesKicker", "Capture")}</p>
+<h2>${tr("tool.notes", "Notes")}</h2>
+<p>${tr("tool.notesIntro", "Save quick ideas, reminders, and reference notes without leaving your offline workspace.")}</p>
 </div>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Write</p>
-<h3 id="noteFormTitle">New note</h3>
+<p class="section-kicker">${tr("notes.write", "Write")}</p>
+<h3 id="noteFormTitle">${tr("notes.new", "New note")}</h3>
 </div>
 </div>
 <div class="tool-form">
-<input id="noteTitle" placeholder="Note title">
+<input id="noteTitle" placeholder="${tr("notes.title", "Note title")}">
 </div>
 <div class="tool-form">
-<textarea id="noteBody" rows="5" placeholder="Write your note here"></textarea>
+<textarea id="noteBody" rows="5" placeholder="${tr("notes.body", "Write your note here")}"></textarea>
 </div>
 <div class="tool-form">
-<button id="noteSubmitBtn" type="button" onclick="saveNoteEntry()">Save Note</button>
-<button id="noteCancelBtn" type="button" class="secondary-btn" onclick="cancelNoteEdit()" hidden>Cancel</button>
+<button id="noteSubmitBtn" type="button" onclick="saveNoteEntry()">${tr("notes.save", "Save Note")}</button>
+<button id="noteCancelBtn" type="button" class="secondary-btn" onclick="cancelNoteEdit()" hidden>${tr("common.cancel", "Cancel")}</button>
 </div>
 </section>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Archive</p>
-<h3>Saved notes</h3>
+<p class="section-kicker">${tr("common.archive", "Archive")}</p>
+<h3>${tr("notes.saved", "Saved notes")}</h3>
 </div>
-<p class="panel-copy">Search your notes, page through older ones, and keep your daily thoughts easy to find.</p>
+<p class="panel-copy">${tr("notes.savedCopy", "Search your notes, page through older ones, and keep your daily thoughts easy to find.")}</p>
 </div>
 <div class="filters-grid filters-grid-two">
-<input id="noteSearchInput" placeholder="Search notes" oninput="loadNotes(1)">
+<input id="noteSearchInput" placeholder="${tr("notes.search", "Search notes")}" oninput="loadNotes(1)">
 <select id="noteDateFilter" onchange="loadNotes(1)">
-<option value="all">All time</option>
-<option value="today">Today</option>
-<option value="week">This week</option>
-<option value="month">This month</option>
+<option value="all">${tr("filters.allTime", "All time")}</option>
+<option value="today">${tr("filters.today", "Today")}</option>
+<option value="week">${tr("filters.thisWeek", "This week")}</option>
+<option value="month">${tr("filters.thisMonth", "This month")}</option>
 </select>
 </div>
 <div id="noteMeta" class="history-meta"></div>
@@ -96,8 +100,8 @@ function setNoteFormState(){
   }
 
   if(!notesState.editingId){
-    title.textContent = "New note"
-    submit.textContent = "Save Note"
+    title.textContent = tr("notes.new", "New note")
+    submit.textContent = tr("notes.save", "Save Note")
     cancel.hidden = true
     titleInput.value = ""
     bodyInput.value = ""
@@ -112,8 +116,8 @@ function setNoteFormState(){
     return
   }
 
-  title.textContent = "Edit note"
-  submit.textContent = "Save Changes"
+  title.textContent = tr("notes.edit", "Edit note")
+  submit.textContent = tr("common.saveChanges", "Save Changes")
   cancel.hidden = false
   titleInput.value = entry.title
   bodyInput.value = entry.body
@@ -131,21 +135,21 @@ function saveNoteEntry(){
   const body = bodyInput?.value.trim()
 
   if(!title && !body){
-    DailyKitFeedback.error("Write a title or note body first.")
+    DailyKitFeedback.error(tr("messages.noteFirst", "Write a title or note body first."))
     return
   }
 
   const payload = {
-    title: title || "Untitled note",
+    title: title || tr("notes.untitled", "Untitled note"),
     body: body || ""
   }
 
   if(notesState.editingId){
     DailyKitStorage.updateNote(notesState.editingId, payload)
-    DailyKitFeedback.success("Note updated.")
+    DailyKitFeedback.success(tr("messages.noteUpdated", "Note updated."))
   }else{
     DailyKitStorage.addNote(payload)
-    DailyKitFeedback.success("Note saved.")
+    DailyKitFeedback.success(tr("messages.noteSaved", "Note saved."))
   }
 
   notesState.editingId = null
@@ -193,9 +197,9 @@ function renderNotePagination(totalItems){
   }
 
   pagination.innerHTML = `
-<button type="button" class="secondary-btn" ${notesState.currentPage === 1 ? "disabled" : ""} onclick="changeNotePage(-1)">Previous</button>
-<span class="pagination-status">Page ${notesState.currentPage} of ${pageCount}</span>
-<button type="button" class="secondary-btn" ${notesState.currentPage === pageCount ? "disabled" : ""} onclick="changeNotePage(1)">Next</button>
+<button type="button" class="secondary-btn" ${notesState.currentPage === 1 ? "disabled" : ""} onclick="changeNotePage(-1)">${tr("common.previous", "Previous")}</button>
+<span class="pagination-status">${tr("common.pageOf", "Page {page} of {count}", {page: notesState.currentPage, count: pageCount})}</span>
+<button type="button" class="secondary-btn" ${notesState.currentPage === pageCount ? "disabled" : ""} onclick="changeNotePage(1)">${tr("common.next", "Next")}</button>
 `
 }
 
@@ -235,21 +239,21 @@ function loadNotes(resetPage){
 
   if(meta){
     meta.innerHTML = filtered.length
-      ? `Showing <strong>${filtered.length}</strong> notes`
-      : "No notes match your current search or date filter."
+      ? tr("notes.meta", "Showing <strong>{count}</strong> notes", {count: filtered.length})
+      : tr("notes.noMatches", "No notes match your current search or date filter.")
   }
 
   list.innerHTML = ""
 
   if(!data.length){
-    list.innerHTML = "<div class='list-empty'><strong>No notes yet.</strong><span>Use this for ideas, reminders, planning, and anything you want saved offline.</span></div>"
+    list.innerHTML = `<div class='list-empty'><strong>${tr("notes.emptyTitle", "No notes yet.")}</strong><span>${tr("notes.emptyCopy", "Use this for ideas, reminders, planning, and anything you want saved offline.")}</span></div>`
     renderNotePagination(0)
     setNoteFormState()
     return
   }
 
   if(!filtered.length){
-    list.innerHTML = "<div class='list-empty'>No notes match your current search or date filter.</div>"
+    list.innerHTML = `<div class='list-empty'>${tr("notes.noMatches", "No notes match your current search or date filter.")}</div>`
     renderNotePagination(0)
     setNoteFormState()
     return
@@ -261,11 +265,11 @@ function loadNotes(resetPage){
 <div class="list-copy">
 <strong>${escapeNoteHtml(entry.title)}</strong>
 <span>${escapeNoteHtml(formatNoteDate(entry.date))}</span>
-<span class="note-preview">${escapeNoteHtml(entry.body || "No details added.")}</span>
+<span class="note-preview">${escapeNoteHtml(entry.body || tr("notes.noDetails", "No details added."))}</span>
 </div>
 <div class="list-actions">
-<button class="secondary-btn" onclick='editNote(${JSON.stringify(entry.id)})'>Edit</button>
-<button onclick='deleteNote(${JSON.stringify(entry.id)})'>Delete</button>
+<button class="secondary-btn" onclick='editNote(${JSON.stringify(entry.id)})'>${tr("common.edit", "Edit")}</button>
+<button onclick='deleteNote(${JSON.stringify(entry.id)})'>${tr("common.delete", "Delete")}</button>
 </div>
 </div>
 `
@@ -295,13 +299,13 @@ function deleteNote(id){
   }
 
   loadNotes()
-  DailyKitFeedback.show(`Deleted note ${entry.title}.`, {
+  DailyKitFeedback.show(tr("notes.deleted", "Deleted note {value}.", {value: entry.title}), {
     type: "info",
-    actionLabel: "Undo",
+    actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
       DailyKitStorage.addNote(entry)
       loadNotes()
-      DailyKitFeedback.success("Note restored.")
+      DailyKitFeedback.success(tr("notes.restored", "Note restored."))
     }
   })
 }

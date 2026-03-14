@@ -1,6 +1,14 @@
 ;(function(){
 let reminderInterval = null
 
+function tr(key, fallback, replacements){
+  if(!window.t){
+    return fallback
+  }
+
+  return window.t(key, fallback, replacements)
+}
+
 function getNow(){
   return new Date()
 }
@@ -30,16 +38,16 @@ function canNotify(){
 
 async function requestPermission(){
   if(!("Notification" in window)){
-    DailyKitFeedback.error("Notifications are not supported in this browser.")
+    DailyKitFeedback.error(tr("reminders.unsupported", "Notifications are not supported in this browser."))
     return "unsupported"
   }
 
   const permission = await Notification.requestPermission()
 
   if(permission === "granted"){
-    DailyKitFeedback.success("Notifications enabled for DailyKit.")
+    DailyKitFeedback.success(tr("reminders.enabled", "Notifications enabled for DailyKit."))
   }else{
-    DailyKitFeedback.error("Notification permission was not granted.")
+    DailyKitFeedback.error(tr("reminders.notGranted", "Notification permission was not granted."))
   }
 
   return permission
@@ -128,8 +136,10 @@ function getHabitReminderPayload(){
 
   return {
     key: `habit-daily:${todayKey}`,
-    title: "DailyKit habits reminder",
-    body: `You still have ${pendingHabits.length} habit${pendingHabits.length > 1 ? "s" : ""} pending today.`
+    title: tr("reminders.habitTitle", "DailyKit habits reminder"),
+    body: pendingHabits.length === 1
+      ? tr("reminders.habitBodyOne", "You still have 1 habit pending today.")
+      : tr("reminders.habitBodyMany", "You still have {count} habits pending today.", {count: pendingHabits.length})
   }
 }
 
@@ -176,10 +186,10 @@ function getSubscriptionReminderPayload(){
 
   return {
     entries: pendingEntries,
-    title: "DailyKit subscription reminder",
+    title: tr("reminders.subscriptionTitle", "DailyKit subscription reminder"),
     body: pendingEntries.length === 1
-      ? `${pendingEntries[0].name} is coming due soon.`
-      : `${pendingEntries.length} subscriptions need attention soon.`
+      ? tr("reminders.subscriptionBodyOne", "{name} is coming due soon.", {name: pendingEntries[0].name})
+      : tr("reminders.subscriptionBodyMany", "{count} subscriptions need attention soon.", {count: pendingEntries.length})
   }
 }
 

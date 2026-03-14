@@ -1,6 +1,7 @@
 let languageData = {}
 let deferredPrompt = null
 let listenersBound = false
+let toolsPanelOpen = false
 
 const searchState = {
   results: [],
@@ -16,15 +17,49 @@ function escapeHtml(value){
     .replaceAll("'", "&#39;")
 }
 
+function t(key, fallback, replacements = {}){
+  let output = languageData[key] || fallback || key
+
+  Object.entries(replacements).forEach(([name, value]) => {
+    output = output.replaceAll(`{${name}}`, value)
+  })
+
+  return output
+}
+
 async function loadLanguage(lang){
   const response = await fetch(`languages/${lang}.json`)
   languageData = await response.json()
+  document.documentElement.lang = lang
 
   applyLanguage()
+  renderToolsPanel()
+  rerenderActiveTool()
+
+  if(window.DailyKitRouter){
+    DailyKitRouter.loadTools()
+  }
+
+  if(window.DailyKitDashboard){
+    DailyKitDashboard.refreshDashboard()
+  }
+
   localStorage.setItem("language", lang)
 }
 
 function applyLanguage(){
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    const key = node.dataset.i18n
+    const fallback = node.dataset.i18nFallback || node.textContent.trim()
+    node.textContent = t(key, fallback)
+  })
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+    const key = node.dataset.i18nPlaceholder
+    const fallback = node.getAttribute("placeholder") || ""
+    node.setAttribute("placeholder", t(key, fallback))
+  })
+
   const nodes = {
     todayExpense: document.querySelector('[data-text="todayExpense"]'),
     borrowedPending: document.querySelector('[data-text="borrowedPending"]'),
@@ -32,8 +67,8 @@ function applyLanguage(){
   }
 
   Object.entries(nodes).forEach(([key, node]) => {
-    if(node && languageData[key]){
-      node.innerText = languageData[key]
+    if(node){
+      node.innerText = t(`dashboard.${key}`, languageData[key] || node.innerText)
     }
   })
 }
@@ -462,7 +497,7 @@ function renderSearchResults(){
   }
 
   if(!searchState.results.length){
-    resultsBox.innerHTML = "<div class='search-empty'>No results found</div>"
+    resultsBox.innerHTML = `<div class='search-empty'>${t("search.empty", "No results found")}</div>`
     resultsBox.style.display = "block"
     return
   }
@@ -601,6 +636,45 @@ function rerenderActiveTool(){
   }
 }
 
+function renderToolsPanel(){
+  const container = document.getElementById("toolsPanelList")
+
+  if(!container || !window.DailyKitRouter){
+    return
+  }
+
+  const tools = DailyKitRouter.getToolRegistry()
+
+  container.innerHTML = tools.map((tool) => `
+<button type="button" class="tools-panel-item" onclick="openToolFromPanel('${tool.id}')">
+  <span class="tool-icon">${tool.icon}</span>
+  <span class="tool-copy">
+    <strong>${escapeHtml(t(`tool.${tool.id}`, tool.name))}</strong>
+    <span>${escapeHtml(t(`toolDesc.${tool.id}`, "Open this tool"))}</span>
+  </span>
+</button>
+`).join("")
+}
+
+function toggleToolsPanel(forceState){
+  const panel = document.getElementById("toolsPanel")
+  const nextState = typeof forceState === "boolean" ? forceState : !toolsPanelOpen
+
+  if(!panel){
+    return
+  }
+
+  toolsPanelOpen = nextState
+  panel.hidden = !nextState
+  document.body.classList.toggle("panel-open", nextState)
+  document.querySelector('.bottom-nav button[data-nav="tools"]')?.classList.toggle("is-active", nextState)
+}
+
+function openToolFromPanel(toolId){
+  toggleToolsPanel(false)
+  DailyKitRouter.openTool(toolId)
+}
+
 function handleImportFileChange(event){
   const file = event.target.files[0]
 
@@ -610,7 +684,7 @@ function handleImportFileChange(event){
 
   if(file.size > 2 * 1024 * 1024){
     event.target.value = ""
-    DailyKitFeedback.error("Backup file is too large. Keep imports under 2 MB.")
+    DailyKitFeedback.error(t("backup.fileTooLarge", "Backup file is too large. Keep imports under 2 MB."))
     return
   }
 
@@ -624,12 +698,12 @@ function handleImportFileChange(event){
         : parseCsvBackup(text)
       DailyKitStorage.importBackup(data)
       event.target.value = ""
-      DailyKitFeedback.success("Backup restored successfully.")
+      DailyKitFeedback.success(t("backup.restored", "Backup restored successfully."))
       DailyKitDashboard.refreshDashboard()
       rerenderActiveTool()
     }catch(error){
       event.target.value = ""
-      DailyKitFeedback.error("Backup file is invalid. Use a DailyKit CSV backup or a legacy JSON backup.")
+      DailyKitFeedback.error(t("backup.invalid", "Backup file is invalid. Use a DailyKit CSV backup or a legacy JSON backup."))
     }
   }
 
@@ -746,6 +820,7 @@ async function bootSessionUi(){
   const savedLanguage = localStorage.getItem("language") || "en"
   await loadLanguage(savedLanguage)
   await DailyKitRouter.loadTools()
+  renderToolsPanel()
   DailyKitDashboard.refreshDashboard()
   DailyKitRouter.showHome()
   DailyKitReminders?.start?.()
@@ -754,6 +829,7 @@ async function bootSessionUi(){
 function resetForSignedOutState(){
   closeSearchResults()
   DailyKitReminders?.stop?.()
+  toggleToolsPanel(false)
   DailyKitRouter.syncNavState("home")
   const home = document.getElementById("screenHome")
   const toolArea = document.getElementById("toolArea")
@@ -803,3 +879,7 @@ window.importData = importData
 window.installApp = installApp
 window.rerenderActiveTool = rerenderActiveTool
 window.exportMonthlyReport = () => window.DailyKitReports?.downloadMonthlyReport()
+window.toggleToolsPanel = toggleToolsPanel
+window.openToolFromPanel = openToolFromPanel
+window.t = t
+window.applyLanguage = applyLanguage

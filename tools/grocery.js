@@ -4,6 +4,10 @@ const groceryState = {
   pageSize: 10
 }
 
+function tr(key, fallback, replacements){
+  return window.t ? window.t(key, fallback, replacements) : fallback
+}
+
 function escapeGroceryHtml(value){
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -17,10 +21,10 @@ function formatGroceryDate(value){
   const date = DailyKitStorage.parseDateKey(value)
 
   if(!date){
-    return "Unknown date"
+    return tr("common.unknownDate", "Unknown date")
   }
 
-  return new Intl.DateTimeFormat("en-IN", {
+  return new Intl.DateTimeFormat(localStorage.getItem("language") === "hi" ? "hi-IN" : "en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric"
@@ -33,40 +37,40 @@ function renderTool(){
   area.innerHTML = `
 <div class="tool-shell">
 <div class="tool-heading">
-<p class="section-kicker">Shopping</p>
-<h2>Grocery List</h2>
-<p>Drop in items fast, edit them cleanly, and browse older grocery additions page by page.</p>
+<p class="section-kicker">${tr("tool.groceryKicker", "Shopping")}</p>
+<h2>${tr("tool.grocery", "Grocery List")}</h2>
+<p>${tr("tool.groceryIntro", "Drop in items fast, edit them cleanly, and browse older grocery additions page by page.")}</p>
 </div>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Add fast</p>
-<h3 id="groceryFormTitle">Add grocery item</h3>
+<p class="section-kicker">${tr("common.addFast", "Add fast")}</p>
+<h3 id="groceryFormTitle">${tr("grocery.addItem", "Add grocery item")}</h3>
 </div>
 </div>
 <div class="tool-form">
-<input id="groceryInput" placeholder="Item name">
-<button id="grocerySubmitBtn" type="button" onclick="saveGroceryEntry()">Add Item</button>
-<button id="groceryCancelBtn" type="button" class="secondary-btn" onclick="cancelGroceryEdit()" hidden>Cancel</button>
+<input id="groceryInput" placeholder="${tr("grocery.itemName", "Item name")}">
+<button id="grocerySubmitBtn" type="button" onclick="saveGroceryEntry()">${tr("grocery.addButton", "Add Item")}</button>
+<button id="groceryCancelBtn" type="button" class="secondary-btn" onclick="cancelGroceryEdit()" hidden>${tr("common.cancel", "Cancel")}</button>
 </div>
 </section>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">History</p>
-<h3>Grocery archive</h3>
+<p class="section-kicker">${tr("common.history", "History")}</p>
+<h3>${tr("grocery.archive", "Grocery archive")}</h3>
 </div>
-<p class="panel-copy">Search your grocery archive and page through older items as your list grows.</p>
+<p class="panel-copy">${tr("grocery.archiveCopy", "Search your grocery archive and page through older items as your list grows.")}</p>
 </div>
 <div class="filters-grid filters-grid-two">
-<input id="grocerySearchInput" placeholder="Search item name" oninput="loadGroceries(1)">
+<input id="grocerySearchInput" placeholder="${tr("grocery.search", "Search item name")}" oninput="loadGroceries(1)">
 <select id="groceryDateFilter" onchange="loadGroceries(1)">
-<option value="all">All time</option>
-<option value="today">Today</option>
-<option value="week">This week</option>
-<option value="month">This month</option>
+<option value="all">${tr("filters.allTime", "All time")}</option>
+<option value="today">${tr("filters.today", "Today")}</option>
+<option value="week">${tr("filters.thisWeek", "This week")}</option>
+<option value="month">${tr("filters.thisMonth", "This month")}</option>
 </select>
 </div>
 <div id="groceryHistoryMeta" class="history-meta"></div>
@@ -90,8 +94,8 @@ function setGroceryFormState(){
   }
 
   if(!groceryState.editingId){
-    title.textContent = "Add grocery item"
-    submitButton.textContent = "Add Item"
+    title.textContent = tr("grocery.addItem", "Add grocery item")
+    submitButton.textContent = tr("grocery.addButton", "Add Item")
     cancelButton.hidden = true
     input.value = ""
     return
@@ -105,8 +109,8 @@ function setGroceryFormState(){
     return
   }
 
-  title.textContent = "Edit grocery item"
-  submitButton.textContent = "Save Changes"
+  title.textContent = tr("grocery.editItem", "Edit grocery item")
+  submitButton.textContent = tr("common.saveChanges", "Save Changes")
   cancelButton.hidden = false
   input.value = entry.name
 }
@@ -126,16 +130,16 @@ function saveGroceryEntry(){
   const value = input.value.trim()
 
   if(!value){
-    DailyKitFeedback.error("Enter a grocery item first.")
+    DailyKitFeedback.error(tr("messages.enterGroceryFirst", "Enter a grocery item first."))
     return
   }
 
   if(groceryState.editingId){
     DailyKitStorage.updateGrocery(groceryState.editingId, {name: value})
-    DailyKitFeedback.success("Grocery item updated.")
+    DailyKitFeedback.success(tr("messages.groceryUpdated", "Grocery item updated."))
   }else{
     DailyKitStorage.addGrocery({name: value})
-    DailyKitFeedback.success("Grocery item added.")
+    DailyKitFeedback.success(tr("messages.groceryAdded", "Grocery item added."))
   }
 
   groceryState.editingId = null
@@ -184,9 +188,9 @@ function renderGroceryPagination(totalItems){
   }
 
   pagination.innerHTML = `
-<button type="button" class="secondary-btn" ${groceryState.currentPage === 1 ? "disabled" : ""} onclick="changeGroceryPage(-1)">Previous</button>
-<span class="pagination-status">Page ${groceryState.currentPage} of ${pageCount}</span>
-<button type="button" class="secondary-btn" ${groceryState.currentPage === pageCount ? "disabled" : ""} onclick="changeGroceryPage(1)">Next</button>
+<button type="button" class="secondary-btn" ${groceryState.currentPage === 1 ? "disabled" : ""} onclick="changeGroceryPage(-1)">${tr("common.previous", "Previous")}</button>
+<span class="pagination-status">${tr("common.pageOf", "Page {page} of {count}", {page: groceryState.currentPage, count: pageCount})}</span>
+<button type="button" class="secondary-btn" ${groceryState.currentPage === pageCount ? "disabled" : ""} onclick="changeGroceryPage(1)">${tr("common.next", "Next")}</button>
 `
 }
 
@@ -227,21 +231,21 @@ function loadGroceries(resetPage){
 
   if(meta){
     meta.innerHTML = filtered.length
-      ? `Showing <strong>${filtered.length}</strong> grocery items`
-      : "No grocery items match the current search or date filter."
+      ? tr("grocery.meta", "Showing <strong>{count}</strong> grocery items", {count: filtered.length})
+      : tr("grocery.noMatches", "No grocery items match the current search or date filter.")
   }
 
   list.innerHTML = ""
 
   if(!data.length){
-    list.innerHTML = "<div class='list-empty'><strong>No grocery items yet.</strong><span>Add your first item above and DailyKit will keep the archive ready.</span></div>"
+    list.innerHTML = `<div class='list-empty'><strong>${tr("grocery.emptyTitle", "No grocery items yet.")}</strong><span>${tr("grocery.emptyCopy", "Add your first item above and DailyKit will keep the archive ready.")}</span></div>`
     renderGroceryPagination(0)
     setGroceryFormState()
     return
   }
 
   if(!filtered.length){
-    list.innerHTML = "<div class='list-empty'>No grocery items match the current search or date filter.</div>"
+    list.innerHTML = `<div class='list-empty'>${tr("grocery.noMatches", "No grocery items match the current search or date filter.")}</div>`
     renderGroceryPagination(0)
     setGroceryFormState()
     return
@@ -252,11 +256,11 @@ function loadGroceries(resetPage){
 <div class="list-item">
 <div class="list-copy">
 <strong>${escapeGroceryHtml(item.name)}</strong>
-<span>Added ${escapeGroceryHtml(formatGroceryDate(item.date))}</span>
+<span>${tr("grocery.addedOn", "Added {date}", {date: escapeGroceryHtml(formatGroceryDate(item.date))})}</span>
 </div>
 <div class="list-actions">
-<button class="secondary-btn" onclick='editGrocery(${JSON.stringify(item.id)})'>Edit</button>
-<button onclick='removeGrocery(${JSON.stringify(item.id)})'>Delete</button>
+<button class="secondary-btn" onclick='editGrocery(${JSON.stringify(item.id)})'>${tr("common.edit", "Edit")}</button>
+<button onclick='removeGrocery(${JSON.stringify(item.id)})'>${tr("common.delete", "Delete")}</button>
 </div>
 </div>
 `
@@ -287,14 +291,14 @@ function removeGrocery(id){
 
   loadGroceries()
   refreshDashboard()
-  DailyKitFeedback.show(`Deleted ${entry.name}.`, {
+  DailyKitFeedback.show(tr("grocery.deleted", "Deleted {value}.", {value: entry.name}), {
     type: "info",
-    actionLabel: "Undo",
+    actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
       DailyKitStorage.addGrocery(entry)
       loadGroceries()
       refreshDashboard()
-      DailyKitFeedback.success("Grocery item restored.")
+      DailyKitFeedback.success(tr("grocery.restored", "Grocery item restored."))
     }
   })
 }

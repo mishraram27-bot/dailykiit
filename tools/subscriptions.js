@@ -4,6 +4,10 @@ const subscriptionState = {
   pageSize: 8
 }
 
+function tr(key, fallback, replacements){
+  return window.t ? window.t(key, fallback, replacements) : fallback
+}
+
 function formatSubscriptionCurrency(amount){
   return `\u20B9${Number(amount) || 0}`
 }
@@ -30,7 +34,7 @@ function getNextDueLabel(billingDay){
     nextDue = new Date(today.getFullYear(), today.getMonth() + 1, Math.min(day, lastDayNextMonth))
   }
 
-  return new Intl.DateTimeFormat("en-IN", {
+  return new Intl.DateTimeFormat(localStorage.getItem("language") === "hi" ? "hi-IN" : "en-IN", {
     day: "numeric",
     month: "short"
   }).format(nextDue)
@@ -45,19 +49,19 @@ function renderTool(){
   area.innerHTML = `
 <div class="tool-shell">
 <div class="tool-heading">
-<p class="section-kicker">Recurring</p>
-<h2>Subscriptions</h2>
-<p>Track monthly recurring costs so you always know what is due and how much they add up to.</p>
+<p class="section-kicker">${tr("tool.subscriptionsKicker", "Recurring")}</p>
+<h2>${tr("tool.subscriptions", "Subscriptions")}</h2>
+<p>${tr("tool.subscriptionsIntro", "Track monthly recurring costs so you always know what is due and how much they add up to.")}</p>
 </div>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Overview</p>
-<h3>Recurring monthly load</h3>
+<p class="section-kicker">${tr("subscriptions.overview", "Overview")}</p>
+<h3>${tr("subscriptions.monthlyLoad", "Recurring monthly load")}</h3>
 </div>
 <div class="metric-pills">
-<span class="metric-pill">Monthly total ${formatSubscriptionCurrency(total)}</span>
+<span class="metric-pill">${tr("subscriptions.monthlyTotal", "Monthly total {total}", {total: formatSubscriptionCurrency(total)})}</span>
 </div>
 </div>
 </section>
@@ -65,49 +69,49 @@ function renderTool(){
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Reminders</p>
-<h3>Upcoming due reminders</h3>
+<p class="section-kicker">${tr("reminders.kicker", "Reminders")}</p>
+<h3>${tr("subscriptions.reminderTitle", "Upcoming due reminders")}</h3>
 </div>
-<p class="panel-copy">Set a local reminder time and how many days before the due date you want a heads-up.</p>
+<p class="panel-copy">${tr("subscriptions.reminderCopy", "Set a local reminder time and how many days before the due date you want a heads-up.")}</p>
 </div>
 <div class="tool-form">
 <input id="subscriptionReminderTime" type="time" value="${reminderSettings.time}">
 <input id="subscriptionLeadDays" type="number" min="0" max="7" value="${reminderSettings.leadDays}">
-<button type="button" class="secondary-btn" onclick="enableSubscriptionNotifications()">Notification permission: ${notificationStatus}</button>
-<button type="button" onclick="saveSubscriptionReminderSettings()">${reminderSettings.enabled ? "Update Reminder" : "Enable Reminder"}</button>
+<button type="button" class="secondary-btn" onclick="enableSubscriptionNotifications()">${tr("reminders.permission", "Notification permission")}: ${notificationStatus}</button>
+<button type="button" onclick="saveSubscriptionReminderSettings()">${reminderSettings.enabled ? tr("reminders.update", "Update Reminder") : tr("reminders.enable", "Enable Reminder")}</button>
 </div>
 </section>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Add fast</p>
-<h3 id="subscriptionFormTitle">Add subscription</h3>
+<p class="section-kicker">${tr("common.addFast", "Add fast")}</p>
+<h3 id="subscriptionFormTitle">${tr("subscriptions.add", "Add subscription")}</h3>
 </div>
 </div>
 <div class="tool-form">
-<input id="subscriptionName" placeholder="Netflix">
-<input id="subscriptionAmount" placeholder="Amount" inputmode="decimal">
-<input id="subscriptionDay" placeholder="Billing day (1-31)" inputmode="numeric">
-<button id="subscriptionSubmitBtn" type="button" onclick="saveSubscriptionEntry()">Add</button>
-<button id="subscriptionCancelBtn" type="button" class="secondary-btn" onclick="cancelSubscriptionEdit()" hidden>Cancel</button>
+<input id="subscriptionName" placeholder="${tr("subscriptions.name", "Netflix")}">
+<input id="subscriptionAmount" placeholder="${tr("common.amount", "Amount")}" inputmode="decimal">
+<input id="subscriptionDay" placeholder="${tr("subscriptions.billingDay", "Billing day (1-31)")}" inputmode="numeric">
+<button id="subscriptionSubmitBtn" type="button" onclick="saveSubscriptionEntry()">${tr("common.add", "Add")}</button>
+<button id="subscriptionCancelBtn" type="button" class="secondary-btn" onclick="cancelSubscriptionEdit()" hidden>${tr("common.cancel", "Cancel")}</button>
 </div>
 </section>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Archive</p>
-<h3>Subscriptions list</h3>
+<p class="section-kicker">${tr("common.archive", "Archive")}</p>
+<h3>${tr("subscriptions.list", "Subscriptions list")}</h3>
 </div>
-<p class="panel-copy">Search and page through all recurring charges as your app grows.</p>
+<p class="panel-copy">${tr("subscriptions.listCopy", "Search and page through all recurring charges as your app grows.")}</p>
 </div>
 <div class="filters-grid filters-grid-two">
-<input id="subscriptionSearchInput" placeholder="Search subscriptions" oninput="loadSubscriptions(1)">
+<input id="subscriptionSearchInput" placeholder="${tr("subscriptions.search", "Search subscriptions")}" oninput="loadSubscriptions(1)">
 <select id="subscriptionSort" onchange="loadSubscriptions(1)">
-<option value="name">Sort by name</option>
-<option value="amount">Sort by amount</option>
-<option value="due">Sort by due date</option>
+<option value="name">${tr("subscriptions.sortName", "Sort by name")}</option>
+<option value="amount">${tr("subscriptions.sortAmount", "Sort by amount")}</option>
+<option value="due">${tr("subscriptions.sortDue", "Sort by due date")}</option>
 </select>
 </div>
 <div id="subscriptionMeta" class="history-meta"></div>
@@ -133,8 +137,8 @@ function setSubscriptionFormState(){
   }
 
   if(!subscriptionState.editingId){
-    title.textContent = "Add subscription"
-    submit.textContent = "Add"
+    title.textContent = tr("subscriptions.add", "Add subscription")
+    submit.textContent = tr("common.add", "Add")
     cancel.hidden = true
     nameInput.value = ""
     amountInput.value = ""
@@ -150,8 +154,8 @@ function setSubscriptionFormState(){
     return
   }
 
-  title.textContent = "Edit subscription"
-  submit.textContent = "Save"
+  title.textContent = tr("subscriptions.edit", "Edit subscription")
+  submit.textContent = tr("common.save", "Save")
   cancel.hidden = false
   nameInput.value = entry.name
   amountInput.value = entry.amount
@@ -169,17 +173,17 @@ function saveSubscriptionEntry(){
   const billingDay = Number(document.getElementById("subscriptionDay")?.value)
 
   if(!name){
-    DailyKitFeedback.error("Enter a subscription name.")
+    DailyKitFeedback.error(tr("messages.enterSubscriptionName", "Enter a subscription name."))
     return
   }
 
   if(!Number.isFinite(amount) || amount <= 0){
-    DailyKitFeedback.error("Enter a valid amount.")
+    DailyKitFeedback.error(tr("messages.validAmount", "Enter a valid amount."))
     return
   }
 
   if(!Number.isInteger(billingDay) || billingDay < 1 || billingDay > 31){
-    DailyKitFeedback.error("Enter a billing day between 1 and 31.")
+    DailyKitFeedback.error(tr("messages.billingDayRange", "Enter a billing day between 1 and 31."))
     return
   }
 
@@ -187,10 +191,10 @@ function saveSubscriptionEntry(){
 
   if(subscriptionState.editingId){
     DailyKitStorage.updateSubscription(subscriptionState.editingId, payload)
-    DailyKitFeedback.success("Subscription updated.")
+    DailyKitFeedback.success(tr("messages.subscriptionUpdated", "Subscription updated."))
   }else{
     DailyKitStorage.addSubscription(payload)
-    DailyKitFeedback.success("Subscription added.")
+    DailyKitFeedback.success(tr("messages.subscriptionAdded", "Subscription added."))
   }
 
   subscriptionState.editingId = null
@@ -207,12 +211,12 @@ function saveSubscriptionReminderSettings(){
   const leadDays = Number(document.getElementById("subscriptionLeadDays")?.value)
 
   if(!/^\d{2}:\d{2}$/.test(String(time || ""))){
-    DailyKitFeedback.error("Choose a valid reminder time.")
+    DailyKitFeedback.error(tr("messages.validReminderTime", "Choose a valid reminder time."))
     return
   }
 
   if(!Number.isInteger(leadDays) || leadDays < 0 || leadDays > 7){
-    DailyKitFeedback.error("Lead days must be between 0 and 7.")
+    DailyKitFeedback.error(tr("messages.leadDaysRange", "Lead days must be between 0 and 7."))
     return
   }
 
@@ -224,7 +228,7 @@ function saveSubscriptionReminderSettings(){
     }
   })
   DailyKitReminders.runChecks()
-  DailyKitFeedback.success("Subscription reminder saved.")
+  DailyKitFeedback.success(tr("messages.subscriptionReminderSaved", "Subscription reminder saved."))
 }
 
 function renderSubscriptionPagination(totalItems){
@@ -243,9 +247,9 @@ function renderSubscriptionPagination(totalItems){
   }
 
   pagination.innerHTML = `
-<button type="button" class="secondary-btn" ${subscriptionState.currentPage === 1 ? "disabled" : ""} onclick="changeSubscriptionPage(-1)">Previous</button>
-<span class="pagination-status">Page ${subscriptionState.currentPage} of ${pageCount}</span>
-<button type="button" class="secondary-btn" ${subscriptionState.currentPage === pageCount ? "disabled" : ""} onclick="changeSubscriptionPage(1)">Next</button>
+<button type="button" class="secondary-btn" ${subscriptionState.currentPage === 1 ? "disabled" : ""} onclick="changeSubscriptionPage(-1)">${tr("common.previous", "Previous")}</button>
+<span class="pagination-status">${tr("common.pageOf", "Page {page} of {count}", {page: subscriptionState.currentPage, count: pageCount})}</span>
+<button type="button" class="secondary-btn" ${subscriptionState.currentPage === pageCount ? "disabled" : ""} onclick="changeSubscriptionPage(1)">${tr("common.next", "Next")}</button>
 `
 }
 
@@ -290,14 +294,17 @@ function loadSubscriptions(resetPage){
 
   if(meta){
     meta.innerHTML = filtered.length
-      ? `Showing <strong>${filtered.length}</strong> subscriptions - Monthly total <strong>${formatSubscriptionCurrency(total)}</strong>`
-      : "No subscriptions match the current search."
+      ? tr("subscriptions.meta", "Showing <strong>{count}</strong> subscriptions - Monthly total <strong>{total}</strong>", {
+        count: filtered.length,
+        total: formatSubscriptionCurrency(total)
+      })
+      : tr("subscriptions.noMatches", "No subscriptions match the current search.")
   }
 
   list.innerHTML = ""
 
   if(!filtered.length){
-    list.innerHTML = "<div class='list-empty'><strong>No subscriptions yet.</strong><span>Add monthly costs like Netflix, Spotify, or domains to see your recurring load.</span></div>"
+    list.innerHTML = `<div class='list-empty'><strong>${tr("subscriptions.emptyTitle", "No subscriptions yet.")}</strong><span>${tr("subscriptions.emptyCopy", "Add monthly costs like Netflix, Spotify, or domains to see your recurring load.")}</span></div>`
     renderSubscriptionPagination(0)
     setSubscriptionFormState()
     return
@@ -308,11 +315,14 @@ function loadSubscriptions(resetPage){
 <div class="list-item">
 <div class="list-copy">
 <strong>${escapeSubscriptionHtml(entry.name)}</strong>
-<span>${formatSubscriptionCurrency(entry.amount)} monthly - Next due ${escapeSubscriptionHtml(getNextDueLabel(entry.billingDay))}</span>
+<span>${tr("subscriptions.itemMeta", "{amount} monthly - Next due {due}", {
+  amount: formatSubscriptionCurrency(entry.amount),
+  due: escapeSubscriptionHtml(getNextDueLabel(entry.billingDay))
+})}</span>
 </div>
 <div class="list-actions">
-<button class="secondary-btn" onclick='editSubscription(${JSON.stringify(entry.id)})'>Edit</button>
-<button onclick='deleteSubscription(${JSON.stringify(entry.id)})'>Delete</button>
+<button class="secondary-btn" onclick='editSubscription(${JSON.stringify(entry.id)})'>${tr("common.edit", "Edit")}</button>
+<button onclick='deleteSubscription(${JSON.stringify(entry.id)})'>${tr("common.delete", "Delete")}</button>
 </div>
 </div>
 `
@@ -337,13 +347,13 @@ function deleteSubscription(id){
 
   DailyKitStorage.removeSubscription(id)
   loadSubscriptions()
-  DailyKitFeedback.show(`Deleted subscription ${entry.name}.`, {
+  DailyKitFeedback.show(tr("subscriptions.deleted", "Deleted subscription {value}.", {value: entry.name}), {
     type: "info",
-    actionLabel: "Undo",
+    actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
       DailyKitStorage.addSubscription(entry)
       renderTool()
-      DailyKitFeedback.success("Subscription restored.")
+      DailyKitFeedback.success(tr("subscriptions.restored", "Subscription restored."))
     }
   })
 }

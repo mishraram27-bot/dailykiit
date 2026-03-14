@@ -1,4 +1,12 @@
 ;(function(){
+function tr(key, fallback, replacements){
+  if(!window.t){
+    return fallback
+  }
+
+  return window.t(key, fallback, replacements)
+}
+
 function parse(query){
   const value = String(query || "").trim()
 
@@ -13,8 +21,11 @@ function parse(query){
       type: "borrow",
       person: match[1].trim(),
       amount: Number(match[2]),
-      title: `Add borrowed entry for ${match[1].trim()}`,
-      subtitle: `Command: save ${match[1].trim()} owing \u20B9${match[2]}`
+      title: tr("commands.borrowTitle", "Add borrowed entry for {value}", {value: match[1].trim()}),
+      subtitle: tr("commands.borrowSubtitle", "Command: save {value} owing \u20B9{amount}", {
+        value: match[1].trim(),
+        amount: match[2]
+      })
     }
   }
 
@@ -24,8 +35,8 @@ function parse(query){
     return {
       type: "grocery",
       name: match[1].trim(),
-      title: `Add grocery item ${match[1].trim()}`,
-      subtitle: `Command: add ${match[1].trim()} to Grocery`
+      title: tr("commands.groceryTitle", "Add grocery item {value}", {value: match[1].trim()}),
+      subtitle: tr("commands.grocerySubtitle", "Command: add {value} to Grocery", {value: match[1].trim()})
     }
   }
 
@@ -35,8 +46,8 @@ function parse(query){
     return {
       type: "habit",
       name: match[1].trim(),
-      title: `Add habit ${match[1].trim()}`,
-      subtitle: `Command: create habit ${match[1].trim()}`
+      title: tr("commands.habitTitle", "Add habit {value}", {value: match[1].trim()}),
+      subtitle: tr("commands.habitSubtitle", "Command: create habit {value}", {value: match[1].trim()})
     }
   }
 
@@ -46,8 +57,8 @@ function parse(query){
     return {
       type: "note",
       text: match[1].trim(),
-      title: `Create note ${match[1].trim()}`,
-      subtitle: `Command: save quick note`
+      title: tr("commands.noteTitle", "Create note {value}", {value: match[1].trim()}),
+      subtitle: tr("commands.noteSubtitle", "Command: save quick note")
     }
   }
 
@@ -58,8 +69,11 @@ function parse(query){
       type: "subscription",
       name: match[1].trim(),
       amount: Number(match[2]),
-      title: `Add subscription ${match[1].trim()}`,
-      subtitle: `Command: save ${match[1].trim()} for \u20B9${match[2]}`
+      title: tr("commands.subscriptionTitle", "Add subscription {value}", {value: match[1].trim()}),
+      subtitle: tr("commands.subscriptionSubtitle", "Command: save {value} for \u20B9{amount}", {
+        value: match[1].trim(),
+        amount: match[2]
+      })
     }
   }
 
@@ -70,8 +84,11 @@ function parse(query){
       type: "expense",
       name: match[1].trim(),
       amount: Number(match[2]),
-      title: `Add expense ${match[1].trim()}`,
-      subtitle: `Command: save ${match[1].trim()} for \u20B9${match[2]}`
+      title: tr("commands.expenseTitle", "Add expense {value}", {value: match[1].trim()}),
+      subtitle: tr("commands.expenseSubtitle", "Command: save {value} for \u20B9{amount}", {
+        value: match[1].trim(),
+        amount: match[2]
+      })
     }
   }
 
@@ -91,7 +108,7 @@ function execute(command){
     })
     DailyKitRouter.openTool("expenses")
     DailyKitDashboard.refreshDashboard()
-    DailyKitFeedback.success(`Expense saved: ${command.name}`)
+    DailyKitFeedback.success(tr("messages.commandExpenseSaved", "Expense saved: {value}", {value: command.name}))
     return true
   }
 
@@ -102,7 +119,7 @@ function execute(command){
     })
     DailyKitRouter.openTool("borrowed")
     DailyKitDashboard.refreshDashboard()
-    DailyKitFeedback.success(`Borrowed entry saved for ${command.person}`)
+    DailyKitFeedback.success(tr("messages.commandBorrowSaved", "Borrowed entry saved for {value}", {value: command.person}))
     return true
   }
 
@@ -112,7 +129,7 @@ function execute(command){
     })
     DailyKitRouter.openTool("grocery")
     DailyKitDashboard.refreshDashboard()
-    DailyKitFeedback.success(`Grocery item added: ${command.name}`)
+    DailyKitFeedback.success(tr("messages.commandGrocerySaved", "Grocery item added: {value}", {value: command.name}))
     return true
   }
 
@@ -122,7 +139,7 @@ function execute(command){
       completions: []
     })
     DailyKitRouter.openTool("habits")
-    DailyKitFeedback.success(`Habit added: ${command.name}`)
+    DailyKitFeedback.success(tr("messages.commandHabitSaved", "Habit added: {value}", {value: command.name}))
     return true
   }
 
@@ -132,7 +149,7 @@ function execute(command){
       body: command.text
     })
     DailyKitRouter.openTool("notes")
-    DailyKitFeedback.success("Quick note saved.")
+    DailyKitFeedback.success(tr("messages.quickNoteSaved", "Quick note saved."))
     return true
   }
 
@@ -143,7 +160,7 @@ function execute(command){
       billingDay: new Date().getDate()
     })
     DailyKitRouter.openTool("subscriptions")
-    DailyKitFeedback.success(`Subscription added: ${command.name}`)
+    DailyKitFeedback.success(tr("messages.commandSubscriptionSaved", "Subscription added: {value}", {value: command.name}))
     return true
   }
 

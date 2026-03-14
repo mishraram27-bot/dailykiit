@@ -4,6 +4,10 @@ const expenseState = {
   pageSize: 8
 }
 
+function tr(key, fallback, replacements){
+  return window.t ? window.t(key, fallback, replacements) : fallback
+}
+
 function formatExpenseCurrency(amount){
   return `\u20B9${Number(amount) || 0}`
 }
@@ -21,10 +25,10 @@ function formatExpenseDate(value){
   const date = DailyKitStorage.parseDateKey(value)
 
   if(!date){
-    return "Unknown date"
+    return tr("common.unknownDate", "Unknown date")
   }
 
-  return new Intl.DateTimeFormat("en-IN", {
+  return new Intl.DateTimeFormat(localStorage.getItem("language") === "hi" ? "hi-IN" : "en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric"
@@ -54,11 +58,11 @@ function buildCategoryOptions(selectedValue, config = {}){
   const options = []
 
   if(includeAuto){
-    options.push(`<option value="">Auto category</option>`)
+    options.push(`<option value="">${tr("expenses.autoCategory", "Auto category")}</option>`)
   }
 
   if(includeAll){
-    options.push(`<option value="">All categories</option>`)
+    options.push(`<option value="">${tr("expenses.allCategories", "All categories")}</option>`)
   }
 
   categories.forEach((category) => {
@@ -95,62 +99,62 @@ function renderTool(){
   area.innerHTML = `
 <div class="tool-shell">
 <div class="tool-heading">
-<p class="section-kicker">Money</p>
-<h2>Expenses</h2>
-<p>Capture a spend quickly, organize it with your own categories, and review your running history.</p>
+<p class="section-kicker">${tr("tool.expensesKicker", "Money")}</p>
+<h2>${tr("tool.expenses", "Expenses")}</h2>
+<p>${tr("tool.expensesIntro", "Capture a spend quickly, organize it with your own categories, and review your running history.")}</p>
 </div>
 
 <section class="feature-panel budget-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Budget</p>
-<h3>Monthly budget</h3>
+<p class="section-kicker">${tr("expenses.budgetKicker", "Budget")}</p>
+<h3>${tr("expenses.monthlyBudget", "Monthly budget")}</h3>
 </div>
 <div class="metric-pills">
-<span class="metric-pill">Spent ${formatExpenseCurrency(monthlyStats.total)}</span>
-<span class="metric-pill ${budgetLeft != null && budgetLeft < 0 ? "is-danger" : ""}">${budgetLeft == null ? "No budget set" : `Left ${formatExpenseCurrency(budgetLeft)}`}</span>
+<span class="metric-pill">${tr("expenses.spent", "Spent")} ${formatExpenseCurrency(monthlyStats.total)}</span>
+<span class="metric-pill ${budgetLeft != null && budgetLeft < 0 ? "is-danger" : ""}">${budgetLeft == null ? tr("expenses.noBudget", "No budget set") : `${tr("expenses.left", "Left")} ${formatExpenseCurrency(budgetLeft)}`}</span>
 </div>
 </div>
 <div class="tool-form">
-<input id="monthlyBudgetInput" type="number" min="0" step="1" placeholder="Set monthly budget" value="${budgetSettings.monthlyBudget || ""}">
-<button type="button" onclick="saveMonthlyBudget()">Save Budget</button>
+<input id="monthlyBudgetInput" type="number" min="0" step="1" placeholder="${tr("expenses.setMonthlyBudget", "Set monthly budget")}" value="${budgetSettings.monthlyBudget || ""}">
+<button type="button" onclick="saveMonthlyBudget()">${tr("common.saveBudget", "Save Budget")}</button>
 </div>
 </section>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">Add fast</p>
-<h3 id="expenseFormTitle">New expense</h3>
+<p class="section-kicker">${tr("common.addFast", "Add fast")}</p>
+<h3 id="expenseFormTitle">${tr("expenses.newExpense", "New expense")}</h3>
 </div>
 </div>
 <div class="tool-form">
-<input id="expenseInput" placeholder="coffee 50">
+<input id="expenseInput" placeholder="${tr("expenses.quickExample", "coffee 50")}">
 <select id="expenseCategory">${buildCategoryOptions("", {includeAuto: true})}</select>
-<button id="expenseSubmitBtn" type="button" onclick="saveExpenseEntry()">Add Expense</button>
-<button id="expenseCancelBtn" type="button" class="secondary-btn" onclick="cancelExpenseEdit()" hidden>Cancel</button>
+<button id="expenseSubmitBtn" type="button" onclick="saveExpenseEntry()">${tr("common.addExpense", "Add Expense")}</button>
+<button id="expenseCancelBtn" type="button" class="secondary-btn" onclick="cancelExpenseEdit()" hidden>${tr("common.cancel", "Cancel")}</button>
 </div>
 <div class="tool-form tool-form-secondary">
-<input id="customCategoryInput" placeholder="Create custom category">
-<button type="button" class="secondary-btn" onclick="addCustomCategory()">Add Category</button>
+<input id="customCategoryInput" placeholder="${tr("expenses.createCustomCategory", "Create custom category")}">
+<button type="button" class="secondary-btn" onclick="addCustomCategory()">${tr("expenses.addCategory", "Add Category")}</button>
 </div>
 </section>
 
 <section class="feature-panel">
 <div class="panel-heading">
 <div>
-<p class="section-kicker">History</p>
-<h3>Recent and archived entries</h3>
+<p class="section-kicker">${tr("common.history", "History")}</p>
+<h3>${tr("expenses.archiveTitle", "Recent and archived entries")}</h3>
 </div>
-<p class="panel-copy">Search, filter by time, and browse older data page by page as the archive grows.</p>
+<p class="panel-copy">${tr("expenses.archiveCopy", "Search, filter by time, and browse older data page by page as the archive grows.")}</p>
 </div>
 <div class="filters-grid">
-<input id="expenseSearchInput" placeholder="Search expense name" oninput="loadExpenses(1)">
+<input id="expenseSearchInput" placeholder="${tr("expenses.searchName", "Search expense name")}" oninput="loadExpenses(1)">
 <select id="expenseDateFilter" onchange="loadExpenses(1)">
-<option value="all">All time</option>
-<option value="today">Today</option>
-<option value="week">This week</option>
-<option value="month">This month</option>
+<option value="all">${tr("filters.allTime", "All time")}</option>
+<option value="today">${tr("filters.today", "Today")}</option>
+<option value="week">${tr("filters.thisWeek", "This week")}</option>
+<option value="month">${tr("filters.thisMonth", "This month")}</option>
 </select>
 <select id="expenseCategoryFilter" onchange="loadExpenses(1)">${buildCategoryOptions("", {includeAll: true})}</select>
 </div>
@@ -177,8 +181,8 @@ function setExpenseFormState(){
   }
 
   if(!expenseState.editingId){
-    title.textContent = "New expense"
-    submitButton.textContent = "Add Expense"
+    title.textContent = tr("expenses.newExpense", "New expense")
+    submitButton.textContent = tr("common.addExpense", "Add Expense")
     cancelButton.hidden = true
     input.value = ""
     select.value = ""
@@ -193,8 +197,8 @@ function setExpenseFormState(){
     return
   }
 
-  title.textContent = "Edit expense"
-  submitButton.textContent = "Save Changes"
+  title.textContent = tr("expenses.editExpense", "Edit expense")
+  submitButton.textContent = tr("common.saveChanges", "Save Changes")
   cancelButton.hidden = false
   input.value = `${entry.name} ${entry.amount}`
   select.value = entry.category || ""
@@ -215,14 +219,14 @@ function addCustomCategory(){
   const value = input.value.trim()
 
   if(!value){
-    DailyKitFeedback.error("Enter a category name first.")
+    DailyKitFeedback.error(tr("messages.enterCategory", "Enter a category name first."))
     return
   }
 
   DailyKitStorage.addExpenseCategory(value)
   input.value = ""
   syncExpenseSelects()
-  DailyKitFeedback.success(`Category added: ${value}`)
+  DailyKitFeedback.success(tr("messages.categoryAdded", "Category added: {value}", {value}))
 }
 
 function saveMonthlyBudget(){
@@ -235,14 +239,14 @@ function saveMonthlyBudget(){
   const value = Number(input.value)
 
   if(input.value && (!Number.isFinite(value) || value <= 0)){
-    DailyKitFeedback.error("Enter a valid monthly budget.")
+    DailyKitFeedback.error(tr("messages.validMonthlyBudget", "Enter a valid monthly budget."))
     return
   }
 
   DailyKitStorage.saveBudgetSettings({monthlyBudget: Number.isFinite(value) && value > 0 ? value : null})
   renderTool()
   refreshDashboard()
-  DailyKitFeedback.success("Monthly budget updated.")
+  DailyKitFeedback.success(tr("messages.monthlyBudgetUpdated", "Monthly budget updated."))
 }
 
 function saveExpenseEntry(){
@@ -256,7 +260,7 @@ function saveExpenseEntry(){
   const input = inputElement.value.trim()
 
   if(!input){
-    DailyKitFeedback.error("Enter an expense like coffee 50.")
+    DailyKitFeedback.error(tr("messages.enterExpenseExample", "Enter an expense like coffee 50."))
     return
   }
 
@@ -265,12 +269,12 @@ function saveExpenseEntry(){
   const name = parts.join(" ").trim()
 
   if(!name){
-    DailyKitFeedback.error("Enter an item name.")
+    DailyKitFeedback.error(tr("messages.enterItemName", "Enter an item name."))
     return
   }
 
   if(!Number.isFinite(amount) || amount <= 0){
-    DailyKitFeedback.error("Enter a valid amount.")
+    DailyKitFeedback.error(tr("messages.validAmount", "Enter a valid amount."))
     return
   }
 
@@ -280,10 +284,10 @@ function saveExpenseEntry(){
 
   if(expenseState.editingId){
     DailyKitStorage.updateExpense(expenseState.editingId, {name, amount, category})
-    DailyKitFeedback.success("Expense updated.")
+    DailyKitFeedback.success(tr("messages.expenseUpdated", "Expense updated."))
   }else{
     DailyKitStorage.addExpense({name, amount, category})
-    DailyKitFeedback.success("Expense added.")
+    DailyKitFeedback.success(tr("messages.expenseAdded", "Expense added."))
   }
 
   expenseState.editingId = null
@@ -332,9 +336,9 @@ function renderExpensePagination(totalItems){
   }
 
   pagination.innerHTML = `
-<button type="button" class="secondary-btn" ${expenseState.currentPage === 1 ? "disabled" : ""} onclick="changeExpensePage(-1)">Previous</button>
-<span class="pagination-status">Page ${expenseState.currentPage} of ${pageCount}</span>
-<button type="button" class="secondary-btn" ${expenseState.currentPage === pageCount ? "disabled" : ""} onclick="changeExpensePage(1)">Next</button>
+<button type="button" class="secondary-btn" ${expenseState.currentPage === 1 ? "disabled" : ""} onclick="changeExpensePage(-1)">${tr("common.previous", "Previous")}</button>
+<span class="pagination-status">${tr("common.pageOf", "Page {page} of {count}", {page: expenseState.currentPage, count: pageCount})}</span>
+<button type="button" class="secondary-btn" ${expenseState.currentPage === pageCount ? "disabled" : ""} onclick="changeExpensePage(1)">${tr("common.next", "Next")}</button>
 `
 }
 
@@ -384,8 +388,12 @@ function loadExpenses(resetPage){
 
   if(meta){
     meta.innerHTML = filtered.length
-      ? `Showing <strong>${filtered.length}</strong> of ${data.length} entries - Total <strong>${formatExpenseCurrency(totalAmount)}</strong>`
-      : "No matching expenses yet. Try a different filter or add a fresh entry."
+      ? tr("expenses.meta", "Showing <strong>{count}</strong> of {totalCount} entries - Total <strong>{total}</strong>", {
+        count: filtered.length,
+        totalCount: data.length,
+        total: formatExpenseCurrency(totalAmount)
+      })
+      : tr("expenses.noMatchesMeta", "No matching expenses yet. Try a different filter or add a fresh entry.")
   }
 
   list.innerHTML = ""
@@ -393,8 +401,8 @@ function loadExpenses(resetPage){
   if(!data.length){
     list.innerHTML = `
 <div class="list-empty">
-<strong>No expenses yet.</strong>
-<span>Start with something simple like <b>coffee 50</b>. DailyKit will auto-categorize it and add it to this week's chart.</span>
+<strong>${tr("expenses.emptyTitle", "No expenses yet.")}</strong>
+<span>${tr("expenses.emptyCopy", "Start with something simple like <b>coffee 50</b>. DailyKit will auto-categorize it and add it to this week's chart.")}</span>
 </div>
 `
     renderExpensePagination(0)
@@ -403,7 +411,7 @@ function loadExpenses(resetPage){
   }
 
   if(!filtered.length){
-    list.innerHTML = "<div class='list-empty'>No expenses match the current search or date filter.</div>"
+    list.innerHTML = `<div class='list-empty'>${tr("expenses.noMatches", "No expenses match the current search or date filter.")}</div>`
     renderExpensePagination(0)
     setExpenseFormState()
     return
@@ -414,12 +422,15 @@ function loadExpenses(resetPage){
 <div class="list-item">
 <div class="list-copy">
 <strong>${escapeExpenseHtml(entry.name)}</strong>
-<span>${escapeExpenseHtml(entry.category)} - ${escapeExpenseHtml(formatExpenseDate(entry.date))}</span>
+<span>${tr("expenses.itemMeta", "{category} - {date}", {
+  category: escapeExpenseHtml(entry.category),
+  date: escapeExpenseHtml(formatExpenseDate(entry.date))
+})}</span>
 </div>
 <div class="list-actions">
 <span class="list-amount">${formatExpenseCurrency(entry.amount)}</span>
-<button class="secondary-btn" onclick='editExpense(${JSON.stringify(entry.id)})'>Edit</button>
-<button onclick='deleteExpense(${JSON.stringify(entry.id)})'>Delete</button>
+<button class="secondary-btn" onclick='editExpense(${JSON.stringify(entry.id)})'>${tr("common.edit", "Edit")}</button>
+<button onclick='deleteExpense(${JSON.stringify(entry.id)})'>${tr("common.delete", "Delete")}</button>
 </div>
 </div>
 `
@@ -450,14 +461,14 @@ function deleteExpense(id){
 
   loadExpenses()
   refreshDashboard()
-  DailyKitFeedback.show(`Deleted ${entry.name}.`, {
+  DailyKitFeedback.show(tr("messages.deletedItem", "Deleted {value}.", {value: entry.name}), {
     type: "info",
-    actionLabel: "Undo",
+    actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
       DailyKitStorage.addExpense(entry)
       loadExpenses()
       refreshDashboard()
-      DailyKitFeedback.success("Expense restored.")
+      DailyKitFeedback.success(tr("messages.expenseRestored", "Expense restored."))
     }
   })
 }
