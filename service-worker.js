@@ -1,4 +1,4 @@
-const CACHE_NAME = "plifeos-v10.9"
+const CACHE_NAME = "plifeos-v10.12"
 
 const urlsToCache = [
 "/",
@@ -32,6 +32,8 @@ const urlsToCache = [
 "/tools/subscriptions.js",
 
 "/icons/Logo.svg",
+"/icons/logo-white.svg",
+"/icons/logo-black.svg",
 "/icons/favicon.png",
 "/icons/favicon 16.png",
 "/icons/apple-touch-icon.png",

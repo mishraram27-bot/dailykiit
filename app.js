@@ -5,9 +5,13 @@ let toolsPanelOpen = false
 let searchTimer = null
 let appUpdateRegistration = null
 
-const APP_VERSION = "10.9"
+const APP_VERSION = "10.12"
 const LAST_EXPORT_KEY = "plifeos:last-export-at"
 const THEME_KEY = "plifeos:theme"
+const BRAND_LOGO_SOURCES = {
+  dark: "icons/logo-white.svg",
+  light: "icons/logo-black.svg"
+}
 
 const searchState = {
   results: [],
@@ -46,12 +50,23 @@ function resolveTheme(theme){
   return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ? "dark" : "light"
 }
 
+function syncBrandLogo(theme){
+  const logo = document.getElementById("brandLogo")
+
+  if(!logo){
+    return
+  }
+
+  logo.setAttribute("src", theme === "light" ? BRAND_LOGO_SOURCES.light : BRAND_LOGO_SOURCES.dark)
+}
+
 function applyTheme(theme, {persist = true} = {}){
   const selectedTheme = ["system", "light", "dark"].includes(theme) ? theme : "system"
   const resolvedTheme = resolveTheme(selectedTheme)
 
   document.documentElement.dataset.theme = resolvedTheme
   document.documentElement.dataset.themePreference = selectedTheme
+  syncBrandLogo(resolvedTheme)
 
   if(persist){
     localStorage.setItem(THEME_KEY, selectedTheme)
@@ -87,6 +102,12 @@ async function loadLanguage(lang){
 }
 
 function applyLanguage(){
+  document.querySelectorAll("[data-i18n-html]").forEach((node) => {
+    const key = node.dataset.i18nHtml
+    const fallback = node.dataset.i18nFallback || node.innerHTML.trim()
+    node.innerHTML = t(key, fallback)
+  })
+
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     const key = node.dataset.i18n
     const fallback = node.dataset.i18nFallback || node.textContent.trim()
@@ -1554,6 +1575,7 @@ window.addEventListener("plifeos:cloud-restored", () => {
 }
 
 async function bootSessionUi(){
+  document.body.classList.remove("is-signed-out")
   PlifeOSStorage?.ensureReady?.()
   const savedLanguage = localStorage.getItem("language") || "en"
   await loadLanguage(savedLanguage)
@@ -1565,6 +1587,7 @@ async function bootSessionUi(){
 }
 
 function resetForSignedOutState(){
+  document.body.classList.add("is-signed-out")
   closeSearchResults()
   PlifeOSReminders?.stop?.()
   toggleToolsPanel(false)
