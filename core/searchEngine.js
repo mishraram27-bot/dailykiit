@@ -20,6 +20,8 @@ function createFingerprint(tools){
   const grocery = DailyKitStorage.getGrocery()
   const habits = DailyKitStorage.getHabits()
   const notes = DailyKitStorage.getNotes()
+  const tasks = DailyKitStorage.getTasks()
+  const journal = DailyKitStorage.getJournal()
   const subscriptions = DailyKitStorage.getSubscriptions()
 
   return JSON.stringify({
@@ -28,9 +30,26 @@ function createFingerprint(tools){
     grocery: grocery.map((entry) => [entry.id, entry.name, entry.date]),
     habits: habits.map((entry) => [entry.id, entry.name, entry.completions]),
     notes: notes.map((entry) => [entry.id, entry.title, entry.body, entry.date]),
+    tasks: tasks.map((entry) => [entry.id, entry.title, entry.priority, entry.done, entry.date]),
+    journal: journal.map((entry) => [entry.id, entry.title, entry.mood, entry.body, entry.date]),
     subscriptions: subscriptions.map((entry) => [entry.id, entry.name, entry.amount, entry.billingDay]),
-    tools: tools.map((tool) => [tool.id, tool.name])
+    tools: tools.map((tool) => [tool.id, tool.name, tool.category, tool.version, tool.commands, tool.description])
   })
+}
+
+function getCommandToolId(command){
+  const map = {
+    expense: "expenses",
+    borrow: "borrowed",
+    grocery: "grocery",
+    habit: "habits",
+    note: "notes",
+    task: "tasks",
+    journal: "journal",
+    subscription: "subscriptions"
+  }
+
+  return map[command.type] || "expenses"
 }
 
 function buildIndex(tools){
@@ -98,6 +117,26 @@ function buildIndex(tools){
     })
   })
 
+  DailyKitStorage.getTasks().forEach((entry) => {
+    items.push({
+      type: "task",
+      toolId: "tasks",
+      title: entry.title,
+      subtitle: tr("search.taskResult", "Task: {name}", {name: entry.title}),
+      keywords: `${entry.title} ${entry.priority} ${entry.date} ${entry.done ? "done" : "pending"}`.toLowerCase()
+    })
+  })
+
+  DailyKitStorage.getJournal().forEach((entry) => {
+    items.push({
+      type: "journal",
+      toolId: "journal",
+      title: entry.title,
+      subtitle: tr("search.journalResult", "Journal: {name}", {name: entry.title}),
+      keywords: `${entry.title} ${entry.mood} ${entry.body} ${entry.date}`.toLowerCase()
+    })
+  })
+
   DailyKitStorage.getSubscriptions().forEach((entry) => {
     items.push({
       type: "subscription",
@@ -111,13 +150,13 @@ function buildIndex(tools){
     })
   })
 
-  tools.forEach((tool) => {
+  tools.filter((tool) => tool.searchable !== false).forEach((tool) => {
     items.push({
       type: "tool",
       toolId: tool.id,
       title: tr(`tool.${tool.id}`, tool.name),
       subtitle: tr("search.openTool", "Open tool: {name}", {name: tr(`tool.${tool.id}`, tool.name)}),
-      keywords: `${tool.name} ${tool.id}`.toLowerCase()
+      keywords: `${tool.name} ${tool.id} ${tool.category || ""} ${(tool.commands || []).join(" ")} ${tool.description || ""}`.toLowerCase()
     })
   })
 
@@ -138,14 +177,9 @@ function buildResults(query, tools){
   const command = window.DailyKitCommands?.parse(rawValue)
 
   if(command){
-    const toolId = command.type === "borrow"
-      ? "borrowed"
-      : command.type === "expense"
-        ? "expenses"
-        : "grocery"
     results.push({
       type: "command",
-      toolId,
+      toolId: getCommandToolId(command),
       title: command.title,
       subtitle: command.subtitle,
       action: () => window.DailyKitCommands.execute(command)

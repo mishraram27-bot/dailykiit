@@ -318,3 +318,9 @@ function deleteBorrow(id){
     }
   })
 }
+
+window.registerDailyKitTool?.({
+  id: "borrowed",
+  render: renderTool,
+  refresh: renderTool
+})

@@ -309,3 +309,9 @@ function deleteNote(id){
     }
   })
 }
+
+window.registerDailyKitTool?.({
+  id: "notes",
+  render: renderTool,
+  refresh: renderTool
+})

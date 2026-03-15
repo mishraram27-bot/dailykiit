@@ -472,3 +472,9 @@ function deleteExpense(id){
     }
   })
 }
+
+window.registerDailyKitTool?.({
+  id: "expenses",
+  render: renderTool,
+  refresh: renderTool
+})

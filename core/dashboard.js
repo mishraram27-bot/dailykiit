@@ -43,6 +43,19 @@ function getExpenseCategories(expenses){
   }, {})
 }
 
+function formatActivityDate(dateKey){
+  const date = DailyKitStorage.parseDateKey(dateKey)
+
+  if(!date){
+    return dateKey || ""
+  }
+
+  return new Intl.DateTimeFormat(localStorage.getItem("language") === "hi" ? "hi-IN" : "en-IN", {
+    day: "numeric",
+    month: "short"
+  }).format(date)
+}
+
 function renderOnboarding(){
   const host = document.getElementById("onboarding")
 
@@ -126,6 +139,163 @@ function renderReportSummary(){
       <span class="insight-label">${tr("insights.topCategory", "Top Category")}</span>
       <strong>${escapeHtml(report.topCategory)}</strong>
     </article>
+  </div>
+</section>
+`
+}
+
+function getActivityFeedItems(){
+  const collections = [
+    ...DailyKitStorage.getExpenses().map((entry) => ({
+      id: `expense-${entry.id}`,
+      type: tr("nav.expenses", "Expenses"),
+      date: entry.date,
+      title: entry.name,
+      meta: formatCurrency(entry.amount)
+    })),
+    ...DailyKitStorage.getBorrow().map((entry) => ({
+      id: `borrow-${entry.id}`,
+      type: tr("nav.borrowed", "Borrowed"),
+      date: entry.date,
+      title: entry.person,
+      meta: formatCurrency(entry.amount)
+    })),
+    ...DailyKitStorage.getGrocery().map((entry) => ({
+      id: `grocery-${entry.id}`,
+      type: tr("nav.grocery", "Grocery"),
+      date: entry.date,
+      title: entry.name,
+      meta: tr("activity.itemAdded", "Added")
+    })),
+    ...DailyKitStorage.getNotes().map((entry) => ({
+      id: `note-${entry.id}`,
+      type: tr("tool.notes", "Notes"),
+      date: entry.date,
+      title: entry.title,
+      meta: tr("activity.noteSaved", "Saved")
+    })),
+    ...DailyKitStorage.getTasks().map((entry) => ({
+      id: `task-${entry.id}`,
+      type: tr("tool.tasks", "Tasks"),
+      date: entry.date,
+      title: entry.title,
+      meta: entry.done ? tr("activity.taskDone", "Done") : tr("activity.taskOpen", "Open")
+    })),
+    ...DailyKitStorage.getJournal().map((entry) => ({
+      id: `journal-${entry.id}`,
+      type: tr("tool.journal", "Journal"),
+      date: entry.date,
+      title: entry.title,
+      meta: entry.mood || tr("journal.defaultMood", "Neutral")
+    })),
+    ...DailyKitStorage.getSubscriptions().map((entry) => ({
+      id: `subscription-${entry.id}`,
+      type: tr("tool.subscriptions", "Subscriptions"),
+      date: entry.date,
+      title: entry.name,
+      meta: formatCurrency(entry.amount)
+    }))
+  ]
+
+  return collections
+    .filter((item) => item.date)
+    .sort((left, right) => {
+      const leftDate = DailyKitStorage.parseDateKey(left.date)?.getTime() || 0
+      const rightDate = DailyKitStorage.parseDateKey(right.date)?.getTime() || 0
+      return rightDate - leftDate
+    })
+    .slice(0, 6)
+}
+
+function renderTrustSummary(){
+  const host = document.getElementById("trustSummary")
+
+  if(!host){
+    return
+  }
+
+  const expenses = DailyKitStorage.getExpenses()
+  const todayDate = getTodayDate()
+  const monthlyTotal = expenses.filter((entry) => {
+    const date = DailyKitStorage.parseDateKey(entry.date)
+    return date && isSameMonth(date, todayDate)
+  }).reduce((sum, entry) => sum + entry.amount, 0)
+  const monthlyBudget = DailyKitStorage.getBudgetSettings().monthlyBudget
+  const usage = monthlyBudget ? Math.round((monthlyTotal / monthlyBudget) * 100) : null
+  const lastExportRaw = localStorage.getItem("dailykit:last-export-at")
+  const lastExport = lastExportRaw ? Number(lastExportRaw) : null
+  const daysSinceBackup = lastExport ? Math.floor((Date.now() - lastExport) / 86400000) : null
+  const needsBackup = lastExport == null || daysSinceBackup >= 7
+
+  host.innerHTML = `
+<section class="report-panel trust-panel">
+  <div class="panel-heading">
+    <div>
+      <p class="section-kicker">${tr("trust.kicker", "Trust")}</p>
+      <h3>${tr("trust.title", "Stay safe and in control")}</h3>
+    </div>
+    <button type="button" class="secondary-btn" onclick="openDiagnostics()">${tr("diagnostics.title", "Diagnostics & Recovery")}</button>
+  </div>
+  <div class="report-grid">
+    <article class="report-tile ${usage != null && usage >= 80 ? "report-alert" : ""}">
+      <span class="insight-label">${tr("trust.budgetLabel", "Budget alert")}</span>
+      <strong>${monthlyBudget ? tr("trust.budgetValue", "{percent}% used", {percent: usage}) : tr("trust.noBudget", "No budget set")}</strong>
+      <span>${monthlyBudget ? tr("trust.budgetCopy", "{spent} spent out of {budget}", {
+        spent: formatCurrency(monthlyTotal),
+        budget: formatCurrency(monthlyBudget)
+      }) : tr("trust.budgetHint", "Set a budget in Expenses to unlock alerts.")}</span>
+    </article>
+    <article class="report-tile ${needsBackup ? "report-alert" : ""}">
+      <span class="insight-label">${tr("trust.backupLabel", "Backup status")}</span>
+      <strong>${needsBackup ? tr("trust.backupNeeded", "Export a fresh backup") : tr("trust.backupReady", "Backup looks recent")}</strong>
+      <span>${lastExport ? tr("trust.backupCopy", "Last export {days} day(s) ago", {days: daysSinceBackup}) : tr("trust.backupNever", "No export found yet on this device.")}</span>
+    </article>
+  </div>
+</section>
+`
+}
+
+function renderActivityFeed(){
+  const host = document.getElementById("activityFeed")
+
+  if(!host){
+    return
+  }
+
+  const items = getActivityFeedItems()
+
+  if(!items.length){
+    host.innerHTML = `
+<section class="report-panel">
+  <div class="panel-heading">
+    <div>
+      <p class="section-kicker">${tr("activity.kicker", "Today")}</p>
+      <h3>${tr("activity.title", "Recent activity")}</h3>
+    </div>
+  </div>
+  <div class="empty-state">${tr("activity.empty", "Your latest actions will appear here as you add expenses, notes, grocery items, and more.")}</div>
+</section>
+`
+    return
+  }
+
+  host.innerHTML = `
+<section class="report-panel">
+  <div class="panel-heading">
+    <div>
+      <p class="section-kicker">${tr("activity.kicker", "Today")}</p>
+      <h3>${tr("activity.title", "Recent activity")}</h3>
+    </div>
+  </div>
+  <div class="activity-list">
+    ${items.map((item) => `
+<article class="activity-item">
+  <span class="activity-type">${escapeHtml(item.type)}</span>
+  <div class="activity-copy">
+    <strong>${escapeHtml(item.title)}</strong>
+    <span>${escapeHtml(item.meta)} - ${escapeHtml(formatActivityDate(item.date))}</span>
+  </div>
+</article>`).join("")}
   </div>
 </section>
 `
@@ -300,6 +470,129 @@ function renderWeeklyChart(){
   })
 }
 
+function renderWeeklySummary(){
+  const host = document.getElementById("weeklySummary")
+
+  if(!host){
+    return
+  }
+
+  const todayDate = getTodayDate()
+  const startOfWeek = getStartOfWeek(todayDate)
+  const endOfWeek = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + 7)
+  const weeklyExpenses = DailyKitStorage.getExpenses().filter((entry) => {
+    const date = DailyKitStorage.parseDateKey(entry.date)
+    return date && date >= startOfWeek && date < endOfWeek
+  })
+  const weeklySpend = weeklyExpenses.reduce((sum, entry) => sum + entry.amount, 0)
+  const weeklyCategories = getExpenseCategories(weeklyExpenses)
+  const topCategory = Object.keys(weeklyCategories).length
+    ? Object.keys(weeklyCategories).reduce((best, current) => weeklyCategories[best] > weeklyCategories[current] ? best : current)
+    : tr("weekly.noCategory", "No category yet")
+  const habitCount = DailyKitStorage.getHabits().reduce((sum, entry) => {
+    return sum + (entry.completions || []).filter((value) => {
+      const date = DailyKitStorage.parseDateKey(value)
+      return date && date >= startOfWeek && date < endOfWeek
+    }).length
+  }, 0)
+  const taskCount = DailyKitStorage.getTasks().filter((entry) => {
+    const date = DailyKitStorage.parseDateKey(entry.date)
+    return entry.done && date && date >= startOfWeek && date < endOfWeek
+  }).length
+
+  host.innerHTML = `
+<section class="report-panel">
+  <div class="panel-heading">
+    <div>
+      <p class="section-kicker">${tr("weekly.kicker", "This week")}</p>
+      <h3>${tr("weekly.title", "Weekly summary")}</h3>
+    </div>
+  </div>
+  <div class="report-grid">
+    <article class="report-tile">
+      <span class="insight-label">${tr("weekly.spent", "Spent")}</span>
+      <strong>${formatCurrency(weeklySpend)}</strong>
+    </article>
+    <article class="report-tile">
+      <span class="insight-label">${tr("weekly.topCategory", "Top category")}</span>
+      <strong>${escapeHtml(topCategory)}</strong>
+    </article>
+    <article class="report-tile">
+      <span class="insight-label">${tr("weekly.habitsDone", "Habits completed")}</span>
+      <strong>${habitCount}</strong>
+    </article>
+    <article class="report-tile">
+      <span class="insight-label">${tr("weekly.tasksDone", "Tasks completed")}</span>
+      <strong>${taskCount}</strong>
+    </article>
+  </div>
+</section>
+`
+}
+
+function renderQuickActions(){
+  const host = document.getElementById("quickActions")
+
+  if(!host){
+    return
+  }
+
+  host.innerHTML = `
+<section class="report-panel">
+  <div class="panel-heading">
+    <div>
+      <p class="section-kicker">${tr("dashboard.quickAddKicker", "Quick add")}</p>
+      <h3>${tr("dashboard.quickAddTitle", "Start with one tap")}</h3>
+    </div>
+  </div>
+  <div class="quick-actions-grid">
+    <button type="button" class="tools-panel-item" onclick="openQuickAction('expense')">
+      <span class="tool-icon">+</span>
+      <span class="tool-copy">
+        <strong>${tr("quickActions.expense", "Add Expense")}</strong>
+        <span>${tr("quickActions.expenseCopy", "Try coffee 50")}</span>
+      </span>
+    </button>
+    <button type="button" class="tools-panel-item" onclick="openQuickAction('grocery')">
+      <span class="tool-icon">+</span>
+      <span class="tool-copy">
+        <strong>${tr("quickActions.grocery", "Add Grocery")}</strong>
+        <span>${tr("quickActions.groceryCopy", "Try grocery milk")}</span>
+      </span>
+    </button>
+    <button type="button" class="tools-panel-item" onclick="openQuickAction('borrow')">
+      <span class="tool-icon">+</span>
+      <span class="tool-copy">
+        <strong>${tr("quickActions.borrow", "Add Borrowed")}</strong>
+        <span>${tr("quickActions.borrowCopy", "Try borrow ram 200")}</span>
+      </span>
+    </button>
+    <button type="button" class="tools-panel-item" onclick="openQuickAction('note')">
+      <span class="tool-icon">+</span>
+      <span class="tool-copy">
+        <strong>${tr("quickActions.note", "Add Note")}</strong>
+        <span>${tr("quickActions.noteCopy", "Try note meeting idea")}</span>
+      </span>
+    </button>
+    <button type="button" class="tools-panel-item" onclick="openQuickAction('task')">
+      <span class="tool-icon">+</span>
+      <span class="tool-copy">
+        <strong>${tr("quickActions.task", "Add Task")}</strong>
+        <span>${tr("quickActions.taskCopy", "Try task call bank")}</span>
+      </span>
+    </button>
+    <button type="button" class="tools-panel-item" onclick="openQuickAction('journal')">
+      <span class="tool-icon">+</span>
+      <span class="tool-copy">
+        <strong>${tr("quickActions.journal", "Add Journal")}</strong>
+        <span>${tr("quickActions.journalCopy", "Try journal Today felt focused")}</span>
+      </span>
+    </button>
+  </div>
+</section>
+`
+}
+
 function dismissOnboarding(){
   localStorage.setItem(ONBOARDING_KEY, "1")
   renderOnboarding()
@@ -311,6 +604,10 @@ function refreshDashboard(){
   renderExpenseChart()
   renderWeeklyChart()
   renderReportSummary()
+  renderWeeklySummary()
+  renderTrustSummary()
+  renderActivityFeed()
+  renderQuickActions()
 
   if(typeof window.runSearch === "function"){
     const searchInput = document.getElementById("globalSearch")
@@ -327,8 +624,18 @@ window.DailyKitDashboard = {
   renderWeeklyChart,
   updateDashboardStats,
   renderOnboarding,
-  renderReportSummary
+  renderReportSummary,
+  renderWeeklySummary,
+  renderTrustSummary,
+  renderActivityFeed,
+  renderQuickActions
 }
+
+window.DailyKitEvents?.on?.("storage:changed", ({key}) => {
+  if(["expenses", "borrow", "grocery", "habits", "notes", "tasks", "journal", "subscriptions", "settings"].includes(key)){
+    refreshDashboard()
+  }
+})
 
 window.refreshDashboard = refreshDashboard
 window.dismissOnboarding = dismissOnboarding

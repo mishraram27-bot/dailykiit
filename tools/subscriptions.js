@@ -357,3 +357,9 @@ function deleteSubscription(id){
     }
   })
 }
+
+window.registerDailyKitTool?.({
+  id: "subscriptions",
+  render: renderTool,
+  refresh: renderTool
+})

@@ -302,3 +302,9 @@ function removeGrocery(id){
     }
   })
 }
+
+window.registerDailyKitTool?.({
+  id: "grocery",
+  render: renderTool,
+  refresh: renderTool
+})

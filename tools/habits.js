@@ -302,3 +302,9 @@ function deleteHabit(id){
     }
   })
 }
+
+window.registerDailyKitTool?.({
+  id: "habits",
+  render: renderTool,
+  refresh: renderTool
+})

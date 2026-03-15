@@ -62,6 +62,28 @@ function parse(query){
     }
   }
 
+  match = /^(?:task|todo)\s+(.+)$/i.exec(value)
+
+  if(match){
+    return {
+      type: "task",
+      titleText: match[1].trim(),
+      title: tr("commands.taskTitle", "Add task {value}", {value: match[1].trim()}),
+      subtitle: tr("commands.taskSubtitle", "Command: save task for today")
+    }
+  }
+
+  match = /^journal\s+(.+)$/i.exec(value)
+
+  if(match){
+    return {
+      type: "journal",
+      text: match[1].trim(),
+      title: tr("commands.journalTitle", "Create journal entry"),
+      subtitle: tr("commands.journalSubtitle", "Command: save today's reflection")
+    }
+  }
+
   match = /^(?:subscription|sub)\s+(.+)\s+(\d+(?:\.\d+)?)$/i.exec(value)
 
   if(match){
@@ -161,6 +183,30 @@ function execute(command){
     })
     DailyKitRouter.openTool("subscriptions")
     DailyKitFeedback.success(tr("messages.commandSubscriptionSaved", "Subscription added: {value}", {value: command.name}))
+    return true
+  }
+
+  if(command.type === "task"){
+    DailyKitStorage.addTask({
+      title: command.titleText,
+      priority: "medium",
+      done: false
+    })
+    DailyKitRouter.openTool("tasks")
+    DailyKitDashboard.refreshDashboard()
+    DailyKitFeedback.success(tr("messages.commandTaskSaved", "Task added: {value}", {value: command.titleText}))
+    return true
+  }
+
+  if(command.type === "journal"){
+    DailyKitStorage.addJournal({
+      title: command.text.slice(0, 48),
+      body: command.text,
+      mood: tr("journal.defaultMood", "Neutral")
+    })
+    DailyKitRouter.openTool("journal")
+    DailyKitDashboard.refreshDashboard()
+    DailyKitFeedback.success(tr("messages.commandJournalSaved", "Journal entry saved."))
     return true
   }
 

@@ -2,6 +2,11 @@ let languageData = {}
 let deferredPrompt = null
 let listenersBound = false
 let toolsPanelOpen = false
+let searchTimer = null
+let appUpdateRegistration = null
+
+const APP_VERSION = "9.8"
+const LAST_EXPORT_KEY = "dailykit:last-export-at"
 
 const searchState = {
   results: [],
@@ -35,6 +40,8 @@ async function loadLanguage(lang){
   applyLanguage()
   renderToolsPanel()
   rerenderActiveTool()
+  renderDiagnostics()
+  renderSettings()
 
   if(window.DailyKitRouter){
     DailyKitRouter.loadTools()
@@ -85,6 +92,11 @@ function exportData(){
   link.click()
 
   URL.revokeObjectURL(url)
+  localStorage.setItem(LAST_EXPORT_KEY, String(Date.now()))
+
+  if(window.DailyKitDashboard){
+    DailyKitDashboard.refreshDashboard()
+  }
 }
 
 function escapeCsvValue(value){
@@ -181,6 +193,34 @@ function buildBackupCsv(data){
       "",
       entry.date || "",
       "",
+      "",
+      entry.body || ""
+    ])
+  })
+
+  ;(data.tasks || []).forEach((entry) => {
+    rows.push([
+      "task",
+      entry.id || "",
+      entry.title || "",
+      "",
+      "",
+      entry.date || "",
+      entry.priority || "",
+      entry.done ? "true" : "false",
+      ""
+    ])
+  })
+
+  ;(data.journal || []).forEach((entry) => {
+    rows.push([
+      "journal",
+      entry.id || "",
+      entry.title || "",
+      "",
+      "",
+      entry.date || "",
+      entry.mood || "",
       "",
       entry.body || ""
     ])
@@ -359,6 +399,8 @@ function parseCsvBackup(text){
     grocery: [],
     habits: [],
     notes: [],
+    tasks: [],
+    journal: [],
     subscriptions: [],
     settings: {
       monthlyBudget: null,
@@ -425,6 +467,28 @@ function parseCsvBackup(text){
         title: record.name,
         body: record.value,
         date: record.date
+      })
+      return
+    }
+
+    if(section === "task"){
+      data.tasks.push({
+        id: record.id,
+        title: record.name,
+        date: record.date,
+        priority: record.category,
+        done: String(record.done).toLowerCase() === "true"
+      })
+      return
+    }
+
+    if(section === "journal"){
+      data.journal.push({
+        id: record.id,
+        title: record.name,
+        date: record.date,
+        mood: record.category,
+        body: record.value
       })
       return
     }
@@ -504,11 +568,22 @@ function renderSearchResults(){
 
   resultsBox.innerHTML = searchState.results.map((result, index) => {
     const activeClass = index === searchState.activeIndex ? " active" : ""
+    const commandClass = result.type === "command" ? " is-command" : ""
+    const badge = result.type === "command"
+      ? `<span class="search-pill">${escapeHtml(t("search.commandBadge", "Command"))}</span>`
+      : ""
+    const hint = result.type === "command"
+      ? `<span class="search-hint">${escapeHtml(t("search.enterHint", "Press Enter"))}</span>`
+      : ""
 
     return `
-<button type="button" class="search-item${activeClass}" data-index="${index}">
+<button type="button" class="search-item${activeClass}${commandClass}" data-index="${index}">
+<span class="search-row">
 <span class="search-title">${escapeHtml(result.title)}</span>
+${badge}
+</span>
 <span class="search-subtitle">${escapeHtml(result.subtitle)}</span>
+${hint}
 </button>
 `
   }).join("")
@@ -546,6 +621,11 @@ function runSearch(){
   searchState.activeIndex = searchState.results.length ? 0 : -1
 
   renderSearchResults()
+}
+
+function queueSearch(){
+  window.clearTimeout(searchTimer)
+  searchTimer = window.setTimeout(runSearch, 120)
 }
 
 function selectSearchResult(index){
@@ -631,9 +711,163 @@ function importData(){
 function rerenderActiveTool(){
   const activeToolId = DailyKitRouter.getActiveToolId()
 
-  if(activeToolId && typeof renderTool === "function"){
-    renderTool()
+  if(activeToolId){
+    DailyKitRouter.refreshActiveTool?.()
   }
+}
+
+function openQuickAdd(){
+  const modal = document.getElementById("quickAddModal")
+  const input = document.getElementById("quickAddInput")
+
+  if(!modal){
+    return
+  }
+
+  modal.hidden = false
+  document.body.classList.add("panel-open")
+
+  window.setTimeout(() => {
+    input?.focus()
+    input?.select()
+  }, 30)
+}
+
+function closeQuickAdd(){
+  const modal = document.getElementById("quickAddModal")
+  const input = document.getElementById("quickAddInput")
+
+  if(!modal){
+    return
+  }
+
+  modal.hidden = true
+  input.value = ""
+
+  if(!toolsPanelOpen){
+    document.body.classList.remove("panel-open")
+  }
+}
+
+function openQuickAction(type){
+  const presets = {
+    expense: "coffee 50",
+    grocery: "grocery milk",
+    borrow: "borrow ram 200",
+    note: "note meeting idea",
+    task: "task call bank",
+    journal: "journal Today felt focused"
+  }
+
+  openQuickAdd()
+  fillQuickAdd(presets[type] || "")
+}
+
+function showAppUpdateToast(registration){
+  const toast = document.getElementById("updateToast")
+
+  if(!toast){
+    return
+  }
+
+  appUpdateRegistration = registration || appUpdateRegistration
+  toast.hidden = false
+}
+
+function hideAppUpdateToast(){
+  const toast = document.getElementById("updateToast")
+
+  if(toast){
+    toast.hidden = true
+  }
+}
+
+function openChangelog(){
+  const modal = document.getElementById("changelogModal")
+
+  if(!modal){
+    return
+  }
+
+  modal.hidden = false
+  document.body.classList.add("panel-open")
+}
+
+function closeChangelog(){
+  const modal = document.getElementById("changelogModal")
+
+  if(!modal){
+    return
+  }
+
+  modal.hidden = true
+
+  if(!toolsPanelOpen && document.getElementById("quickAddModal")?.hidden && document.getElementById("installHelpModal")?.hidden){
+    document.body.classList.remove("panel-open")
+  }
+}
+
+function openInstallHelp(){
+  const modal = document.getElementById("installHelpModal")
+
+  if(!modal){
+    return
+  }
+
+  modal.hidden = false
+  document.body.classList.add("panel-open")
+}
+
+function closeInstallHelp(){
+  const modal = document.getElementById("installHelpModal")
+
+  if(!modal){
+    return
+  }
+
+  modal.hidden = true
+
+  if(!toolsPanelOpen && document.getElementById("quickAddModal")?.hidden && document.getElementById("changelogModal")?.hidden){
+    document.body.classList.remove("panel-open")
+  }
+}
+
+function applyAppUpdate(){
+  if(appUpdateRegistration?.waiting){
+    appUpdateRegistration.waiting.postMessage("SKIP_WAITING")
+    return
+  }
+
+  window.location.reload()
+}
+
+function fillQuickAdd(value){
+  const input = document.getElementById("quickAddInput")
+
+  if(input){
+    input.value = value
+    input.focus()
+  }
+}
+
+function submitQuickAdd(){
+  const input = document.getElementById("quickAddInput")
+  const value = String(input?.value || "").trim()
+
+  if(!value){
+    DailyKitFeedback.error(t("quickAdd.empty", "Enter something first."))
+    return
+  }
+
+  const command = window.DailyKitCommands?.parse?.(value)
+
+  if(!command){
+    DailyKitFeedback.error(t("quickAdd.invalid", "Try a command like coffee 50 or borrow ram 200."))
+    return
+  }
+
+  closeQuickAdd()
+  window.DailyKitCommands.execute(command)
 }
 
 function renderToolsPanel(){
@@ -645,7 +879,7 @@ function renderToolsPanel(){
 
   const tools = DailyKitRouter.getToolRegistry()
 
-  container.innerHTML = tools.map((tool) => `
+  const toolButtons = tools.map((tool) => `
 <button type="button" class="tools-panel-item" onclick="openToolFromPanel('${tool.id}')">
   <span class="tool-icon">${tool.icon}</span>
   <span class="tool-copy">
@@ -654,6 +888,55 @@ function renderToolsPanel(){
   </span>
 </button>
 `).join("")
+
+  container.innerHTML = `
+${toolButtons}
+<button type="button" class="tools-panel-item" onclick="openDiagnostics()">
+  <span class="tool-icon">⚙</span>
+  <span class="tool-copy">
+    <strong>${escapeHtml(t("diagnostics.title", "Diagnostics & Recovery"))}</strong>
+    <span>${escapeHtml(t("diagnostics.subtitle", "Review backups, storage health, and local errors"))}</span>
+  </span>
+</button>
+`
+}
+
+function renderToolsPanel(){
+  const container = document.getElementById("toolsPanelList")
+
+  if(!container || !window.DailyKitRouter){
+    return
+  }
+
+  const tools = DailyKitRouter.getToolRegistry()
+
+  const toolButtons = tools.map((tool) => `
+<button type="button" class="tools-panel-item" onclick="openToolFromPanel('${tool.id}')">
+  <span class="tool-icon">${tool.icon}</span>
+  <span class="tool-copy">
+    <strong>${escapeHtml(t(`tool.${tool.id}`, tool.name))}</strong>
+    <span>${escapeHtml(t(`toolDesc.${tool.id}`, "Open this tool"))}</span>
+  </span>
+</button>
+`).join("")
+
+  container.innerHTML = `
+${toolButtons}
+<button type="button" class="tools-panel-item" onclick="openSettings()">
+  <span class="tool-icon">SET</span>
+  <span class="tool-copy">
+    <strong>${escapeHtml(t("settings.title", "Settings & Preferences"))}</strong>
+    <span>${escapeHtml(t("settings.subtitle", "Manage app preferences, category learning, and backups."))}</span>
+  </span>
+</button>
+<button type="button" class="tools-panel-item" onclick="openDiagnostics()">
+  <span class="tool-icon">LOG</span>
+  <span class="tool-copy">
+    <strong>${escapeHtml(t("diagnostics.title", "Diagnostics & Recovery"))}</strong>
+    <span>${escapeHtml(t("diagnostics.subtitle", "Review backups, storage health, and local errors"))}</span>
+  </span>
+</button>
+`
 }
 
 function toggleToolsPanel(forceState){
@@ -666,13 +949,324 @@ function toggleToolsPanel(forceState){
 
   toolsPanelOpen = nextState
   panel.hidden = !nextState
-  document.body.classList.toggle("panel-open", nextState)
+  document.body.classList.toggle("panel-open", nextState || !document.getElementById("quickAddModal")?.hidden)
   document.querySelector('.bottom-nav button[data-nav="tools"]')?.classList.toggle("is-active", nextState)
 }
 
 function openToolFromPanel(toolId){
   toggleToolsPanel(false)
   DailyKitRouter.openTool(toolId)
+}
+
+function formatBackupAge(){
+  const rawValue = Number(localStorage.getItem(LAST_EXPORT_KEY))
+
+  if(!rawValue){
+    return t("diagnostics.backupNever", "No local backup export recorded yet.")
+  }
+
+  const days = Math.floor((Date.now() - rawValue) / 86400000)
+
+  if(days <= 0){
+    return t("diagnostics.backupToday", "Last backup exported today.")
+  }
+
+  return t("diagnostics.backupDays", "Last backup exported {days} day(s) ago.", {days})
+}
+
+function renderDiagnostics(){
+  const container = document.getElementById("diagnosticsContainer")
+
+  if(!container){
+    return
+  }
+
+  const backup = DailyKitStorage.exportBackup()
+  const errors = DailyKitStorage.getErrorLogs().slice().sort((left, right) => right.timestamp - left.timestamp).slice(0, 8)
+  const storageVersion = DailyKitStorage.getStorageVersion()
+  const namespace = window.DailyKitAuth?.getStorageNamespace?.() || "local"
+  const counts = [
+    {label: t("tool.expenses", "Expenses"), value: backup.expenses.length},
+    {label: t("tool.borrowed", "Borrowed Money"), value: backup.borrow.length},
+    {label: t("tool.grocery", "Grocery List"), value: backup.grocery.length},
+    {label: t("tool.habits", "Habits"), value: backup.habits.length},
+    {label: t("tool.notes", "Notes"), value: backup.notes.length},
+    {label: t("tool.tasks", "Tasks"), value: backup.tasks.length},
+    {label: t("tool.journal", "Journal"), value: backup.journal.length},
+    {label: t("tool.subscriptions", "Subscriptions"), value: backup.subscriptions.length}
+  ]
+
+  container.innerHTML = `
+<div class="tool-shell">
+  <div class="tool-heading">
+    <p class="section-kicker">${t("diagnostics.kicker", "Recovery")}</p>
+    <h2>${t("diagnostics.title", "Diagnostics & Recovery")}</h2>
+    <p>${t("diagnostics.copy", "Review workspace health, backup freshness, storage version, and recent local errors before something becomes a problem.")}</p>
+  </div>
+
+  <section class="feature-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">${t("diagnostics.workspace", "Workspace")}</p>
+        <h3>${t("diagnostics.status", "Current status")}</h3>
+      </div>
+    </div>
+    <div class="report-grid">
+      <article class="report-tile">
+        <span class="insight-label">${t("diagnostics.profile", "Profile")}</span>
+        <strong>${escapeHtml(namespace)}</strong>
+      </article>
+      <article class="report-tile">
+        <span class="insight-label">${t("diagnostics.storageVersion", "Storage version")}</span>
+        <strong>v${storageVersion}</strong>
+      </article>
+      <article class="report-tile">
+        <span class="insight-label">${t("diagnostics.backupStatus", "Backup status")}</span>
+        <strong>${escapeHtml(formatBackupAge())}</strong>
+      </article>
+      <article class="report-tile">
+        <span class="insight-label">${t("diagnostics.errorCount", "Error logs")}</span>
+        <strong>${errors.length}</strong>
+      </article>
+    </div>
+  </section>
+
+  <section class="feature-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">${t("diagnostics.dataCounts", "Data")}</p>
+        <h3>${t("diagnostics.dataTitle", "Workspace counts")}</h3>
+      </div>
+    </div>
+    <div class="report-grid">
+      ${counts.map((item) => `
+<article class="report-tile">
+  <span class="insight-label">${escapeHtml(item.label)}</span>
+  <strong>${item.value}</strong>
+</article>`).join("")}
+    </div>
+  </section>
+
+  <section class="feature-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">${t("diagnostics.actions", "Actions")}</p>
+        <h3>${t("diagnostics.recoveryTitle", "Recovery actions")}</h3>
+      </div>
+    </div>
+    <div class="tool-form diagnostics-actions">
+      <button type="button" onclick="exportData()">${t("backup.export", "Export CSV")}</button>
+      <button type="button" class="secondary-btn" onclick="importData()">${t("backup.import", "Import Backup")}</button>
+      <button type="button" class="secondary-btn" onclick="validateWorkspaceData()">${t("diagnostics.validate", "Validate Data")}</button>
+      <button type="button" class="secondary-btn" onclick="clearDiagnosticsLogs()">${t("diagnostics.clearErrors", "Clear Error Logs")}</button>
+      <button type="button" onclick="resetWorkspaceData()">${t("diagnostics.reset", "Reset Workspace")}</button>
+    </div>
+  </section>
+
+  <section class="feature-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">${t("diagnostics.errors", "Errors")}</p>
+        <h3>${t("diagnostics.errorTitle", "Recent local errors")}</h3>
+      </div>
+    </div>
+    ${errors.length ? `
+    <div class="diagnostics-log">
+      ${errors.map((entry) => `
+<article class="diagnostics-log-item">
+  <strong>${escapeHtml(entry.type)}</strong>
+  <span>${escapeHtml(entry.message)}</span>
+  <small>${new Date(entry.timestamp).toLocaleString(localStorage.getItem("language") === "hi" ? "hi-IN" : "en-IN")}</small>
+</article>`).join("")}
+    </div>` : `<div class="empty-state">${t("diagnostics.noErrors", "No local runtime errors logged right now.")}</div>`}
+  </section>
+</div>
+`
+}
+
+function formatLearningLabel(value){
+  return String(value || "")
+    .split(" ")
+    .map((part) => part ? `${part[0].toUpperCase()}${part.slice(1)}` : "")
+    .join(" ")
+}
+
+function renderSettings(){
+  const container = document.getElementById("settingsContainer")
+
+  if(!container || !window.DailyKitStorage){
+    return
+  }
+
+  const namespace = window.DailyKitAuth?.getStorageNamespace?.() || "local"
+  const currentLanguage = localStorage.getItem("language") || "en"
+  const currentLanguageLabel = currentLanguage === "hi"
+    ? t("language.hindi", "Hindi")
+    : t("language.english", "English")
+  const categories = DailyKitStorage.getExpenseCategoriesList()
+  const memoryEntries = Object.entries(DailyKitStorage.getExpenseCategoryMemory())
+    .sort((left, right) => left[0].localeCompare(right[0]))
+
+  container.innerHTML = `
+<div class="tool-shell">
+  <div class="tool-heading">
+    <p class="section-kicker">${t("settings.kicker", "Preferences")}</p>
+    <h2>${t("settings.title", "Settings & Preferences")}</h2>
+    <p>${t("settings.copy", "Review your workspace profile, manage category learning, and keep your backup habits healthy.")}</p>
+  </div>
+
+  <section class="feature-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">${t("settings.profileKicker", "Workspace")}</p>
+        <h3>${t("settings.profileTitle", "App preferences")}</h3>
+      </div>
+    </div>
+    <div class="report-grid">
+      <article class="report-tile">
+        <span class="insight-label">${t("diagnostics.profile", "Profile")}</span>
+        <strong>${escapeHtml(namespace)}</strong>
+      </article>
+      <article class="report-tile">
+        <span class="insight-label">${t("settings.languageTitle", "Language")}</span>
+        <strong>${escapeHtml(currentLanguageLabel)}</strong>
+      </article>
+      <article class="report-tile">
+        <span class="insight-label">${t("settings.versionTitle", "App version")}</span>
+        <strong>v${APP_VERSION}</strong>
+      </article>
+      <article class="report-tile">
+        <span class="insight-label">${t("diagnostics.backupStatus", "Backup status")}</span>
+        <strong>${escapeHtml(formatBackupAge())}</strong>
+      </article>
+    </div>
+    <div class="tool-form diagnostics-actions">
+      <button type="button" class="${currentLanguage === "en" ? "is-disabled" : ""}" onclick="changeSettingsLanguage('en')" ${currentLanguage === "en" ? "disabled" : ""}>${t("language.english", "English")}</button>
+      <button type="button" class="${currentLanguage === "hi" ? "is-disabled" : ""}" onclick="changeSettingsLanguage('hi')" ${currentLanguage === "hi" ? "disabled" : ""}>${t("language.hindi", "Hindi")}</button>
+      <button type="button" class="secondary-btn" onclick="openDiagnostics()">${t("diagnostics.title", "Diagnostics & Recovery")}</button>
+    </div>
+  </section>
+
+  <section class="feature-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">${t("settings.categoriesKicker", "Learning")}</p>
+        <h3>${t("settings.categoriesTitle", "Learned expense categories")}</h3>
+      </div>
+    </div>
+    <p class="panel-copy">${t("settings.categoriesCopy", "DailyKit remembers the category you choose for an expense name so future quick adds stay smarter.")}</p>
+    <div class="report-grid">
+      <article class="report-tile">
+        <span class="insight-label">${t("settings.categoriesKnown", "Known mappings")}</span>
+        <strong>${memoryEntries.length}</strong>
+      </article>
+      <article class="report-tile">
+        <span class="insight-label">${t("settings.categoriesAvailable", "Available categories")}</span>
+        <strong>${categories.length}</strong>
+      </article>
+    </div>
+    ${memoryEntries.length ? `
+    <div class="settings-learning-list">
+      ${memoryEntries.map(([name, category]) => `
+      <article class="settings-learning-item">
+        <div class="settings-learning-copy">
+          <strong>${escapeHtml(formatLearningLabel(name))}</strong>
+          <span>${escapeHtml(category)}</span>
+        </div>
+        <button type="button" class="secondary-btn" onclick="removeCategoryLearning(decodeURIComponent('${encodeURIComponent(name)}'))">${t("settings.removeMapping", "Remove")}</button>
+      </article>
+      `).join("")}
+    </div>` : `<div class="empty-state">${t("settings.categoriesEmpty", "No learned mappings yet. Add or edit expenses with categories and DailyKit will remember them here.")}</div>`}
+    <div class="tool-form diagnostics-actions">
+      <button type="button" class="secondary-btn" onclick="clearCategoryLearning()">${t("settings.clearLearning", "Clear learned categories")}</button>
+    </div>
+  </section>
+
+  <section class="feature-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">${t("settings.backupKicker", "Safety")}</p>
+        <h3>${t("settings.backupTitle", "Backup habits")}</h3>
+      </div>
+    </div>
+    <p class="panel-copy">${t("settings.backupCopy", "Export a CSV backup regularly so your offline workspace stays portable across browser resets and device changes.")}</p>
+    <div class="tool-form diagnostics-actions">
+      <button type="button" onclick="exportData()">${t("backup.export", "Export CSV")}</button>
+      <button type="button" class="secondary-btn" onclick="importData()">${t("backup.import", "Import Backup")}</button>
+    </div>
+  </section>
+</div>
+`
+}
+
+function openDiagnostics(){
+  closeQuickAdd()
+  toggleToolsPanel(false)
+  DailyKitRouter.showDiagnostics?.()
+  renderDiagnostics()
+}
+
+function openSettings(){
+  closeQuickAdd()
+  toggleToolsPanel(false)
+  DailyKitRouter.showSettings?.()
+  renderSettings()
+}
+
+function changeSettingsLanguage(language){
+  const languageSelect = document.getElementById("languageSelect")
+
+  if(languageSelect){
+    languageSelect.value = language
+  }
+
+  loadLanguage(language)
+}
+
+function removeCategoryLearning(name){
+  DailyKitStorage.removeExpenseCategoryMemory(name)
+  renderSettings()
+  DailyKitFeedback.success(t("settings.mappingRemoved", "Learned category removed."))
+}
+
+function clearCategoryLearning(){
+  const shouldClear = window.confirm(t("settings.clearLearningConfirm", "Clear every learned category mapping?"))
+
+  if(!shouldClear){
+    return
+  }
+
+  DailyKitStorage.clearExpenseCategoryMemory()
+  renderSettings()
+  DailyKitFeedback.success(t("settings.learningCleared", "Learned categories cleared."))
+}
+
+function validateWorkspaceData(){
+  DailyKitStorage.ensureReady()
+  renderDiagnostics()
+  DailyKitFeedback.success(t("diagnostics.validated", "Workspace data checked successfully."))
+}
+
+function clearDiagnosticsLogs(){
+  DailyKitStorage.clearErrorLogs()
+  renderDiagnostics()
+  DailyKitFeedback.success(t("diagnostics.cleared", "Local error logs cleared."))
+}
+
+function resetWorkspaceData(){
+  const shouldReset = window.confirm(t("diagnostics.resetConfirm", "Reset this workspace on this device? Export a backup first if you need one."))
+
+  if(!shouldReset){
+    return
+  }
+
+  localStorage.removeItem(LAST_EXPORT_KEY)
+  DailyKitStorage.resetWorkspaceData()
+  renderDiagnostics()
+  renderSettings()
+  DailyKitDashboard.refreshDashboard()
+  rerenderActiveTool()
+  DailyKitFeedback.success(t("diagnostics.resetDone", "Workspace reset completed."))
 }
 
 function handleImportFileChange(event){
@@ -719,22 +1313,31 @@ function installApp(){
 }
 
 function initInstallPrompt(){
+  const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent)
+  const isStandalone = window.matchMedia?.("(display-mode: standalone)")?.matches || window.navigator.standalone
+  const button = document.getElementById("installBtn")
+
+  if(button && isIOS && !isStandalone){
+    button.style.display = "inline-flex"
+  }
+
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault()
     deferredPrompt = event
-
-    const button = document.getElementById("installBtn")
 
     if(button){
       button.style.display = "inline-flex"
     }
   })
 
-  const button = document.getElementById("installBtn")
-
   if(button && !button.dataset.bound){
     button.dataset.bound = "true"
     button.addEventListener("click", async () => {
+      if(isIOS && !isStandalone && !deferredPrompt){
+        openInstallHelp()
+        return
+      }
+
       if(!deferredPrompt){
         return
       }
@@ -771,9 +1374,42 @@ function initServiceWorker(){
     return
   }
 
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("service-worker.js")
+  window.addEventListener("load", async () => {
+    const registration = await navigator.serviceWorker.register("service-worker.js")
+    appUpdateRegistration = registration
+
+    if(registration.waiting){
+      showAppUpdateToast(registration)
+    }
+
+    registration.addEventListener("updatefound", () => {
+      const worker = registration.installing
+
+      worker?.addEventListener("statechange", () => {
+        if(worker.state === "installed" && navigator.serviceWorker.controller){
+          showAppUpdateToast(registration)
+        }
+      })
+    })
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload()
+    })
   })
+}
+
+function logRuntimeError(payload){
+  try{
+    DailyKitStorage?.addErrorLog?.({
+      type: payload.type || "error",
+      message: payload.message || "Unknown error",
+      source: payload.source || payload.filename || "",
+      stack: payload.stack || payload.reason || "",
+      timestamp: Date.now()
+    })
+  }catch(error){
+    console.error("DailyKit failed to store runtime error", error)
+  }
 }
 
 function bindGlobalListeners(){
@@ -792,7 +1428,7 @@ function bindGlobalListeners(){
   const searchInput = document.getElementById("globalSearch")
 
   if(searchInput){
-    searchInput.addEventListener("input", runSearch)
+    searchInput.addEventListener("input", queueSearch)
     searchInput.addEventListener("keydown", handleSearchKeydown)
     searchInput.addEventListener("focus", () => {
       if(searchInput.value.trim()){
@@ -802,21 +1438,82 @@ function bindGlobalListeners(){
   }
 
   const importInput = document.getElementById("importFile")
+  const quickAddInput = document.getElementById("quickAddInput")
 
   if(importInput){
     importInput.addEventListener("change", handleImportFileChange)
   }
 
+  if(quickAddInput){
+    quickAddInput.addEventListener("keydown", (event) => {
+      if(event.key === "Enter"){
+        event.preventDefault()
+        submitQuickAdd()
+      }
+
+      if(event.key === "Escape"){
+        closeQuickAdd()
+      }
+    })
+  }
+
   document.addEventListener("click", handleDocumentClick)
+  document.addEventListener("keydown", (event) => {
+    if(event.key === "Escape" && !document.getElementById("quickAddModal")?.hidden){
+      closeQuickAdd()
+    }
+
+    if(event.key === "Escape" && !document.getElementById("changelogModal")?.hidden){
+      closeChangelog()
+    }
+
+    if(event.key === "Escape" && !document.getElementById("installHelpModal")?.hidden){
+      closeInstallHelp()
+    }
+  })
+  window.addEventListener("error", (event) => {
+    logRuntimeError({
+      type: "error",
+      message: event.message,
+      source: event.filename,
+      stack: event.error?.stack || ""
+    })
+  })
+  window.addEventListener("unhandledrejection", (event) => {
+    const reason = event.reason
+
+    logRuntimeError({
+      type: "promise",
+      message: reason?.message || String(reason || "Unhandled promise rejection"),
+      source: "unhandledrejection",
+      stack: reason?.stack || String(reason || "")
+    })
+  })
   window.addEventListener("dailykit:cloud-restored", () => {
     DailyKitDashboard.refreshDashboard()
     rerenderActiveTool()
+  })
+  window.DailyKitEvents?.on?.("storage:changed", () => {
+    const searchInput = document.getElementById("globalSearch")
+
+    if(searchInput?.value.trim()){
+      runSearch()
+    }
+
+    if(!document.getElementById("diagnosticsArea")?.hidden){
+      renderDiagnostics()
+    }
+
+    if(!document.getElementById("settingsArea")?.hidden){
+      renderSettings()
+    }
   })
 
   listenersBound = true
 }
 
 async function bootSessionUi(){
+  DailyKitStorage?.ensureReady?.()
   const savedLanguage = localStorage.getItem("language") || "en"
   await loadLanguage(savedLanguage)
   await DailyKitRouter.loadTools()
@@ -830,9 +1527,12 @@ function resetForSignedOutState(){
   closeSearchResults()
   DailyKitReminders?.stop?.()
   toggleToolsPanel(false)
+  closeQuickAdd()
   DailyKitRouter.syncNavState("home")
   const home = document.getElementById("screenHome")
   const toolArea = document.getElementById("toolArea")
+  const diagnosticsArea = document.getElementById("diagnosticsArea")
+  const settingsArea = document.getElementById("settingsArea")
 
   if(home){
     home.hidden = false
@@ -843,6 +1543,16 @@ function resetForSignedOutState(){
   if(toolArea){
     toolArea.hidden = true
     toolArea.classList.remove("is-active", "is-entering")
+  }
+
+  if(diagnosticsArea){
+    diagnosticsArea.hidden = true
+    diagnosticsArea.classList.remove("is-active", "is-entering")
+  }
+
+  if(settingsArea){
+    settingsArea.hidden = true
+    settingsArea.classList.remove("is-active", "is-entering")
   }
 }
 
@@ -881,5 +1591,26 @@ window.rerenderActiveTool = rerenderActiveTool
 window.exportMonthlyReport = () => window.DailyKitReports?.downloadMonthlyReport()
 window.toggleToolsPanel = toggleToolsPanel
 window.openToolFromPanel = openToolFromPanel
+window.openQuickAdd = openQuickAdd
+window.openQuickAction = openQuickAction
+window.closeQuickAdd = closeQuickAdd
+window.fillQuickAdd = fillQuickAdd
+window.submitQuickAdd = submitQuickAdd
+window.openChangelog = openChangelog
+window.closeChangelog = closeChangelog
+window.openInstallHelp = openInstallHelp
+window.closeInstallHelp = closeInstallHelp
+window.applyAppUpdate = applyAppUpdate
+window.openDiagnostics = openDiagnostics
+window.openSettings = openSettings
+window.renderDiagnostics = renderDiagnostics
+window.renderSettings = renderSettings
+window.changeSettingsLanguage = changeSettingsLanguage
+window.removeCategoryLearning = removeCategoryLearning
+window.clearCategoryLearning = clearCategoryLearning
+window.validateWorkspaceData = validateWorkspaceData
+window.clearDiagnosticsLogs = clearDiagnosticsLogs
+window.resetWorkspaceData = resetWorkspaceData
 window.t = t
 window.applyLanguage = applyLanguage
+window.DAILYKIT_LAST_EXPORT_KEY = LAST_EXPORT_KEY

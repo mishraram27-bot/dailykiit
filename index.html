@@ -132,6 +132,9 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 
 <div id="insights" class="insight-box"></div>
 <div id="reportSummary" class="report-box"></div>
+<div id="weeklySummary" class="report-box"></div>
+<div id="trustSummary" class="report-box"></div>
+<div id="activityFeed" class="report-box"></div>
 
 <div class="tools-header">
 <div>
@@ -140,6 +143,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 </div>
 </div>
 
+<div id="quickActions" class="report-box"></div>
 <div class="home-tools"></div>
 
 </div>
@@ -148,6 +152,14 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 
 <section id="toolArea" class="tool-section screen-panel">
   <div id="toolContainer"></div>
+</section>
+
+<section id="diagnosticsArea" class="tool-section screen-panel" hidden>
+  <div id="diagnosticsContainer"></div>
+</section>
+
+<section id="settingsArea" class="tool-section screen-panel" hidden>
+  <div id="settingsContainer"></div>
 </section>
 
 <section class="backup-section">
@@ -172,6 +184,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="firebase-config.js" defer></script>
 <script src="core/auth.js" defer></script>
+<script src="core/events.js" defer></script>
 <script src="core/storage.js" defer></script>
 <script src="core/feedback.js" defer></script>
 <script src="core/commandParser.js" defer></script>
@@ -183,7 +196,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <script src="app.js" defer></script>
 
 <footer class="disclaimer">
-<span class="app-version" data-i18n="app.version">DailyKit Version 9.1</span>
+<span class="app-version" data-i18n="app.version">DailyKit Version 9.8</span>
 <span data-i18n="footer.disclaimer">DailyKit is a personal data tracking tool. It does not provide financial, medical, or legal advice.</span>
 <span class="footer-links">
 <a href="pages/privacy.html" data-i18n="footer.privacy">Privacy Policy</a>
@@ -203,6 +216,10 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 
 </nav>
 
+<button id="quickAddBtn" class="quick-add-btn" type="button" onclick="openQuickAdd()" aria-label="Quick add">
+<span>+</span>
+</button>
+
 <div id="toolsPanel" class="tools-panel" hidden>
 <div class="tools-panel-backdrop" onclick="toggleToolsPanel(false)"></div>
 <section class="tools-panel-card">
@@ -217,7 +234,110 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 </section>
 </div>
 
+<div id="quickAddModal" class="quick-add-modal" hidden>
+<div class="quick-add-backdrop" onclick="closeQuickAdd()"></div>
+<section class="quick-add-card">
+<div class="panel-heading">
+<div>
+<p class="section-kicker" data-i18n="quickAdd.kicker">Quick capture</p>
+<h3 data-i18n="quickAdd.title">Add with one line</h3>
+</div>
+<button type="button" class="secondary-btn" onclick="closeQuickAdd()" data-i18n="common.close">Close</button>
+</div>
+<p class="panel-copy" data-i18n="quickAdd.copy">Try a command like <b>coffee 50</b>, <b>borrow ram 200</b>, <b>task call bank</b>, or <b>journal Today felt focused</b>.</p>
+<div class="tool-form">
+<input id="quickAddInput" data-i18n-placeholder="quickAdd.placeholder" placeholder="coffee 50">
+<button type="button" onclick="submitQuickAdd()" data-i18n="quickAdd.run">Run Command</button>
+</div>
+<div class="quick-add-examples">
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('coffee 50')">coffee 50</button>
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('borrow ram 200')">borrow ram 200</button>
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('grocery milk')">grocery milk</button>
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('note startup idea')">note startup idea</button>
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('task call bank')">task call bank</button>
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('journal Today felt focused')">journal Today felt focused</button>
+</div>
+</section>
+</div>
+
 <div id="snackbarHost" class="snackbar-host" aria-live="polite" aria-atomic="true"></div>
+
+<div id="updateToast" class="update-toast" hidden>
+<div class="update-toast-copy">
+<strong data-i18n="update.title">A new DailyKit update is ready</strong>
+<span data-i18n="update.copy">Refresh to switch to the latest version and keep your offline tools current.</span>
+</div>
+<div class="update-toast-actions">
+<button type="button" onclick="openChangelog()" class="secondary-btn" data-i18n="update.whatsNew">What's New</button>
+<button type="button" onclick="applyAppUpdate()" data-i18n="update.apply">Update Now</button>
+</div>
+</div>
+
+<div id="changelogModal" class="quick-add-modal" hidden>
+<div class="quick-add-backdrop" onclick="closeChangelog()"></div>
+<section class="quick-add-card">
+<div class="panel-heading">
+<div>
+<p class="section-kicker" data-i18n="changelog.kicker">Release Notes</p>
+<h3 data-i18n="changelog.title">What's New in v9.8</h3>
+</div>
+<button type="button" class="secondary-btn" onclick="closeChangelog()" data-i18n="common.close">Close</button>
+</div>
+<div class="changelog-list">
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="changelog.item1Title">Tasks for the day</strong>
+<span data-i18n="changelog.item1Copy">DailyKit now includes a simple today list so quick task capture and completion live in the same offline workspace.</span>
+</div>
+</article>
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="changelog.item2Title">Daily journal</strong>
+<span data-i18n="changelog.item2Copy">A new journal tool lets you store daily reflections, mood, and short notes without leaving DailyKit.</span>
+</div>
+</article>
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="changelog.item3Title">Deeper command and backup support</strong>
+<span data-i18n="changelog.item3Copy">Tasks and journal entries now work in global search, quick add, activity feed, diagnostics, and CSV backup/import.</span>
+</div>
+</article>
+</div>
+</section>
+</div>
+
+<div id="installHelpModal" class="quick-add-modal" hidden>
+<div class="quick-add-backdrop" onclick="closeInstallHelp()"></div>
+<section class="quick-add-card">
+<div class="panel-heading">
+<div>
+<p class="section-kicker" data-i18n="installHelp.kicker">Install Help</p>
+<h3 data-i18n="installHelp.title">Install DailyKit on iPhone or iPad</h3>
+</div>
+<button type="button" class="secondary-btn" onclick="closeInstallHelp()" data-i18n="common.close">Close</button>
+</div>
+<div class="changelog-list">
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="installHelp.step1Title">1. Open in Safari</strong>
+<span data-i18n="installHelp.step1Copy">If you are using Chrome or another iPhone browser, open DailyKit in Safari first.</span>
+</div>
+</article>
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="installHelp.step2Title">2. Tap the Share button</strong>
+<span data-i18n="installHelp.step2Copy">Use the Share icon in Safari to open the action sheet.</span>
+</div>
+</article>
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="installHelp.step3Title">3. Choose Add to Home Screen</strong>
+<span data-i18n="installHelp.step3Copy">After that, DailyKit can launch in standalone mode from your home screen.</span>
+</div>
+</article>
+</div>
+</section>
+</div>
 
 </body>
 </html>

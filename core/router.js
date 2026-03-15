@@ -2,6 +2,7 @@
 let toolRegistry = []
 let toolRegistryPromise = null
 let activeToolId = null
+let activeToolApi = null
 const SCREEN_REVEAL_MS = 360
 
 function syncNavState(activeId){
@@ -39,6 +40,10 @@ function getActiveToolId(){
   return activeToolId
 }
 
+function getActiveToolApi(){
+  return activeToolApi
+}
+
 function revealScreen(element){
   if(!element){
     return
@@ -66,19 +71,105 @@ function hideScreen(element){
   element.hidden = true
 }
 
+function resetToolGlobals(){
+  window.DailyKitTool = undefined
+  window.renderTool = undefined
+}
+
+function destroyActiveTool(){
+  if(activeToolApi?.destroy){
+    try{
+      activeToolApi.destroy()
+    }catch(error){
+      console.error("DailyKit tool destroy failed", error)
+      window.DailyKitStorage?.addErrorLog?.({
+        type: "tool-destroy",
+        message: error?.message || "Tool destroy failed",
+        source: activeToolId || "unknown-tool",
+        stack: error?.stack || ""
+      })
+    }
+  }
+
+  if(activeToolId){
+    window.DailyKitEvents?.emit?.("tool:destroyed", {toolId: activeToolId})
+  }
+
+  activeToolApi = null
+  document.querySelectorAll("script[data-tool]").forEach((script) => script.remove())
+  resetToolGlobals()
+}
+
+function resolveToolApi(toolId){
+  if(window.DailyKitTool && typeof window.DailyKitTool.render === "function"){
+    return {
+      id: window.DailyKitTool.id || toolId,
+      init: typeof window.DailyKitTool.init === "function" ? window.DailyKitTool.init : () => {},
+      render: window.DailyKitTool.render,
+      refresh: typeof window.DailyKitTool.refresh === "function" ? window.DailyKitTool.refresh : window.DailyKitTool.render,
+      destroy: typeof window.DailyKitTool.destroy === "function" ? window.DailyKitTool.destroy : () => {}
+    }
+  }
+
+  if(typeof window.renderTool === "function"){
+    return {
+      id: toolId,
+      init(){},
+      render: window.renderTool,
+      refresh: window.renderTool,
+      destroy(){}
+    }
+  }
+
+  return null
+}
+
+function refreshActiveTool(){
+  if(!activeToolApi){
+    return
+  }
+
+  const refresh = typeof activeToolApi.refresh === "function" ? activeToolApi.refresh : activeToolApi.render
+
+  if(typeof refresh !== "function"){
+    return
+  }
+
+  try{
+    refresh()
+  }catch(error){
+    console.error("DailyKit tool refresh failed", error)
+    window.DailyKitStorage?.addErrorLog?.({
+      type: "tool-refresh",
+      message: error?.message || "Tool refresh failed",
+      source: activeToolId || "unknown-tool",
+      stack: error?.stack || ""
+    })
+  }
+}
+
 function showHome(){
   const home = document.getElementById("screenHome")
   const toolArea = document.getElementById("toolArea")
+  const diagnosticsArea = document.getElementById("diagnosticsArea")
+  const settingsArea = document.getElementById("settingsArea")
 
+  destroyActiveTool()
   activeToolId = null
   window.toggleToolsPanel?.(false)
   revealScreen(home)
   hideScreen(toolArea)
+  hideScreen(diagnosticsArea)
+  hideScreen(settingsArea)
   syncNavState("home")
 
   if(typeof window.refreshDashboard === "function"){
     window.refreshDashboard()
   }
+
+  window.setTimeout(() => {
+    document.getElementById("globalSearch")?.focus()
+  }, 180)
 }
 
 function showSection(sectionId){
@@ -100,8 +191,17 @@ async function openTool(toolId){
   const tool = tools.find((entry) => entry.id === toolId)
   const home = document.getElementById("screenHome")
   const toolArea = document.getElementById("toolArea")
+  const diagnosticsArea = document.getElementById("diagnosticsArea")
+  const settingsArea = document.getElementById("settingsArea")
 
   if(!tool){
+    return
+  }
+
+  if(activeToolId && activeToolId !== toolId){
+    destroyActiveTool()
+  }else if(activeToolId === toolId && activeToolApi){
+    refreshActiveTool()
     return
   }
 
@@ -112,34 +212,81 @@ async function openTool(toolId){
 
   window.toggleToolsPanel?.(false)
   hideScreen(home)
+  hideScreen(diagnosticsArea)
+  hideScreen(settingsArea)
   revealScreen(toolArea)
   syncNavState(toolId)
-
-  document.querySelectorAll("script[data-tool]").forEach((script) => script.remove())
+  resetToolGlobals()
 
   const script = document.createElement("script")
   script.src = tool.script
   script.dataset.tool = toolId
   script.onload = () => {
-    if(typeof renderTool === "function"){
-      renderTool()
+    activeToolApi = resolveToolApi(toolId)
+
+    if(!activeToolApi){
+      console.error("DailyKit tool did not register correctly", toolId)
+      window.DailyKitStorage?.addErrorLog?.({
+        type: "tool-load",
+        message: `Tool failed to register: ${toolId}`,
+        source: tool.script
+      })
+      return
+    }
+
+    try{
+      activeToolApi.init?.()
+      activeToolApi.render?.()
+      window.DailyKitEvents?.emit?.("tool:opened", {toolId, tool})
+    }catch(error){
+      console.error("DailyKit tool render failed", error)
+      window.DailyKitStorage?.addErrorLog?.({
+        type: "tool-render",
+        message: error?.message || "Tool render failed",
+        source: tool.script,
+        stack: error?.stack || ""
+      })
     }
   }
 
   document.body.appendChild(script)
 }
 
+function showDiagnostics(){
+  const home = document.getElementById("screenHome")
+  const toolArea = document.getElementById("toolArea")
+  const diagnosticsArea = document.getElementById("diagnosticsArea")
+  const settingsArea = document.getElementById("settingsArea")
+
+  destroyActiveTool()
+  activeToolId = null
+  window.toggleToolsPanel?.(false)
+  hideScreen(home)
+  hideScreen(toolArea)
+  hideScreen(settingsArea)
+  revealScreen(diagnosticsArea)
+  syncNavState("recovery")
+}
+
+function showSettings(){
+  const home = document.getElementById("screenHome")
+  const toolArea = document.getElementById("toolArea")
+  const diagnosticsArea = document.getElementById("diagnosticsArea")
+  const settingsArea = document.getElementById("settingsArea")
+
+  destroyActiveTool()
+  activeToolId = null
+  window.toggleToolsPanel?.(false)
+  hideScreen(home)
+  hideScreen(toolArea)
+  hideScreen(diagnosticsArea)
+  revealScreen(settingsArea)
+  syncNavState("settings")
+}
+
 async function loadTools(){
   const tools = await ensureToolRegistry()
   const container = document.querySelector(".home-tools")
-  const descriptions = {
-    expenses: "Capture spends fast",
-    borrowed: "Track who owes what",
-    grocery: "Keep your list ready",
-    habits: "Stay consistent daily",
-    notes: "Capture quick thoughts",
-    subscriptions: "Watch recurring costs"
-  }
 
   if(!container){
     return
@@ -150,8 +297,8 @@ async function loadTools(){
   tools.forEach((tool) => {
     const button = document.createElement("button")
     const description = window.t
-      ? window.t(`toolDesc.${tool.id}`, descriptions[tool.id] || "Open this tool")
-      : (descriptions[tool.id] || "Open this tool")
+      ? window.t(`toolDesc.${tool.id}`, tool.description || "Open this tool")
+      : (tool.description || "Open this tool")
     const title = window.t ? window.t(`tool.${tool.id}`, tool.name) : tool.name
 
     button.innerHTML = `
@@ -170,14 +317,26 @@ window.DailyKitRouter = {
   ensureToolRegistry,
   getToolRegistry,
   getActiveToolId,
+  getActiveToolApi,
   showHome,
+  showDiagnostics,
+  showSettings,
   showSection,
   openTool,
+  refreshActiveTool,
+  destroyActiveTool,
   loadTools,
   syncNavState
 }
 
+window.registerDailyKitTool = (toolDefinition) => {
+  window.DailyKitTool = toolDefinition
+  return toolDefinition
+}
+
 window.showHome = showHome
+window.showDiagnostics = showDiagnostics
+window.showSettings = showSettings
 window.showSection = showSection
 window.openTool = openTool
 })()

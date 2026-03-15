@@ -1,5 +1,9 @@
 ;(function(){
 const DEFAULT_EXPENSE_CATEGORIES = ["Transport", "Food", "Grocery", "Other"]
+const STORAGE_VERSION = 2
+const STORAGE_VERSION_KEY = "storageVersion"
+const ERROR_LOG_LIMIT = 25
+const CATEGORY_MEMORY_LIMIT = 120
 const TEXT_LIMITS = {
   short: 80,
   medium: 140,
@@ -85,8 +89,27 @@ function normalizeCategoryList(value){
   return unique
 }
 
+function normalizeCategoryMemory(value){
+  const source = value && typeof value === "object" ? value : {}
+  const pairs = Object.entries(source)
+    .map(([name, category]) => [
+      normalizeText(name, TEXT_LIMITS.short).toLowerCase(),
+      normalizeCategoryName(category)
+    ])
+    .filter(([name, category]) => name && category)
+    .slice(-CATEGORY_MEMORY_LIMIT)
+
+  return Object.fromEntries(pairs)
+}
+
 function inferExpenseCategory(name){
-  const value = String(name || "").toLowerCase()
+  const normalizedName = normalizeText(name, TEXT_LIMITS.short)
+  const value = normalizedName.toLowerCase()
+  const rememberedCategory = storage?.getBudgetSettings?.().categoryMemory?.[value]
+
+  if(rememberedCategory){
+    return rememberedCategory
+  }
 
   const transport = ["bus", "train", "flight", "taxi", "uber", "auto", "metro", "petrol"]
   const food = ["tea", "coffee", "lunch", "dinner", "breakfast", "snack", "food"]
@@ -188,6 +211,7 @@ function normalizeSettings(value){
   return {
     monthlyBudget: Number.isFinite(monthlyBudget) && monthlyBudget > 0 ? monthlyBudget : null,
     expenseCategories: normalizeCategoryList(source.expenseCategories),
+    categoryMemory: normalizeCategoryMemory(source.categoryMemory),
     reminders: {
       habits: {
         enabled: Boolean(reminders.habits?.enabled),
@@ -247,6 +271,53 @@ function normalizeNote(entry){
   }
 }
 
+function normalizeTaskPriority(value){
+  const priority = normalizeText(value, TEXT_LIMITS.short).toLowerCase()
+  return ["low", "medium", "high"].includes(priority) ? priority : "medium"
+}
+
+function normalizeTask(entry){
+  if(!entry || typeof entry !== "object"){
+    return null
+  }
+
+  const title = normalizeText(entry.title, TEXT_LIMITS.medium)
+
+  if(!title){
+    return null
+  }
+
+  return {
+    id: entry.id || createId("task"),
+    title,
+    done: Boolean(entry.done),
+    priority: normalizeTaskPriority(entry.priority),
+    date: normalizeDateKey(entry.date)
+  }
+}
+
+function normalizeJournal(entry){
+  if(!entry || typeof entry !== "object"){
+    return null
+  }
+
+  const title = normalizeText(entry.title, TEXT_LIMITS.medium)
+  const mood = normalizeText(entry.mood, TEXT_LIMITS.short)
+  const body = String(entry.body || "").trim().slice(0, TEXT_LIMITS.note)
+
+  if(!title && !body){
+    return null
+  }
+
+  return {
+    id: entry.id || createId("journal"),
+    title: title || "Daily reflection",
+    mood: mood || "Neutral",
+    body,
+    date: normalizeDateKey(entry.date)
+  }
+}
+
 function normalizeSubscription(entry){
   if(!entry || typeof entry !== "object"){
     return null
@@ -298,13 +369,49 @@ function resolveKey(key){
   return scopedKey
 }
 
+function resolveRawKey(key){
+  return resolveKey(key)
+}
+
 function read(key, fallback){
   return safeParse(localStorage.getItem(resolveKey(key)), fallback)
 }
 
 function write(key, value){
   localStorage.setItem(resolveKey(key), JSON.stringify(value))
+  window.DailyKitEvents?.emit?.("storage:changed", {key, value})
   return value
+}
+
+function readStorageVersion(){
+  const raw = Number(localStorage.getItem(resolveRawKey(STORAGE_VERSION_KEY)))
+  return Number.isInteger(raw) && raw > 0 ? raw : 1
+}
+
+function writeStorageVersion(version){
+  localStorage.setItem(resolveRawKey(STORAGE_VERSION_KEY), String(version))
+  return version
+}
+
+function normalizeErrorLog(entry){
+  if(!entry || typeof entry !== "object"){
+    return null
+  }
+
+  const message = String(entry.message || "").trim().slice(0, 500)
+
+  if(!message){
+    return null
+  }
+
+  return {
+    id: entry.id || createId("error"),
+    type: normalizeText(entry.type, TEXT_LIMITS.short) || "error",
+    message,
+    source: normalizeText(entry.source, TEXT_LIMITS.medium),
+    stack: String(entry.stack || "").slice(0, 2000),
+    timestamp: Number(entry.timestamp) || Date.now()
+  }
 }
 
 function getNormalized(key, fallback, normalizer){
@@ -323,7 +430,7 @@ function transferUserData(fromUserId, toUserId){
     return
   }
 
-  ;["expenses", "borrow", "grocery", "habits", "notes", "subscriptions", "settings"].forEach((key) => {
+  ;["expenses", "borrow", "grocery", "habits", "notes", "tasks", "journal", "subscriptions", "settings"].forEach((key) => {
     const fromKey = getScopedKey(key, fromUserId)
     const toKey = getScopedKey(key, toUserId)
     const fromValue = localStorage.getItem(fromKey)
@@ -340,6 +447,14 @@ const storage = {
   formatDateKey,
   parseDateKey,
   inferExpenseCategory,
+  ensureReady(){
+    ensureStorageVersion()
+    storage.validateAllData()
+    return true
+  },
+  getStorageVersion(){
+    return readStorageVersion()
+  },
   getExpenses(){
     return getNormalized("expenses", [], (value) => normalizeList(value, normalizeExpense))
   },
@@ -357,22 +472,33 @@ const storage = {
     items.push(nextEntry)
     storage.saveExpenses(items)
     storage.addExpenseCategory(nextEntry.category)
+    storage.rememberExpenseCategory(nextEntry.name, nextEntry.category)
     return nextEntry
   },
   updateExpense(id, nextEntry){
-    return storage.saveExpenses(
+    let updatedEntry = null
+    const result = storage.saveExpenses(
       storage.getExpenses().map((entry) => {
         if(entry.id !== id){
           return entry
         }
 
-        return {
+        updatedEntry = {
           ...entry,
           ...nextEntry,
           id: entry.id
         }
+
+        return updatedEntry
       })
     )
+
+    if(updatedEntry){
+      storage.addExpenseCategory(updatedEntry.category)
+      storage.rememberExpenseCategory(updatedEntry.name, updatedEntry.category)
+    }
+
+    return result
   },
   removeExpense(id){
     return storage.saveExpenses(
@@ -553,6 +679,96 @@ const storage = {
       storage.getNotes().filter((entry) => entry.id !== id)
     )
   },
+  getTasks(){
+    return getNormalized("tasks", [], (value) => normalizeList(value, normalizeTask))
+  },
+  saveTasks(items){
+    return write("tasks", normalizeList(items, normalizeTask))
+  },
+  addTask(entry){
+    const items = storage.getTasks()
+    const nextEntry = normalizeTask(entry)
+
+    if(!nextEntry){
+      return null
+    }
+
+    items.push(nextEntry)
+    storage.saveTasks(items)
+    return nextEntry
+  },
+  updateTask(id, nextEntry){
+    return storage.saveTasks(
+      storage.getTasks().map((entry) => {
+        if(entry.id !== id){
+          return entry
+        }
+
+        return {
+          ...entry,
+          ...nextEntry,
+          id: entry.id
+        }
+      })
+    )
+  },
+  toggleTaskCompletion(id){
+    return storage.saveTasks(
+      storage.getTasks().map((entry) => {
+        if(entry.id !== id){
+          return entry
+        }
+
+        return {
+          ...entry,
+          done: !entry.done
+        }
+      })
+    )
+  },
+  removeTask(id){
+    return storage.saveTasks(
+      storage.getTasks().filter((entry) => entry.id !== id)
+    )
+  },
+  getJournal(){
+    return getNormalized("journal", [], (value) => normalizeList(value, normalizeJournal))
+  },
+  saveJournal(items){
+    return write("journal", normalizeList(items, normalizeJournal))
+  },
+  addJournal(entry){
+    const items = storage.getJournal()
+    const nextEntry = normalizeJournal(entry)
+
+    if(!nextEntry){
+      return null
+    }
+
+    items.push(nextEntry)
+    storage.saveJournal(items)
+    return nextEntry
+  },
+  updateJournal(id, nextEntry){
+    return storage.saveJournal(
+      storage.getJournal().map((entry) => {
+        if(entry.id !== id){
+          return entry
+        }
+
+        return {
+          ...entry,
+          ...nextEntry,
+          id: entry.id
+        }
+      })
+    )
+  },
+  removeJournal(id){
+    return storage.saveJournal(
+      storage.getJournal().filter((entry) => entry.id !== id)
+    )
+  },
   getSubscriptions(){
     return getNormalized("subscriptions", [], (value) => normalizeList(value, normalizeSubscription))
   },
@@ -628,6 +844,39 @@ const storage = {
   getExpenseCategoriesList(){
     return storage.getBudgetSettings().expenseCategories
   },
+  getExpenseCategoryMemory(){
+    return storage.getBudgetSettings().categoryMemory
+  },
+  rememberExpenseCategory(name, category){
+    const normalizedName = normalizeText(name, TEXT_LIMITS.short).toLowerCase()
+    const normalizedCategory = normalizeCategoryName(category)
+
+    if(!normalizedName || !normalizedCategory){
+      return storage.getBudgetSettings()
+    }
+
+    return storage.saveBudgetSettings({
+      categoryMemory: {
+        ...storage.getExpenseCategoryMemory(),
+        [normalizedName]: normalizedCategory
+      }
+    })
+  },
+  removeExpenseCategoryMemory(name){
+    const normalizedName = normalizeText(name, TEXT_LIMITS.short).toLowerCase()
+    const nextMemory = {...storage.getExpenseCategoryMemory()}
+
+    delete nextMemory[normalizedName]
+
+    return storage.saveBudgetSettings({
+      categoryMemory: nextMemory
+    })
+  },
+  clearExpenseCategoryMemory(){
+    return storage.saveBudgetSettings({
+      categoryMemory: {}
+    })
+  },
   addExpenseCategory(name){
     const category = normalizeCategoryName(name)
 
@@ -649,6 +898,8 @@ const storage = {
       grocery: storage.getGrocery(),
       habits: storage.getHabits(),
       notes: storage.getNotes(),
+      tasks: storage.getTasks(),
+      journal: storage.getJournal(),
       subscriptions: storage.getSubscriptions(),
       settings: storage.getBudgetSettings()
     }
@@ -663,11 +914,117 @@ const storage = {
     storage.saveGrocery(data.grocery || [])
     storage.saveHabits(data.habits || [])
     storage.saveNotes(data.notes || [])
+    storage.saveTasks(data.tasks || [])
+    storage.saveJournal(data.journal || [])
     storage.saveSubscriptions(data.subscriptions || [])
     storage.saveBudgetSettings(data.settings || {})
+
+    storage.getExpenses().forEach((entry) => {
+      storage.rememberExpenseCategory(entry.name, entry.category)
+    })
+  },
+  getErrorLogs(){
+    return getNormalized("errorLogs", [], (value) => normalizeList(value, normalizeErrorLog)).slice(-ERROR_LOG_LIMIT)
+  },
+  saveErrorLogs(items){
+    return write("errorLogs", normalizeList(items, normalizeErrorLog).slice(-ERROR_LOG_LIMIT))
+  },
+  addErrorLog(entry){
+    const items = storage.getErrorLogs()
+    const nextEntry = normalizeErrorLog(entry)
+
+    if(!nextEntry){
+      return null
+    }
+
+    items.push(nextEntry)
+    storage.saveErrorLogs(items)
+    return nextEntry
+  },
+  clearErrorLogs(){
+    return storage.saveErrorLogs([])
+  },
+  resetWorkspaceData(){
+    ;[
+      "expenses",
+      "borrow",
+      "grocery",
+      "habits",
+      "notes",
+      "tasks",
+      "journal",
+      "subscriptions",
+      "settings",
+      "errorLogs",
+      STORAGE_VERSION_KEY
+    ].forEach((key) => {
+      localStorage.removeItem(resolveRawKey(key))
+    })
+
+    ensureStorageVersion()
+    storage.validateAllData()
+    window.DailyKitEvents?.emit?.("storage:changed", {key: "workspace-reset"})
+    return true
+  },
+  validateAllData(){
+    storage.getExpenses()
+    storage.getBorrow()
+    storage.getGrocery()
+    storage.getHabits()
+    storage.getNotes()
+    storage.getTasks()
+    storage.getJournal()
+    storage.getSubscriptions()
+    storage.getBudgetSettings()
+    storage.getErrorLogs()
+    return true
   },
   transferUserData
 }
+
+function migrateToVersion2(){
+  const settings = normalizeSettings(read("settings", {}))
+  const categoryMemory = {...settings.categoryMemory}
+
+  storage.getExpenses().forEach((entry) => {
+    const normalizedName = normalizeText(entry.name, TEXT_LIMITS.short).toLowerCase()
+    const normalizedCategory = normalizeCategoryName(entry.category)
+
+    if(normalizedName && normalizedCategory && !categoryMemory[normalizedName]){
+      categoryMemory[normalizedName] = normalizedCategory
+    }
+  })
+
+  write("settings", normalizeSettings({
+    ...settings,
+    categoryMemory
+  }))
+}
+
+function ensureStorageVersion(){
+  let version = readStorageVersion()
+
+  while(version < STORAGE_VERSION){
+    if(version === 1){
+      migrateToVersion2()
+      version = 2
+      writeStorageVersion(version)
+      continue
+    }
+
+    version += 1
+    writeStorageVersion(version)
+  }
+
+  if(version !== STORAGE_VERSION){
+    writeStorageVersion(STORAGE_VERSION)
+  }
+
+  return STORAGE_VERSION
+}
+
+ensureStorageVersion()
+storage.validateAllData()
 
 window.DailyKitStorage = storage
 })()
