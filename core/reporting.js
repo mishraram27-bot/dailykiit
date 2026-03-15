@@ -109,7 +109,7 @@ function downloadMonthlyReport(){
   const link = document.createElement("a")
 
   link.href = url
-  link.download = `life-os-report-${report.monthLabel.replace(/\s+/g, "-").toLowerCase()}.csv`
+  link.download = `plifeos-report-${report.monthLabel.replace(/\s+/g, "-").toLowerCase()}.csv`
   link.click()
 
   URL.revokeObjectURL(url)

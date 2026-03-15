@@ -302,7 +302,7 @@ async function loadTools(){
     const title = window.t ? window.t(`tool.${tool.id}`, tool.name) : tool.name
 
     button.innerHTML = `
-<span class="tool-icon">${tool.icon}</span>
+<span class="tool-icon">${tool.icon || tool.name.slice(0, 3).toUpperCase()}</span>
 <span class="tool-copy">
 <strong>${title}</strong>
 <span>${description}</span>

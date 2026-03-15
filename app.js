@@ -5,8 +5,9 @@ let toolsPanelOpen = false
 let searchTimer = null
 let appUpdateRegistration = null
 
-const APP_VERSION = "10.1"
+const APP_VERSION = "10.3"
 const LAST_EXPORT_KEY = "plifeos:last-export-at"
+const THEME_KEY = "plifeos:theme"
 
 const searchState = {
   results: [],
@@ -30,6 +31,37 @@ function t(key, fallback, replacements = {}){
   })
 
   return output
+}
+
+function getStoredTheme(){
+  const theme = localStorage.getItem(THEME_KEY) || "system"
+  return ["system", "light", "dark"].includes(theme) ? theme : "system"
+}
+
+function resolveTheme(theme){
+  if(theme === "light" || theme === "dark"){
+    return theme
+  }
+
+  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ? "dark" : "light"
+}
+
+function applyTheme(theme, {persist = true} = {}){
+  const selectedTheme = ["system", "light", "dark"].includes(theme) ? theme : "system"
+  const resolvedTheme = resolveTheme(selectedTheme)
+
+  document.documentElement.dataset.theme = resolvedTheme
+  document.documentElement.dataset.themePreference = selectedTheme
+
+  if(persist){
+    localStorage.setItem(THEME_KEY, selectedTheme)
+  }
+
+  const themeMeta = document.querySelector('meta[name="theme-color"]')
+
+  if(themeMeta){
+    themeMeta.setAttribute("content", resolvedTheme === "dark" ? "#111827" : "#2F6FED")
+  }
 }
 
 async function loadLanguage(lang){
@@ -88,7 +120,7 @@ function exportData(){
   const link = document.createElement("a")
 
   link.href = url
-  link.download = "life-os-backup.csv"
+  link.download = "plifeos-backup.csv"
   link.click()
 
   URL.revokeObjectURL(url)
@@ -881,38 +913,7 @@ function renderToolsPanel(){
 
   const toolButtons = tools.map((tool) => `
 <button type="button" class="tools-panel-item" onclick="openToolFromPanel('${tool.id}')">
-  <span class="tool-icon">${tool.icon}</span>
-  <span class="tool-copy">
-    <strong>${escapeHtml(t(`tool.${tool.id}`, tool.name))}</strong>
-    <span>${escapeHtml(t(`toolDesc.${tool.id}`, "Open this tool"))}</span>
-  </span>
-</button>
-`).join("")
-
-  container.innerHTML = `
-${toolButtons}
-<button type="button" class="tools-panel-item" onclick="openDiagnostics()">
-  <span class="tool-icon">⚙</span>
-  <span class="tool-copy">
-    <strong>${escapeHtml(t("diagnostics.title", "Diagnostics & Recovery"))}</strong>
-    <span>${escapeHtml(t("diagnostics.subtitle", "Review backups, storage health, and local errors"))}</span>
-  </span>
-</button>
-`
-}
-
-function renderToolsPanel(){
-  const container = document.getElementById("toolsPanelList")
-
-  if(!container || !window.PlifeOSRouter){
-    return
-  }
-
-  const tools = PlifeOSRouter.getToolRegistry()
-
-  const toolButtons = tools.map((tool) => `
-<button type="button" class="tools-panel-item" onclick="openToolFromPanel('${tool.id}')">
-  <span class="tool-icon">${tool.icon}</span>
+  <span class="tool-icon">${escapeHtml(tool.icon || tool.name.slice(0, 3).toUpperCase())}</span>
   <span class="tool-copy">
     <strong>${escapeHtml(t(`tool.${tool.id}`, tool.name))}</strong>
     <span>${escapeHtml(t(`toolDesc.${tool.id}`, "Open this tool"))}</span>
@@ -1103,6 +1104,8 @@ function renderSettings(){
   const currentLanguageLabel = currentLanguage === "hi"
     ? t("language.hindi", "Hindi")
     : t("language.english", "English")
+  const currentTheme = getStoredTheme()
+  const currentThemeLabel = t(`settings.theme.${currentTheme}`, currentTheme)
   const categories = PlifeOSStorage.getExpenseCategoriesList()
   const memoryEntries = Object.entries(PlifeOSStorage.getExpenseCategoryMemory())
     .sort((left, right) => left[0].localeCompare(right[0]))
@@ -1136,6 +1139,10 @@ function renderSettings(){
         <strong>v${APP_VERSION}</strong>
       </article>
       <article class="report-tile">
+        <span class="insight-label">${t("settings.themeTitle", "Theme")}</span>
+        <strong>${escapeHtml(currentThemeLabel)}</strong>
+      </article>
+      <article class="report-tile">
         <span class="insight-label">${t("diagnostics.backupStatus", "Backup status")}</span>
         <strong>${escapeHtml(formatBackupAge())}</strong>
       </article>
@@ -1144,6 +1151,21 @@ function renderSettings(){
       <button type="button" class="${currentLanguage === "en" ? "is-disabled" : ""}" onclick="changeSettingsLanguage('en')" ${currentLanguage === "en" ? "disabled" : ""}>${t("language.english", "English")}</button>
       <button type="button" class="${currentLanguage === "hi" ? "is-disabled" : ""}" onclick="changeSettingsLanguage('hi')" ${currentLanguage === "hi" ? "disabled" : ""}>${t("language.hindi", "Hindi")}</button>
       <button type="button" class="secondary-btn" onclick="openDiagnostics()">${t("diagnostics.title", "Diagnostics & Recovery")}</button>
+    </div>
+  </section>
+
+  <section class="feature-panel">
+    <div class="panel-heading">
+      <div>
+        <p class="section-kicker">${t("settings.appearanceKicker", "Appearance")}</p>
+        <h3>${t("settings.appearanceTitle", "Theme & display")}</h3>
+      </div>
+    </div>
+    <p class="panel-copy">${t("settings.appearanceCopy", "Choose the look that feels best on this device. System mode follows your phone or desktop preference automatically.")}</p>
+    <div class="tool-form diagnostics-actions">
+      <button type="button" class="${currentTheme === "system" ? "is-disabled" : ""}" onclick="changeThemePreference('system')" ${currentTheme === "system" ? "disabled" : ""}>${t("settings.theme.system", "System")}</button>
+      <button type="button" class="${currentTheme === "light" ? "is-disabled" : ""}" onclick="changeThemePreference('light')" ${currentTheme === "light" ? "disabled" : ""}>${t("settings.theme.light", "Light")}</button>
+      <button type="button" class="${currentTheme === "dark" ? "is-disabled" : ""}" onclick="changeThemePreference('dark')" ${currentTheme === "dark" ? "disabled" : ""}>${t("settings.theme.dark", "Dark")}</button>
     </div>
   </section>
 
@@ -1221,6 +1243,12 @@ function changeSettingsLanguage(language){
   }
 
   loadLanguage(language)
+}
+
+function changeThemePreference(theme){
+  applyTheme(theme)
+  renderSettings()
+  PlifeOSFeedback.success(t("settings.themeUpdated", "Theme updated."))
 }
 
 function removeCategoryLearning(name){
@@ -1417,6 +1445,19 @@ function bindGlobalListeners(){
     return
   }
 
+  applyTheme(getStoredTheme(), {persist: false})
+
+  const colorSchemeMedia = window.matchMedia?.("(prefers-color-scheme: dark)")
+
+  colorSchemeMedia?.addEventListener?.("change", () => {
+    if(getStoredTheme() === "system"){
+      applyTheme("system", {persist: false})
+      if(!document.getElementById("settingsArea")?.hidden){
+        renderSettings()
+      }
+    }
+  })
+
   const languageSelect = document.getElementById("languageSelect")
   const savedLanguage = localStorage.getItem("language") || "en"
 
@@ -1606,6 +1647,7 @@ window.openSettings = openSettings
 window.renderDiagnostics = renderDiagnostics
 window.renderSettings = renderSettings
 window.changeSettingsLanguage = changeSettingsLanguage
+window.changeThemePreference = changeThemePreference
 window.removeCategoryLearning = removeCategoryLearning
 window.clearCategoryLearning = clearCategoryLearning
 window.validateWorkspaceData = validateWorkspaceData
@@ -1613,4 +1655,4 @@ window.clearDiagnosticsLogs = clearDiagnosticsLogs
 window.resetWorkspaceData = resetWorkspaceData
 window.t = t
 window.applyLanguage = applyLanguage
-window.LIFE_OS_LAST_EXPORT_KEY = LAST_EXPORT_KEY
+window.PLIFEOS_LAST_EXPORT_KEY = LAST_EXPORT_KEY

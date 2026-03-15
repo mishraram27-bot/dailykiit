@@ -25,7 +25,7 @@ PlifeOS now reads more clearly as:
 
 ## Recommended Next Step
 
-For v10.1, the strongest next move is to turn the dashboard into a stronger daily snapshot:
+For v10.2, the strongest next move is to turn the dashboard into a stronger daily snapshot:
 
 - task and journal insights
 - more visible daily agenda

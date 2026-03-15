@@ -2,97 +2,143 @@
   {
     "id": "expenses",
     "name": "Expenses",
-    "icon": "\uD83D\uDCB0",
+    "icon": "EXP",
     "script": "tools/expenses.js",
     "category": "finance",
     "searchable": true,
-    "commands": ["expense", "spend", "coffee 50"],
-    "permissions": ["storage"],
-    "version": "10.1",
+    "commands": [
+      "expense",
+      "spend",
+      "coffee 50"
+    ],
+    "permissions": [
+      "storage"
+    ],
+    "version": "10.3",
     "description": "Capture spends fast"
   },
   {
     "id": "borrowed",
     "name": "Borrowed",
-    "icon": "\uD83E\uDD1D",
+    "icon": "BOR",
     "script": "tools/borrowed.js",
     "category": "finance",
     "searchable": true,
-    "commands": ["borrow", "lend", "borrow ram 200"],
-    "permissions": ["storage"],
-    "version": "10.1",
+    "commands": [
+      "borrow",
+      "lend",
+      "borrow ram 200"
+    ],
+    "permissions": [
+      "storage"
+    ],
+    "version": "10.3",
     "description": "Track who owes what"
   },
   {
     "id": "grocery",
     "name": "Grocery",
-    "icon": "\uD83D\uDED2",
+    "icon": "GRC",
     "script": "tools/grocery.js",
     "category": "daily",
     "searchable": true,
-    "commands": ["grocery", "buy", "grocery milk"],
-    "permissions": ["storage"],
-    "version": "10.1",
+    "commands": [
+      "grocery",
+      "buy",
+      "grocery milk"
+    ],
+    "permissions": [
+      "storage"
+    ],
+    "version": "10.3",
     "description": "Keep your list ready"
   },
   {
     "id": "habits",
     "name": "Habits",
-    "icon": "\u2705",
+    "icon": "HBT",
     "script": "tools/habits.js",
     "category": "routine",
     "searchable": true,
-    "commands": ["habit", "habit gym"],
-    "permissions": ["storage", "notifications"],
-    "version": "10.1",
+    "commands": [
+      "habit",
+      "habit gym"
+    ],
+    "permissions": [
+      "storage",
+      "notifications"
+    ],
+    "version": "10.3",
     "description": "Stay consistent daily"
   },
   {
     "id": "notes",
     "name": "Notes",
-    "icon": "\uD83D\uDCDD",
+    "icon": "NTS",
     "script": "tools/notes.js",
     "category": "capture",
     "searchable": true,
-    "commands": ["note", "note startup idea"],
-    "permissions": ["storage"],
-    "version": "10.1",
+    "commands": [
+      "note",
+      "note startup idea"
+    ],
+    "permissions": [
+      "storage"
+    ],
+    "version": "10.3",
     "description": "Capture quick thoughts"
   },
   {
     "id": "tasks",
     "name": "Tasks",
-    "icon": "\u270D\uFE0F",
+    "icon": "TSK",
     "script": "tools/tasks.js",
     "category": "productivity",
     "searchable": true,
-    "commands": ["task", "todo", "task call bank"],
-    "permissions": ["storage"],
-    "version": "10.1",
+    "commands": [
+      "task",
+      "todo",
+      "task call bank"
+    ],
+    "permissions": [
+      "storage"
+    ],
+    "version": "10.3",
     "description": "Keep today organized"
   },
   {
     "id": "journal",
     "name": "Journal",
-    "icon": "\uD83D\uDCD6",
+    "icon": "JRN",
     "script": "tools/journal.js",
     "category": "reflection",
     "searchable": true,
-    "commands": ["journal", "journal Today felt focused"],
-    "permissions": ["storage"],
-    "version": "10.1",
+    "commands": [
+      "journal",
+      "journal Today felt focused"
+    ],
+    "permissions": [
+      "storage"
+    ],
+    "version": "10.3",
     "description": "Reflect on the day"
   },
   {
     "id": "subscriptions",
     "name": "Subscriptions",
-    "icon": "\uD83D\uDD04",
+    "icon": "SUB",
     "script": "tools/subscriptions.js",
     "category": "finance",
     "searchable": true,
-    "commands": ["subscription", "sub netflix 499"],
-    "permissions": ["storage", "notifications"],
-    "version": "10.1",
+    "commands": [
+      "subscription",
+      "sub netflix 499"
+    ],
+    "permissions": [
+      "storage",
+      "notifications"
+    ],
+    "version": "10.3",
     "description": "Watch recurring costs"
   }
 ]

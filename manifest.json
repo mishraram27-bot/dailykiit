@@ -1,7 +1,7 @@
 {
   "name": "PlifeOS",
   "short_name": "PlifeOS",
-  "description": "PlifeOS Version 10.1 personal life operating system",
+  "description": "PlifeOS personal life operating system",
   "lang": "en",
   "dir": "ltr",
   "id": "/",
@@ -10,7 +10,12 @@
   "start_url": "/",
   "theme_color": "#2F6FED",
   "background_color": "#F7F9FC",
-  "categories": ["productivity", "finance", "lifestyle", "utilities"],
+  "categories": [
+    "productivity",
+    "finance",
+    "lifestyle",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "icons/icon-192.png",

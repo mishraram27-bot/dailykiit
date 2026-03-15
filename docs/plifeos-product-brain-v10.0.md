@@ -1,8 +1,8 @@
-# PlifeOS Product Brain v10.1
+# PlifeOS Product Brain v10.2
 
 ## Phase Update
 
-PlifeOS v10.1 completes the internal reset from the old PlifeOS tester namespace to a clean PlifeOS baseline.
+PlifeOS v10.2 completes the internal reset from the old PlifeOS tester namespace to a clean PlifeOS baseline.
 
 ## New In This Version
 
@@ -23,7 +23,7 @@ PlifeOS now has:
 
 ## Recommended Next Step
 
-For v10.1, the strongest next move is a real live-product polish pass after deployment:
+For v10.2, the strongest next move is a real live-product polish pass after deployment:
 
 - review first-load experience on mobile and desktop
 - tighten the dashboard as a daily snapshot
