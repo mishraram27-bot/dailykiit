@@ -5,7 +5,7 @@ let toolsPanelOpen = false
 let searchTimer = null
 let appUpdateRegistration = null
 
-const APP_VERSION = "10.3"
+const APP_VERSION = "10.6"
 const LAST_EXPORT_KEY = "plifeos:last-export-at"
 const THEME_KEY = "plifeos:theme"
 
@@ -34,8 +34,8 @@ function t(key, fallback, replacements = {}){
 }
 
 function getStoredTheme(){
-  const theme = localStorage.getItem(THEME_KEY) || "system"
-  return ["system", "light", "dark"].includes(theme) ? theme : "system"
+  const theme = localStorage.getItem(THEME_KEY) || "dark"
+  return ["system", "light", "dark"].includes(theme) ? theme : "dark"
 }
 
 function resolveTheme(theme){

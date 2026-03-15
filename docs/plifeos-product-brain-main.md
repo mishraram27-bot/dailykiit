@@ -100,7 +100,7 @@ The current release focus now includes:
 - CSV backup/import coverage for both
 - diagnostics and activity-feed coverage for both
 - clean `plifeos` storage/session/cache/report namespaces
-- a fresh v10.3 baseline without the old tester-only PlifeOS storage keys
+- a fresh v10.6 baseline without the old tester-only PlifeOS storage keys
 
 ## Best Next Product Moves
 
@@ -109,11 +109,11 @@ The current release focus now includes:
 - settings toggles for onboarding, reminders, and command behavior
 - task and journal insights on the dashboard
 - recurring reminder polish and optional cloud sync later
-- a dedicated live-product review pass after the v10.3 deploy
+- a dedicated live-product review pass after the v10.6 deploy
 
 
 
 
 ## Current Polish Focus
 
-PlifeOS v10.3 adds dark mode, stabilizes the tool icon system, and tightens the most visible Hindi and English shell copy so the product feels more complete before the next design phase.
+PlifeOS v10.6 hardens the app shell for tablets, desktops, and older-but-modern mobile devices with stronger install metadata, safer spacing, dark-first presentation, and blur/safe-area fallbacks.

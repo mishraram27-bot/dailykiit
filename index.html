@@ -9,7 +9,10 @@
 
 <meta name="application-name" content="PlifeOS">
 <meta name="description" content="PlifeOS is an offline-first personal life operating system for money, habits, notes, tasks, subscriptions, and daily planning.">
-<meta name="theme-color" content="#2F6FED">
+<meta name="theme-color" content="#111827">
+<meta name="msapplication-TileColor" content="#111827">
+<meta name="color-scheme" content="dark light">
+<meta name="format-detection" content="telephone=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -17,9 +20,11 @@
 
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="icon" href="icons/favicon.png">
-<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon 16.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 
 </head>
 
@@ -57,7 +62,10 @@ Use a guest profile with a random user ID on this device and start tracking inst
 <div class="hero-inner">
 
 <p class="hero-kicker" data-i18n="hero.kicker">A personal life operating system</p>
+<div class="brand-lockup">
+<img src="icons/Logo.svg" alt="PlifeOS" class="brand-logo">
 <h1 class="brand-wordmark"><span class="brand-wordmark-accent">P</span><span class="brand-wordmark-rest">lifeOS</span></h1>
+</div>
 <p class="hero-copy" data-i18n="hero.copy">
 See your money, routines, notes, and daily flow in one calm offline home.
 </p>
@@ -198,7 +206,7 @@ See your money, routines, notes, and daily flow in one calm offline home.
 <script src="app.js" defer></script>
 
 <footer class="disclaimer">
-<span class="app-version" data-i18n="app.version">PlifeOS Version 10.3</span>
+<span class="app-version" data-i18n="app.version">PlifeOS Version 10.6</span>
 <span data-i18n="footer.disclaimer">PlifeOS is a personal life operating system. It does not provide financial, medical, or legal advice.</span>
 <span class="footer-links">
 <a href="pages/privacy.html" data-i18n="footer.privacy">Privacy Policy</a>
@@ -281,27 +289,27 @@ See your money, routines, notes, and daily flow in one calm offline home.
 <div class="panel-heading">
 <div>
 <p class="section-kicker" data-i18n="changelog.kicker">Release Notes</p>
-<h3 data-i18n="changelog.title">What's New in v10.3</h3>
+<h3 data-i18n="changelog.title">What's New in v10.6</h3>
 </div>
 <button type="button" class="secondary-btn" onclick="closeChangelog()" data-i18n="common.close">Close</button>
 </div>
 <div class="changelog-list">
 <article class="settings-learning-item">
 <div class="settings-learning-copy">
-<strong data-i18n="changelog.item1Title">Dark mode is here</strong>
-<span data-i18n="changelog.item1Copy">PlifeOS now supports light, dark, and system theme modes so the workspace feels better across day and night use.</span>
+<strong data-i18n="changelog.item1Title">Cross-device shell is stronger</strong>
+<span data-i18n="changelog.item1Copy">PlifeOS now uses safer mobile spacing, stronger install metadata, and better older-device layout fallbacks.</span>
 </div>
 </article>
 <article class="settings-learning-item">
 <div class="settings-learning-copy">
-<strong data-i18n="changelog.item2Title">Cleaner tool icons</strong>
-<span data-i18n="changelog.item2Copy">The tool library now uses a stable icon token system that stays consistent across browsers and platforms.</span>
+<strong data-i18n="changelog.item2Title">Dark install experience is aligned</strong>
+<span data-i18n="changelog.item2Copy">The default dark theme now matches the first-load theme color and installed app presentation more closely.</span>
 </div>
 </article>
 <article class="settings-learning-item">
 <div class="settings-learning-copy">
-<strong data-i18n="changelog.item3Title">Sharper language baseline</strong>
-<span data-i18n="changelog.item3Copy">The most visible Hindi and English shell copy has been tightened so the product reads more clearly in daily use.</span>
+<strong data-i18n="changelog.item3Title">Older mobile fallbacks improved</strong>
+<span data-i18n="changelog.item3Copy">Safe-area spacing, blur fallbacks, and touch behavior are more reliable on tablets and older-but-modern phones.</span>
 </div>
 </article>
 </div>
