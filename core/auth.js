@@ -1,6 +1,6 @@
 ;(function(){
-const SESSION_KEY = "dailykit_session"
-const CLOUD_DOC_COLLECTION = "dailykitUsers"
+const SESSION_KEY = "lifeos_session"
+const CLOUD_DOC_COLLECTION = "lifeosUsers"
 
 let currentSession = null
 let firebaseState = {
@@ -12,7 +12,7 @@ let firebaseState = {
 }
 
 function getFirebaseConfig(){
-  const config = window.DailyKitFirebaseConfig || {}
+  const config = window.LifeOSFirebaseConfig || {}
   return config
 }
 
@@ -57,7 +57,7 @@ function writeSession(session){
   }
 
   updateAuthUi()
-  window.dispatchEvent(new CustomEvent("dailykit:session-changed", {detail: session}))
+  window.dispatchEvent(new CustomEvent("lifeos:session-changed", {detail: session}))
 }
 
 function getSession(){
@@ -107,7 +107,7 @@ async function initFirebase(){
     return firebaseState
   }
 
-  const version = window.DailyKitFirebaseSdkVersion || "11.9.0"
+  const version = window.LifeOSFirebaseSdkVersion || "11.9.0"
   const [appModule, authModule, firestoreModule] = await Promise.all([
     import(`https://www.gstatic.com/firebasejs/${version}/firebase-app.js`),
     import(`https://www.gstatic.com/firebasejs/${version}/firebase-auth.js`),
@@ -151,8 +151,8 @@ async function completeGoogleLogin(user){
     cloudEnabled: true
   }
 
-  if(previousSession?.userId && previousSession.userId !== nextSession.userId && window.DailyKitStorage){
-    DailyKitStorage.transferUserData(previousSession.userId, nextSession.userId)
+  if(previousSession?.userId && previousSession.userId !== nextSession.userId && window.LifeOSStorage){
+    LifeOSStorage.transferUserData(previousSession.userId, nextSession.userId)
   }
 
   writeSession(nextSession)
@@ -207,7 +207,7 @@ async function saveBackupToCloud(){
 
   const {firestoreModule} = firebaseState.modules
   const payload = {
-    backup: DailyKitStorage.exportBackup(),
+    backup: LifeOSStorage.exportBackup(),
     updatedAt: firestoreModule.serverTimestamp(),
     profile: {
       displayName: currentSession.displayName,
@@ -242,8 +242,8 @@ async function restoreBackupFromCloud(){
   }
 
   const data = snapshot.data()
-  DailyKitStorage.importBackup(data.backup || {})
-  window.dispatchEvent(new CustomEvent("dailykit:cloud-restored"))
+  LifeOSStorage.importBackup(data.backup || {})
+  window.dispatchEvent(new CustomEvent("lifeos:cloud-restored"))
   alert("Cloud backup restored.")
 }
 
@@ -290,7 +290,7 @@ function bindUi(){
   }
 }
 
-window.DailyKitAuth = {
+window.LifeOSAuth = {
   init,
   hasSession,
   getSession,

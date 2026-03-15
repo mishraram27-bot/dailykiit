@@ -19,7 +19,7 @@ function escapeHabitHtml(value){
 
 function renderTool(){
   const area = document.getElementById("toolContainer")
-  const reminderSettings = DailyKitStorage.getReminderSettings().habits
+  const reminderSettings = LifeOSStorage.getReminderSettings().habits
   const notificationStatus = "Notification" in window ? Notification.permission : "unsupported"
 
   area.innerHTML = `
@@ -103,7 +103,7 @@ function setHabitFormState(){
     return
   }
 
-  const entry = DailyKitStorage.getHabits().find((item) => item.id === habitState.editingId)
+  const entry = LifeOSStorage.getHabits().find((item) => item.id === habitState.editingId)
 
   if(!entry){
     habitState.editingId = null
@@ -127,16 +127,16 @@ function saveHabitEntry(){
   const value = input?.value.trim()
 
   if(!value){
-    DailyKitFeedback.error(tr("messages.enterHabitFirst", "Enter a habit name first."))
+    LifeOSFeedback.error(tr("messages.enterHabitFirst", "Enter a habit name first."))
     return
   }
 
   if(habitState.editingId){
-    DailyKitStorage.updateHabit(habitState.editingId, {name: value})
-    DailyKitFeedback.success(tr("messages.habitUpdated", "Habit updated."))
+    LifeOSStorage.updateHabit(habitState.editingId, {name: value})
+    LifeOSFeedback.success(tr("messages.habitUpdated", "Habit updated."))
   }else{
-    DailyKitStorage.addHabit({name: value, completions: []})
-    DailyKitFeedback.success(tr("messages.habitAdded", "Habit added."))
+    LifeOSStorage.addHabit({name: value, completions: []})
+    LifeOSFeedback.success(tr("messages.habitAdded", "Habit added."))
   }
 
   habitState.editingId = null
@@ -145,7 +145,7 @@ function saveHabitEntry(){
 }
 
 async function enableHabitNotifications(){
-  await DailyKitReminders.requestPermission()
+  await LifeOSReminders.requestPermission()
   renderTool()
 }
 
@@ -153,18 +153,18 @@ function saveHabitReminderSettings(){
   const time = document.getElementById("habitReminderTime")?.value
 
   if(!/^\d{2}:\d{2}$/.test(String(time || ""))){
-    DailyKitFeedback.error(tr("messages.validReminderTime", "Choose a valid reminder time."))
+    LifeOSFeedback.error(tr("messages.validReminderTime", "Choose a valid reminder time."))
     return
   }
 
-  DailyKitStorage.saveReminderSettings({
+  LifeOSStorage.saveReminderSettings({
     habits: {
       enabled: true,
       time
     }
   })
-  DailyKitReminders.runChecks()
-  DailyKitFeedback.success(tr("messages.habitReminderSaved", "Habit reminder saved."))
+  LifeOSReminders.runChecks()
+  LifeOSFeedback.success(tr("messages.habitReminderSaved", "Habit reminder saved."))
 }
 
 function renderHabitPagination(totalItems){
@@ -199,12 +199,12 @@ function loadHabits(resetPage){
     habitState.currentPage = 1
   }
 
-  const data = DailyKitStorage.getHabits()
+  const data = LifeOSStorage.getHabits()
   const list = document.getElementById("habitList")
   const meta = document.getElementById("habitMeta")
   const query = String(document.getElementById("habitSearchInput")?.value || "").trim().toLowerCase()
   const status = document.getElementById("habitStatusFilter")?.value || "all"
-  const today = DailyKitStorage.todayKey()
+  const today = LifeOSStorage.todayKey()
 
   if(!list){
     return
@@ -267,9 +267,9 @@ function loadHabits(resetPage){
 }
 
 function toggleHabitToday(id){
-  DailyKitStorage.toggleHabitCompletion(id)
+  LifeOSStorage.toggleHabitCompletion(id)
   loadHabits()
-  DailyKitFeedback.success(tr("messages.habitUpdatedToday", "Habit updated for today."))
+  LifeOSFeedback.success(tr("messages.habitUpdatedToday", "Habit updated for today."))
 }
 
 function editHabit(id){
@@ -279,31 +279,31 @@ function editHabit(id){
 }
 
 function deleteHabit(id){
-  const entry = DailyKitStorage.getHabits().find((item) => item.id === id)
+  const entry = LifeOSStorage.getHabits().find((item) => item.id === id)
 
   if(!entry){
     return
   }
 
-  DailyKitStorage.removeHabit(id)
+  LifeOSStorage.removeHabit(id)
 
   if(habitState.editingId === id){
     cancelHabitEdit()
   }
 
   loadHabits()
-  DailyKitFeedback.show(tr("habits.deleted", "Deleted habit {value}.", {value: entry.name}), {
+  LifeOSFeedback.show(tr("habits.deleted", "Deleted habit {value}.", {value: entry.name}), {
     type: "info",
     actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
-      DailyKitStorage.addHabit(entry)
+      LifeOSStorage.addHabit(entry)
       loadHabits()
-      DailyKitFeedback.success(tr("habits.restored", "Habit restored."))
+      LifeOSFeedback.success(tr("habits.restored", "Habit restored."))
     }
   })
 }
 
-window.registerDailyKitTool?.({
+window.registerLifeOSTool?.({
   id: "habits",
   render: renderTool,
   refresh: renderTool

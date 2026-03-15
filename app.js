@@ -5,8 +5,8 @@ let toolsPanelOpen = false
 let searchTimer = null
 let appUpdateRegistration = null
 
-const APP_VERSION = "9.8"
-const LAST_EXPORT_KEY = "dailykit:last-export-at"
+const APP_VERSION = "10.0"
+const LAST_EXPORT_KEY = "lifeos:last-export-at"
 
 const searchState = {
   results: [],
@@ -43,12 +43,12 @@ async function loadLanguage(lang){
   renderDiagnostics()
   renderSettings()
 
-  if(window.DailyKitRouter){
-    DailyKitRouter.loadTools()
+  if(window.LifeOSRouter){
+    LifeOSRouter.loadTools()
   }
 
-  if(window.DailyKitDashboard){
-    DailyKitDashboard.refreshDashboard()
+  if(window.LifeOSDashboard){
+    LifeOSDashboard.refreshDashboard()
   }
 
   localStorage.setItem("language", lang)
@@ -81,21 +81,21 @@ function applyLanguage(){
 }
 
 function exportData(){
-  const data = DailyKitStorage.exportBackup()
+  const data = LifeOSStorage.exportBackup()
   const csv = buildBackupCsv(data)
   const blob = new Blob([csv], {type: "text/csv;charset=utf-8"})
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
 
   link.href = url
-  link.download = "dailykit-backup.csv"
+  link.download = "life-os-backup.csv"
   link.click()
 
   URL.revokeObjectURL(url)
   localStorage.setItem(LAST_EXPORT_KEY, String(Date.now()))
 
-  if(window.DailyKitDashboard){
-    DailyKitDashboard.refreshDashboard()
+  if(window.LifeOSDashboard){
+    LifeOSDashboard.refreshDashboard()
   }
 }
 
@@ -391,7 +391,7 @@ function parseCsvBackup(text){
   const expectedHeader = ["section", "id", "name", "person", "amount", "date", "category", "done", "value"]
 
   if(header.join("|") !== expectedHeader.join("|")){
-    throw new Error("CSV format is not a DailyKit backup.")
+    throw new Error("CSV format is not a Life OS backup.")
   }
   const data = {
     expenses: [],
@@ -617,7 +617,7 @@ function runSearch(){
     return
   }
 
-  searchState.results = DailyKitSearch.buildResults(query, DailyKitRouter.getToolRegistry())
+  searchState.results = LifeOSSearch.buildResults(query, LifeOSRouter.getToolRegistry())
   searchState.activeIndex = searchState.results.length ? 0 : -1
 
   renderSearchResults()
@@ -647,7 +647,7 @@ function selectSearchResult(index){
     return
   }
 
-  DailyKitRouter.openTool(result.toolId)
+  LifeOSRouter.openTool(result.toolId)
 }
 
 function handleSearchKeydown(event){
@@ -709,10 +709,10 @@ function importData(){
 }
 
 function rerenderActiveTool(){
-  const activeToolId = DailyKitRouter.getActiveToolId()
+  const activeToolId = LifeOSRouter.getActiveToolId()
 
   if(activeToolId){
-    DailyKitRouter.refreshActiveTool?.()
+    LifeOSRouter.refreshActiveTool?.()
   }
 }
 
@@ -855,29 +855,29 @@ function submitQuickAdd(){
   const value = String(input?.value || "").trim()
 
   if(!value){
-    DailyKitFeedback.error(t("quickAdd.empty", "Enter something first."))
+    LifeOSFeedback.error(t("quickAdd.empty", "Enter something first."))
     return
   }
 
-  const command = window.DailyKitCommands?.parse?.(value)
+  const command = window.LifeOSCommands?.parse?.(value)
 
   if(!command){
-    DailyKitFeedback.error(t("quickAdd.invalid", "Try a command like coffee 50 or borrow ram 200."))
+    LifeOSFeedback.error(t("quickAdd.invalid", "Try a command like coffee 50 or borrow ram 200."))
     return
   }
 
   closeQuickAdd()
-  window.DailyKitCommands.execute(command)
+  window.LifeOSCommands.execute(command)
 }
 
 function renderToolsPanel(){
   const container = document.getElementById("toolsPanelList")
 
-  if(!container || !window.DailyKitRouter){
+  if(!container || !window.LifeOSRouter){
     return
   }
 
-  const tools = DailyKitRouter.getToolRegistry()
+  const tools = LifeOSRouter.getToolRegistry()
 
   const toolButtons = tools.map((tool) => `
 <button type="button" class="tools-panel-item" onclick="openToolFromPanel('${tool.id}')">
@@ -904,11 +904,11 @@ ${toolButtons}
 function renderToolsPanel(){
   const container = document.getElementById("toolsPanelList")
 
-  if(!container || !window.DailyKitRouter){
+  if(!container || !window.LifeOSRouter){
     return
   }
 
-  const tools = DailyKitRouter.getToolRegistry()
+  const tools = LifeOSRouter.getToolRegistry()
 
   const toolButtons = tools.map((tool) => `
 <button type="button" class="tools-panel-item" onclick="openToolFromPanel('${tool.id}')">
@@ -955,7 +955,7 @@ function toggleToolsPanel(forceState){
 
 function openToolFromPanel(toolId){
   toggleToolsPanel(false)
-  DailyKitRouter.openTool(toolId)
+  LifeOSRouter.openTool(toolId)
 }
 
 function formatBackupAge(){
@@ -981,10 +981,10 @@ function renderDiagnostics(){
     return
   }
 
-  const backup = DailyKitStorage.exportBackup()
-  const errors = DailyKitStorage.getErrorLogs().slice().sort((left, right) => right.timestamp - left.timestamp).slice(0, 8)
-  const storageVersion = DailyKitStorage.getStorageVersion()
-  const namespace = window.DailyKitAuth?.getStorageNamespace?.() || "local"
+  const backup = LifeOSStorage.exportBackup()
+  const errors = LifeOSStorage.getErrorLogs().slice().sort((left, right) => right.timestamp - left.timestamp).slice(0, 8)
+  const storageVersion = LifeOSStorage.getStorageVersion()
+  const namespace = window.LifeOSAuth?.getStorageNamespace?.() || "local"
   const counts = [
     {label: t("tool.expenses", "Expenses"), value: backup.expenses.length},
     {label: t("tool.borrowed", "Borrowed Money"), value: backup.borrow.length},
@@ -1094,17 +1094,17 @@ function formatLearningLabel(value){
 function renderSettings(){
   const container = document.getElementById("settingsContainer")
 
-  if(!container || !window.DailyKitStorage){
+  if(!container || !window.LifeOSStorage){
     return
   }
 
-  const namespace = window.DailyKitAuth?.getStorageNamespace?.() || "local"
+  const namespace = window.LifeOSAuth?.getStorageNamespace?.() || "local"
   const currentLanguage = localStorage.getItem("language") || "en"
   const currentLanguageLabel = currentLanguage === "hi"
     ? t("language.hindi", "Hindi")
     : t("language.english", "English")
-  const categories = DailyKitStorage.getExpenseCategoriesList()
-  const memoryEntries = Object.entries(DailyKitStorage.getExpenseCategoryMemory())
+  const categories = LifeOSStorage.getExpenseCategoriesList()
+  const memoryEntries = Object.entries(LifeOSStorage.getExpenseCategoryMemory())
     .sort((left, right) => left[0].localeCompare(right[0]))
 
   container.innerHTML = `
@@ -1154,7 +1154,7 @@ function renderSettings(){
         <h3>${t("settings.categoriesTitle", "Learned expense categories")}</h3>
       </div>
     </div>
-    <p class="panel-copy">${t("settings.categoriesCopy", "DailyKit remembers the category you choose for an expense name so future quick adds stay smarter.")}</p>
+      <p class="panel-copy">${t("settings.categoriesCopy", "Life OS remembers the category you choose for an expense name so future quick adds stay smarter.")}</p>
     <div class="report-grid">
       <article class="report-tile">
         <span class="insight-label">${t("settings.categoriesKnown", "Known mappings")}</span>
@@ -1176,7 +1176,7 @@ function renderSettings(){
         <button type="button" class="secondary-btn" onclick="removeCategoryLearning(decodeURIComponent('${encodeURIComponent(name)}'))">${t("settings.removeMapping", "Remove")}</button>
       </article>
       `).join("")}
-    </div>` : `<div class="empty-state">${t("settings.categoriesEmpty", "No learned mappings yet. Add or edit expenses with categories and DailyKit will remember them here.")}</div>`}
+      </div>` : `<div class="empty-state">${t("settings.categoriesEmpty", "No learned mappings yet. Add or edit expenses with categories and Life OS will remember them here.")}</div>`}
     <div class="tool-form diagnostics-actions">
       <button type="button" class="secondary-btn" onclick="clearCategoryLearning()">${t("settings.clearLearning", "Clear learned categories")}</button>
     </div>
@@ -1202,14 +1202,14 @@ function renderSettings(){
 function openDiagnostics(){
   closeQuickAdd()
   toggleToolsPanel(false)
-  DailyKitRouter.showDiagnostics?.()
+  LifeOSRouter.showDiagnostics?.()
   renderDiagnostics()
 }
 
 function openSettings(){
   closeQuickAdd()
   toggleToolsPanel(false)
-  DailyKitRouter.showSettings?.()
+  LifeOSRouter.showSettings?.()
   renderSettings()
 }
 
@@ -1224,9 +1224,9 @@ function changeSettingsLanguage(language){
 }
 
 function removeCategoryLearning(name){
-  DailyKitStorage.removeExpenseCategoryMemory(name)
+  LifeOSStorage.removeExpenseCategoryMemory(name)
   renderSettings()
-  DailyKitFeedback.success(t("settings.mappingRemoved", "Learned category removed."))
+  LifeOSFeedback.success(t("settings.mappingRemoved", "Learned category removed."))
 }
 
 function clearCategoryLearning(){
@@ -1236,21 +1236,21 @@ function clearCategoryLearning(){
     return
   }
 
-  DailyKitStorage.clearExpenseCategoryMemory()
+  LifeOSStorage.clearExpenseCategoryMemory()
   renderSettings()
-  DailyKitFeedback.success(t("settings.learningCleared", "Learned categories cleared."))
+  LifeOSFeedback.success(t("settings.learningCleared", "Learned categories cleared."))
 }
 
 function validateWorkspaceData(){
-  DailyKitStorage.ensureReady()
+  LifeOSStorage.ensureReady()
   renderDiagnostics()
-  DailyKitFeedback.success(t("diagnostics.validated", "Workspace data checked successfully."))
+  LifeOSFeedback.success(t("diagnostics.validated", "Workspace data checked successfully."))
 }
 
 function clearDiagnosticsLogs(){
-  DailyKitStorage.clearErrorLogs()
+  LifeOSStorage.clearErrorLogs()
   renderDiagnostics()
-  DailyKitFeedback.success(t("diagnostics.cleared", "Local error logs cleared."))
+  LifeOSFeedback.success(t("diagnostics.cleared", "Local error logs cleared."))
 }
 
 function resetWorkspaceData(){
@@ -1261,12 +1261,12 @@ function resetWorkspaceData(){
   }
 
   localStorage.removeItem(LAST_EXPORT_KEY)
-  DailyKitStorage.resetWorkspaceData()
+  LifeOSStorage.resetWorkspaceData()
   renderDiagnostics()
   renderSettings()
-  DailyKitDashboard.refreshDashboard()
+  LifeOSDashboard.refreshDashboard()
   rerenderActiveTool()
-  DailyKitFeedback.success(t("diagnostics.resetDone", "Workspace reset completed."))
+  LifeOSFeedback.success(t("diagnostics.resetDone", "Workspace reset completed."))
 }
 
 function handleImportFileChange(event){
@@ -1278,7 +1278,7 @@ function handleImportFileChange(event){
 
   if(file.size > 2 * 1024 * 1024){
     event.target.value = ""
-    DailyKitFeedback.error(t("backup.fileTooLarge", "Backup file is too large. Keep imports under 2 MB."))
+    LifeOSFeedback.error(t("backup.fileTooLarge", "Backup file is too large. Keep imports under 2 MB."))
     return
   }
 
@@ -1290,14 +1290,14 @@ function handleImportFileChange(event){
       const data = text.trim().startsWith("{")
         ? JSON.parse(text)
         : parseCsvBackup(text)
-      DailyKitStorage.importBackup(data)
+      LifeOSStorage.importBackup(data)
       event.target.value = ""
-      DailyKitFeedback.success(t("backup.restored", "Backup restored successfully."))
-      DailyKitDashboard.refreshDashboard()
+      LifeOSFeedback.success(t("backup.restored", "Backup restored successfully."))
+      LifeOSDashboard.refreshDashboard()
       rerenderActiveTool()
     }catch(error){
       event.target.value = ""
-      DailyKitFeedback.error(t("backup.invalid", "Backup file is invalid. Use a DailyKit CSV backup or a legacy JSON backup."))
+      LifeOSFeedback.error(t("backup.invalid", "Backup file is invalid. Use a Life OS CSV backup or a legacy JSON backup."))
     }
   }
 
@@ -1400,7 +1400,7 @@ function initServiceWorker(){
 
 function logRuntimeError(payload){
   try{
-    DailyKitStorage?.addErrorLog?.({
+    LifeOSStorage?.addErrorLog?.({
       type: payload.type || "error",
       message: payload.message || "Unknown error",
       source: payload.source || payload.filename || "",
@@ -1408,7 +1408,7 @@ function logRuntimeError(payload){
       timestamp: Date.now()
     })
   }catch(error){
-    console.error("DailyKit failed to store runtime error", error)
+    console.error("Life OS failed to store runtime error", error)
   }
 }
 
@@ -1489,11 +1489,11 @@ function bindGlobalListeners(){
       stack: reason?.stack || String(reason || "")
     })
   })
-  window.addEventListener("dailykit:cloud-restored", () => {
-    DailyKitDashboard.refreshDashboard()
+window.addEventListener("lifeos:cloud-restored", () => {
+    LifeOSDashboard.refreshDashboard()
     rerenderActiveTool()
   })
-  window.DailyKitEvents?.on?.("storage:changed", () => {
+  window.LifeOSEvents?.on?.("storage:changed", () => {
     const searchInput = document.getElementById("globalSearch")
 
     if(searchInput?.value.trim()){
@@ -1513,22 +1513,22 @@ function bindGlobalListeners(){
 }
 
 async function bootSessionUi(){
-  DailyKitStorage?.ensureReady?.()
+  LifeOSStorage?.ensureReady?.()
   const savedLanguage = localStorage.getItem("language") || "en"
   await loadLanguage(savedLanguage)
-  await DailyKitRouter.loadTools()
+  await LifeOSRouter.loadTools()
   renderToolsPanel()
-  DailyKitDashboard.refreshDashboard()
-  DailyKitRouter.showHome()
-  DailyKitReminders?.start?.()
+  LifeOSDashboard.refreshDashboard()
+  LifeOSRouter.showHome()
+  LifeOSReminders?.start?.()
 }
 
 function resetForSignedOutState(){
   closeSearchResults()
-  DailyKitReminders?.stop?.()
+  LifeOSReminders?.stop?.()
   toggleToolsPanel(false)
   closeQuickAdd()
-  DailyKitRouter.syncNavState("home")
+  LifeOSRouter.syncNavState("home")
   const home = document.getElementById("screenHome")
   const toolArea = document.getElementById("toolArea")
   const diagnosticsArea = document.getElementById("diagnosticsArea")
@@ -1557,7 +1557,7 @@ function resetForSignedOutState(){
 }
 
 async function handleSessionChange(){
-  if(DailyKitAuth.hasSession()){
+  if(LifeOSAuth.hasSession()){
     await bootSessionUi()
     return
   }
@@ -1566,16 +1566,16 @@ async function handleSessionChange(){
 }
 
 async function initApp(){
-  await DailyKitAuth.init()
+  await LifeOSAuth.init()
   bindGlobalListeners()
 
-  if(DailyKitAuth.hasSession()){
+  if(LifeOSAuth.hasSession()){
     await bootSessionUi()
   }else{
     resetForSignedOutState()
   }
 
-  window.addEventListener("dailykit:session-changed", handleSessionChange)
+window.addEventListener("lifeos:session-changed", handleSessionChange)
 }
 
 window.addEventListener("DOMContentLoaded", initApp)
@@ -1588,7 +1588,7 @@ window.exportData = exportData
 window.importData = importData
 window.installApp = installApp
 window.rerenderActiveTool = rerenderActiveTool
-window.exportMonthlyReport = () => window.DailyKitReports?.downloadMonthlyReport()
+window.exportMonthlyReport = () => window.LifeOSReports?.downloadMonthlyReport()
 window.toggleToolsPanel = toggleToolsPanel
 window.openToolFromPanel = openToolFromPanel
 window.openQuickAdd = openQuickAdd
@@ -1613,4 +1613,4 @@ window.clearDiagnosticsLogs = clearDiagnosticsLogs
 window.resetWorkspaceData = resetWorkspaceData
 window.t = t
 window.applyLanguage = applyLanguage
-window.DAILYKIT_LAST_EXPORT_KEY = LAST_EXPORT_KEY
+window.LIFE_OS_LAST_EXPORT_KEY = LAST_EXPORT_KEY

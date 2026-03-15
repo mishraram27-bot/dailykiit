@@ -1,6 +1,6 @@
 ;(function(){
 const DEFAULT_EXPENSE_CATEGORIES = ["Transport", "Food", "Grocery", "Other"]
-const STORAGE_VERSION = 2
+const STORAGE_VERSION = 3
 const STORAGE_VERSION_KEY = "storageVersion"
 const ERROR_LOG_LIMIT = 25
 const CATEGORY_MEMORY_LIMIT = 120
@@ -348,11 +348,11 @@ function normalizeList(value, normalizer){
 }
 
 function getScopedKey(key, userId){
-  return `dailykit:${userId}:${key}`
+  return `lifeos:${userId}:${key}`
 }
 
 function resolveKey(key){
-  const userId = window.DailyKitAuth?.getStorageNamespace?.()
+  const userId = window.LifeOSAuth?.getStorageNamespace?.()
 
   if(!userId){
     return key
@@ -379,7 +379,7 @@ function read(key, fallback){
 
 function write(key, value){
   localStorage.setItem(resolveKey(key), JSON.stringify(value))
-  window.DailyKitEvents?.emit?.("storage:changed", {key, value})
+  window.LifeOSEvents?.emit?.("storage:changed", {key, value})
   return value
 }
 
@@ -963,7 +963,7 @@ const storage = {
 
     ensureStorageVersion()
     storage.validateAllData()
-    window.DailyKitEvents?.emit?.("storage:changed", {key: "workspace-reset"})
+    window.LifeOSEvents?.emit?.("storage:changed", {key: "workspace-reset"})
     return true
   },
   validateAllData(){
@@ -1026,5 +1026,5 @@ function ensureStorageVersion(){
 ensureStorageVersion()
 storage.validateAllData()
 
-window.DailyKitStorage = storage
+window.LifeOSStorage = storage
 })()

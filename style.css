@@ -31,7 +31,7 @@ display:none !important;
 
 body{
 margin:0;
-padding:0 0 104px;
+padding:0 0 calc(104px + env(safe-area-inset-bottom, 0px));
 font-family:"Trebuchet MS","Aptos","Segoe UI",sans-serif;
 color:var(--text);
 background:
@@ -159,7 +159,7 @@ outline:none;
 .quick-add-btn{
 position:fixed;
 right:18px;
-bottom:102px;
+bottom:calc(102px + env(safe-area-inset-bottom, 0px));
 z-index:11000;
 width:58px;
 height:58px;
@@ -312,7 +312,7 @@ font-size:14px;
 position:fixed;
 left:16px;
 right:16px;
-bottom:94px;
+bottom:calc(94px + env(safe-area-inset-bottom, 0px));
 z-index:12600;
 display:flex;
 align-items:center;
@@ -1269,10 +1269,10 @@ text-decoration:underline;
 position:fixed;
 left:12px;
 right:12px;
-bottom:12px;
+bottom:calc(12px + env(safe-area-inset-bottom, 0px));
 display:flex;
 gap:8px;
-padding:8px;
+padding:8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
 overflow-x:auto;
 background:rgba(255,255,255,0.88);
 border:1px solid rgba(255,255,255,0.82);
@@ -1648,7 +1648,7 @@ font-size:28px;
 .bottom-nav{
 left:8px;
 right:8px;
-bottom:8px;
+bottom:calc(8px + env(safe-area-inset-bottom, 0px));
 }
 
 .bottom-nav button{

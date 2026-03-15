@@ -1,4 +1,4 @@
-window.DailyKitFirebaseConfig = {
+window.LifeOSFirebaseConfig = {
   apiKey: "",
   authDomain: "",
   projectId: "",
@@ -7,4 +7,4 @@ window.DailyKitFirebaseConfig = {
   appId: ""
 }
 
-window.DailyKitFirebaseSdkVersion = "11.9.0"
+window.LifeOSFirebaseSdkVersion = "11.9.0"

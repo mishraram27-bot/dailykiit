@@ -47,12 +47,12 @@ function emit(eventName, payload){
     try{
       handler(payload)
     }catch(error){
-      console.error("DailyKit event handler failed", eventName, error)
+      console.error("Life OS event handler failed", eventName, error)
     }
   })
 }
 
-window.DailyKitEvents = {
+window.LifeOSEvents = {
   on,
   once,
   off,

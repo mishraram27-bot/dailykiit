@@ -18,7 +18,7 @@ function escapeTaskHtml(value){
 }
 
 function formatTaskDate(value){
-  const date = DailyKitStorage.parseDateKey(value)
+  const date = LifeOSStorage.parseDateKey(value)
 
   if(!date){
     return tr("common.unknownDate", "Unknown date")
@@ -43,7 +43,7 @@ function getTaskPriorityLabel(priority){
 
 function renderTool(){
   const area = document.getElementById("toolContainer")
-  const tasks = DailyKitStorage.getTasks()
+  const tasks = LifeOSStorage.getTasks()
   const openCount = tasks.filter((entry) => !entry.done).length
   const doneCount = tasks.filter((entry) => entry.done).length
 
@@ -133,7 +133,7 @@ function setTaskFormState(){
     return
   }
 
-  const entry = DailyKitStorage.getTasks().find((item) => item.id === taskState.editingId)
+  const entry = LifeOSStorage.getTasks().find((item) => item.id === taskState.editingId)
 
   if(!entry){
     taskState.editingId = null
@@ -158,7 +158,7 @@ function saveTaskEntry(){
   const priority = document.getElementById("taskPriorityInput")?.value || "medium"
 
   if(!title){
-    DailyKitFeedback.error(tr("messages.enterTaskFirst", "Enter a task title first."))
+    LifeOSFeedback.error(tr("messages.enterTaskFirst", "Enter a task title first."))
     return
   }
 
@@ -168,14 +168,14 @@ function saveTaskEntry(){
   }
 
   if(taskState.editingId){
-    DailyKitStorage.updateTask(taskState.editingId, payload)
-    DailyKitFeedback.success(tr("messages.taskUpdated", "Task updated."))
+    LifeOSStorage.updateTask(taskState.editingId, payload)
+    LifeOSFeedback.success(tr("messages.taskUpdated", "Task updated."))
   }else{
-    DailyKitStorage.addTask({
+    LifeOSStorage.addTask({
       ...payload,
       done: false
     })
-    DailyKitFeedback.success(tr("messages.taskAdded", "Task added."))
+    LifeOSFeedback.success(tr("messages.taskAdded", "Task added."))
   }
 
   taskState.editingId = null
@@ -223,9 +223,9 @@ function loadTasks(resetPage){
 
   const query = String(document.getElementById("taskSearchInput")?.value || "").trim().toLowerCase()
   const status = document.getElementById("taskStatusFilter")?.value || "all"
-  const data = DailyKitStorage.getTasks().slice().sort((left, right) => {
-    const leftDate = DailyKitStorage.parseDateKey(left.date)?.getTime() || 0
-    const rightDate = DailyKitStorage.parseDateKey(right.date)?.getTime() || 0
+  const data = LifeOSStorage.getTasks().slice().sort((left, right) => {
+    const leftDate = LifeOSStorage.parseDateKey(left.date)?.getTime() || 0
+    const rightDate = LifeOSStorage.parseDateKey(right.date)?.getTime() || 0
     return rightDate - leftDate
   })
   const filtered = data.filter((entry) => {
@@ -287,9 +287,9 @@ function loadTasks(resetPage){
 }
 
 function toggleTaskDone(id){
-  DailyKitStorage.toggleTaskCompletion(id)
+  LifeOSStorage.toggleTaskCompletion(id)
   loadTasks()
-  DailyKitFeedback.success(tr("messages.taskToggled", "Task updated."))
+  LifeOSFeedback.success(tr("messages.taskToggled", "Task updated."))
 }
 
 function editTask(id){
@@ -299,31 +299,31 @@ function editTask(id){
 }
 
 function deleteTask(id){
-  const entry = DailyKitStorage.getTasks().find((item) => item.id === id)
+  const entry = LifeOSStorage.getTasks().find((item) => item.id === id)
 
   if(!entry){
     return
   }
 
-  DailyKitStorage.removeTask(id)
+  LifeOSStorage.removeTask(id)
 
   if(taskState.editingId === id){
     cancelTaskEdit()
   }
 
   loadTasks()
-  DailyKitFeedback.show(tr("tasks.deleted", "Deleted task {value}.", {value: entry.title}), {
+  LifeOSFeedback.show(tr("tasks.deleted", "Deleted task {value}.", {value: entry.title}), {
     type: "info",
     actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
-      DailyKitStorage.addTask(entry)
+      LifeOSStorage.addTask(entry)
       renderTool()
-      DailyKitFeedback.success(tr("tasks.restored", "Task restored."))
+      LifeOSFeedback.success(tr("tasks.restored", "Task restored."))
     }
   })
 }
 
-window.registerDailyKitTool?.({
+window.registerLifeOSTool?.({
   id: "tasks",
   render: renderTool,
   refresh: renderTool

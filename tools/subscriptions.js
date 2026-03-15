@@ -42,8 +42,8 @@ function getNextDueLabel(billingDay){
 
 function renderTool(){
   const area = document.getElementById("toolContainer")
-  const total = DailyKitStorage.getSubscriptions().reduce((sum, item) => sum + item.amount, 0)
-  const reminderSettings = DailyKitStorage.getReminderSettings().subscriptions
+  const total = LifeOSStorage.getSubscriptions().reduce((sum, item) => sum + item.amount, 0)
+  const reminderSettings = LifeOSStorage.getReminderSettings().subscriptions
   const notificationStatus = "Notification" in window ? Notification.permission : "unsupported"
 
   area.innerHTML = `
@@ -146,7 +146,7 @@ function setSubscriptionFormState(){
     return
   }
 
-  const entry = DailyKitStorage.getSubscriptions().find((item) => item.id === subscriptionState.editingId)
+  const entry = LifeOSStorage.getSubscriptions().find((item) => item.id === subscriptionState.editingId)
 
   if(!entry){
     subscriptionState.editingId = null
@@ -173,28 +173,28 @@ function saveSubscriptionEntry(){
   const billingDay = Number(document.getElementById("subscriptionDay")?.value)
 
   if(!name){
-    DailyKitFeedback.error(tr("messages.enterSubscriptionName", "Enter a subscription name."))
+    LifeOSFeedback.error(tr("messages.enterSubscriptionName", "Enter a subscription name."))
     return
   }
 
   if(!Number.isFinite(amount) || amount <= 0){
-    DailyKitFeedback.error(tr("messages.validAmount", "Enter a valid amount."))
+    LifeOSFeedback.error(tr("messages.validAmount", "Enter a valid amount."))
     return
   }
 
   if(!Number.isInteger(billingDay) || billingDay < 1 || billingDay > 31){
-    DailyKitFeedback.error(tr("messages.billingDayRange", "Enter a billing day between 1 and 31."))
+    LifeOSFeedback.error(tr("messages.billingDayRange", "Enter a billing day between 1 and 31."))
     return
   }
 
   const payload = {name, amount, billingDay}
 
   if(subscriptionState.editingId){
-    DailyKitStorage.updateSubscription(subscriptionState.editingId, payload)
-    DailyKitFeedback.success(tr("messages.subscriptionUpdated", "Subscription updated."))
+    LifeOSStorage.updateSubscription(subscriptionState.editingId, payload)
+    LifeOSFeedback.success(tr("messages.subscriptionUpdated", "Subscription updated."))
   }else{
-    DailyKitStorage.addSubscription(payload)
-    DailyKitFeedback.success(tr("messages.subscriptionAdded", "Subscription added."))
+    LifeOSStorage.addSubscription(payload)
+    LifeOSFeedback.success(tr("messages.subscriptionAdded", "Subscription added."))
   }
 
   subscriptionState.editingId = null
@@ -202,7 +202,7 @@ function saveSubscriptionEntry(){
 }
 
 async function enableSubscriptionNotifications(){
-  await DailyKitReminders.requestPermission()
+  await LifeOSReminders.requestPermission()
   renderTool()
 }
 
@@ -211,24 +211,24 @@ function saveSubscriptionReminderSettings(){
   const leadDays = Number(document.getElementById("subscriptionLeadDays")?.value)
 
   if(!/^\d{2}:\d{2}$/.test(String(time || ""))){
-    DailyKitFeedback.error(tr("messages.validReminderTime", "Choose a valid reminder time."))
+    LifeOSFeedback.error(tr("messages.validReminderTime", "Choose a valid reminder time."))
     return
   }
 
   if(!Number.isInteger(leadDays) || leadDays < 0 || leadDays > 7){
-    DailyKitFeedback.error(tr("messages.leadDaysRange", "Lead days must be between 0 and 7."))
+    LifeOSFeedback.error(tr("messages.leadDaysRange", "Lead days must be between 0 and 7."))
     return
   }
 
-  DailyKitStorage.saveReminderSettings({
+  LifeOSStorage.saveReminderSettings({
     subscriptions: {
       enabled: true,
       time,
       leadDays
     }
   })
-  DailyKitReminders.runChecks()
-  DailyKitFeedback.success(tr("messages.subscriptionReminderSaved", "Subscription reminder saved."))
+  LifeOSReminders.runChecks()
+  LifeOSFeedback.success(tr("messages.subscriptionReminderSaved", "Subscription reminder saved."))
 }
 
 function renderSubscriptionPagination(totalItems){
@@ -272,7 +272,7 @@ function loadSubscriptions(resetPage){
     return
   }
 
-  const filtered = DailyKitStorage.getSubscriptions()
+  const filtered = LifeOSStorage.getSubscriptions()
     .filter((entry) => !query || entry.name.toLowerCase().includes(query))
     .sort((left, right) => {
       if(sortBy === "amount"){
@@ -339,26 +339,26 @@ function editSubscription(id){
 }
 
 function deleteSubscription(id){
-  const entry = DailyKitStorage.getSubscriptions().find((item) => item.id === id)
+  const entry = LifeOSStorage.getSubscriptions().find((item) => item.id === id)
 
   if(!entry){
     return
   }
 
-  DailyKitStorage.removeSubscription(id)
+  LifeOSStorage.removeSubscription(id)
   loadSubscriptions()
-  DailyKitFeedback.show(tr("subscriptions.deleted", "Deleted subscription {value}.", {value: entry.name}), {
+  LifeOSFeedback.show(tr("subscriptions.deleted", "Deleted subscription {value}.", {value: entry.name}), {
     type: "info",
     actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
-      DailyKitStorage.addSubscription(entry)
+      LifeOSStorage.addSubscription(entry)
       renderTool()
-      DailyKitFeedback.success(tr("subscriptions.restored", "Subscription restored."))
+      LifeOSFeedback.success(tr("subscriptions.restored", "Subscription restored."))
     }
   })
 }
 
-window.registerDailyKitTool?.({
+window.registerLifeOSTool?.({
   id: "subscriptions",
   render: renderTool,
   refresh: renderTool

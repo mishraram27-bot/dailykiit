@@ -123,97 +123,97 @@ function execute(command){
   }
 
   if(command.type === "expense"){
-    DailyKitStorage.addExpense({
+    LifeOSStorage.addExpense({
       name: command.name,
       amount: command.amount,
-      category: DailyKitStorage.inferExpenseCategory(command.name)
+      category: LifeOSStorage.inferExpenseCategory(command.name)
     })
-    DailyKitRouter.openTool("expenses")
-    DailyKitDashboard.refreshDashboard()
-    DailyKitFeedback.success(tr("messages.commandExpenseSaved", "Expense saved: {value}", {value: command.name}))
+    LifeOSRouter.openTool("expenses")
+    LifeOSDashboard.refreshDashboard()
+    LifeOSFeedback.success(tr("messages.commandExpenseSaved", "Expense saved: {value}", {value: command.name}))
     return true
   }
 
   if(command.type === "borrow"){
-    DailyKitStorage.addBorrow({
+    LifeOSStorage.addBorrow({
       person: command.person,
       amount: command.amount
     })
-    DailyKitRouter.openTool("borrowed")
-    DailyKitDashboard.refreshDashboard()
-    DailyKitFeedback.success(tr("messages.commandBorrowSaved", "Borrowed entry saved for {value}", {value: command.person}))
+    LifeOSRouter.openTool("borrowed")
+    LifeOSDashboard.refreshDashboard()
+    LifeOSFeedback.success(tr("messages.commandBorrowSaved", "Borrowed entry saved for {value}", {value: command.person}))
     return true
   }
 
   if(command.type === "grocery"){
-    DailyKitStorage.addGrocery({
+    LifeOSStorage.addGrocery({
       name: command.name
     })
-    DailyKitRouter.openTool("grocery")
-    DailyKitDashboard.refreshDashboard()
-    DailyKitFeedback.success(tr("messages.commandGrocerySaved", "Grocery item added: {value}", {value: command.name}))
+    LifeOSRouter.openTool("grocery")
+    LifeOSDashboard.refreshDashboard()
+    LifeOSFeedback.success(tr("messages.commandGrocerySaved", "Grocery item added: {value}", {value: command.name}))
     return true
   }
 
   if(command.type === "habit"){
-    DailyKitStorage.addHabit({
+    LifeOSStorage.addHabit({
       name: command.name,
       completions: []
     })
-    DailyKitRouter.openTool("habits")
-    DailyKitFeedback.success(tr("messages.commandHabitSaved", "Habit added: {value}", {value: command.name}))
+    LifeOSRouter.openTool("habits")
+    LifeOSFeedback.success(tr("messages.commandHabitSaved", "Habit added: {value}", {value: command.name}))
     return true
   }
 
   if(command.type === "note"){
-    DailyKitStorage.addNote({
+    LifeOSStorage.addNote({
       title: command.text.slice(0, 48),
       body: command.text
     })
-    DailyKitRouter.openTool("notes")
-    DailyKitFeedback.success(tr("messages.quickNoteSaved", "Quick note saved."))
+    LifeOSRouter.openTool("notes")
+    LifeOSFeedback.success(tr("messages.quickNoteSaved", "Quick note saved."))
     return true
   }
 
   if(command.type === "subscription"){
-    DailyKitStorage.addSubscription({
+    LifeOSStorage.addSubscription({
       name: command.name,
       amount: command.amount,
       billingDay: new Date().getDate()
     })
-    DailyKitRouter.openTool("subscriptions")
-    DailyKitFeedback.success(tr("messages.commandSubscriptionSaved", "Subscription added: {value}", {value: command.name}))
+    LifeOSRouter.openTool("subscriptions")
+    LifeOSFeedback.success(tr("messages.commandSubscriptionSaved", "Subscription added: {value}", {value: command.name}))
     return true
   }
 
   if(command.type === "task"){
-    DailyKitStorage.addTask({
+    LifeOSStorage.addTask({
       title: command.titleText,
       priority: "medium",
       done: false
     })
-    DailyKitRouter.openTool("tasks")
-    DailyKitDashboard.refreshDashboard()
-    DailyKitFeedback.success(tr("messages.commandTaskSaved", "Task added: {value}", {value: command.titleText}))
+    LifeOSRouter.openTool("tasks")
+    LifeOSDashboard.refreshDashboard()
+    LifeOSFeedback.success(tr("messages.commandTaskSaved", "Task added: {value}", {value: command.titleText}))
     return true
   }
 
   if(command.type === "journal"){
-    DailyKitStorage.addJournal({
+    LifeOSStorage.addJournal({
       title: command.text.slice(0, 48),
       body: command.text,
       mood: tr("journal.defaultMood", "Neutral")
     })
-    DailyKitRouter.openTool("journal")
-    DailyKitDashboard.refreshDashboard()
-    DailyKitFeedback.success(tr("messages.commandJournalSaved", "Journal entry saved."))
+    LifeOSRouter.openTool("journal")
+    LifeOSDashboard.refreshDashboard()
+    LifeOSFeedback.success(tr("messages.commandJournalSaved", "Journal entry saved."))
     return true
   }
 
   return false
 }
 
-window.DailyKitCommands = {
+window.LifeOSCommands = {
   parse,
   execute
 }

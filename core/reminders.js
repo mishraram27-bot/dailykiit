@@ -14,7 +14,7 @@ function getNow(){
 }
 
 function getTodayKey(){
-  return DailyKitStorage.todayKey()
+  return LifeOSStorage.todayKey()
 }
 
 function getMinutesFromTime(value){
@@ -38,16 +38,16 @@ function canNotify(){
 
 async function requestPermission(){
   if(!("Notification" in window)){
-    DailyKitFeedback.error(tr("reminders.unsupported", "Notifications are not supported in this browser."))
+    LifeOSFeedback.error(tr("reminders.unsupported", "Notifications are not supported in this browser."))
     return "unsupported"
   }
 
   const permission = await Notification.requestPermission()
 
   if(permission === "granted"){
-    DailyKitFeedback.success(tr("reminders.enabled", "Notifications enabled for DailyKit."))
+    LifeOSFeedback.success(tr("reminders.enabled", "Notifications enabled for Life OS."))
   }else{
-    DailyKitFeedback.error(tr("reminders.notGranted", "Notification permission was not granted."))
+    LifeOSFeedback.error(tr("reminders.notGranted", "Notification permission was not granted."))
   }
 
   return permission
@@ -66,7 +66,7 @@ async function showNotification(title, body){
         body,
         icon: "icons/icon-192.png",
         badge: "icons/icon-192.png",
-        tag: `dailykit-${title.toLowerCase().replace(/\s+/g, "-")}`
+        tag: `lifeos-${title.toLowerCase().replace(/\s+/g, "-")}`
       })
       return true
     }
@@ -79,24 +79,24 @@ async function showNotification(title, body){
 }
 
 function markSent(reminderKey){
-  const settings = DailyKitStorage.getReminderSettings()
+  const settings = LifeOSStorage.getReminderSettings()
   const sentLog = {...settings.sentLog}
   sentLog[reminderKey] = getTodayKey()
-  DailyKitStorage.saveReminderSettings({sentLog})
+  LifeOSStorage.saveReminderSettings({sentLog})
 }
 
 function wasSent(reminderKey){
-  return DailyKitStorage.getReminderSettings().sentLog[reminderKey] === getTodayKey()
+  return LifeOSStorage.getReminderSettings().sentLog[reminderKey] === getTodayKey()
 }
 
 function pruneSentLog(){
-  const settings = DailyKitStorage.getReminderSettings()
+  const settings = LifeOSStorage.getReminderSettings()
   const entries = Object.entries(settings.sentLog || {})
-  const today = DailyKitStorage.parseDateKey(getTodayKey())
+  const today = LifeOSStorage.parseDateKey(getTodayKey())
   const nextLog = {}
 
   entries.forEach(([key, value]) => {
-    const date = DailyKitStorage.parseDateKey(value)
+    const date = LifeOSStorage.parseDateKey(value)
 
     if(!date){
       return
@@ -110,12 +110,12 @@ function pruneSentLog(){
   })
 
   if(JSON.stringify(nextLog) !== JSON.stringify(settings.sentLog || {})){
-    DailyKitStorage.saveReminderSettings({sentLog: nextLog})
+    LifeOSStorage.saveReminderSettings({sentLog: nextLog})
   }
 }
 
 function getHabitReminderPayload(){
-  const reminderSettings = DailyKitStorage.getReminderSettings().habits
+  const reminderSettings = LifeOSStorage.getReminderSettings().habits
 
   if(!reminderSettings.enabled){
     return null
@@ -128,7 +128,7 @@ function getHabitReminderPayload(){
   }
 
   const todayKey = getTodayKey()
-  const pendingHabits = DailyKitStorage.getHabits().filter((entry) => !(entry.completions || []).includes(todayKey))
+  const pendingHabits = LifeOSStorage.getHabits().filter((entry) => !(entry.completions || []).includes(todayKey))
 
   if(!pendingHabits.length || wasSent(`habit-daily:${todayKey}`)){
     return null
@@ -136,7 +136,7 @@ function getHabitReminderPayload(){
 
   return {
     key: `habit-daily:${todayKey}`,
-    title: tr("reminders.habitTitle", "DailyKit habits reminder"),
+    title: tr("reminders.habitTitle", "Life OS habits reminder"),
     body: pendingHabits.length === 1
       ? tr("reminders.habitBodyOne", "You still have 1 habit pending today.")
       : tr("reminders.habitBodyMany", "You still have {count} habits pending today.", {count: pendingHabits.length})
@@ -159,7 +159,7 @@ function getSubscriptionDueDate(entry){
 }
 
 function getSubscriptionReminderPayload(){
-  const reminderSettings = DailyKitStorage.getReminderSettings().subscriptions
+  const reminderSettings = LifeOSStorage.getReminderSettings().subscriptions
 
   if(!reminderSettings.enabled){
     return null
@@ -171,8 +171,8 @@ function getSubscriptionReminderPayload(){
     return null
   }
 
-  const today = DailyKitStorage.parseDateKey(getTodayKey())
-  const dueEntries = DailyKitStorage.getSubscriptions().filter((entry) => {
+  const today = LifeOSStorage.parseDateKey(getTodayKey())
+  const dueEntries = LifeOSStorage.getSubscriptions().filter((entry) => {
     const dueDate = getSubscriptionDueDate(entry)
     const diffDays = Math.round((dueDate.getTime() - today.getTime()) / 86400000)
     return diffDays === reminderSettings.leadDays
@@ -186,7 +186,7 @@ function getSubscriptionReminderPayload(){
 
   return {
     entries: pendingEntries,
-    title: tr("reminders.subscriptionTitle", "DailyKit subscription reminder"),
+    title: tr("reminders.subscriptionTitle", "Life OS subscription reminder"),
     body: pendingEntries.length === 1
       ? tr("reminders.subscriptionBodyOne", "{name} is coming due soon.", {name: pendingEntries[0].name})
       : tr("reminders.subscriptionBodyMany", "{count} subscriptions need attention soon.", {count: pendingEntries.length})
@@ -197,12 +197,12 @@ async function sendReminder(title, body, fallbackMessage){
   const notified = await showNotification(title, body)
 
   if(!notified){
-    DailyKitFeedback.show(fallbackMessage || body, {type: "info", duration: 6000})
+    LifeOSFeedback.show(fallbackMessage || body, {type: "info", duration: 6000})
   }
 }
 
 async function runChecks(){
-  if(!window.DailyKitAuth?.hasSession?.()){
+  if(!window.LifeOSAuth?.hasSession?.()){
     return
   }
 
@@ -246,7 +246,7 @@ window.addEventListener("visibilitychange", () => {
 
 window.addEventListener("focus", runChecks)
 
-window.DailyKitReminders = {
+window.LifeOSReminders = {
   start,
   stop,
   runChecks,

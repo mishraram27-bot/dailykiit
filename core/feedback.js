@@ -68,7 +68,7 @@ function show(message, options = {}){
   hideTimer = window.setTimeout(hide, duration)
 }
 
-window.DailyKitFeedback = {
+window.LifeOSFeedback = {
   show,
   hide,
   success(message, options = {}){

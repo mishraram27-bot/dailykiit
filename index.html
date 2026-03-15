@@ -3,21 +3,23 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-<title>DailyKit</title>
+<title>Life OS</title>
 
+<meta name="application-name" content="Life OS">
+<meta name="description" content="Life OS is an offline-first personal life operating system for expenses, habits, notes, subscriptions, tasks, journal, and daily planning.">
 <meta name="theme-color" content="#2F6FED">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="DailyKit">
+<meta name="apple-mobile-web-app-title" content="Life OS">
 
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="icon" href="icons/favicon.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
 
 </head>
 
@@ -26,7 +28,7 @@
 <div id="authGate" class="auth-gate">
 <section class="auth-card">
 <p class="hero-kicker" data-i18n="auth.kicker">Your offline workspace</p>
-<h2 data-i18n="auth.title">Start DailyKit your way</h2>
+<h2 data-i18n="auth.title">Start Life OS your way</h2>
 <p class="auth-copy" data-i18n="auth.copy">
 Use a guest profile with a random user ID on this device and start tracking instantly.
 </p>
@@ -55,13 +57,13 @@ Use a guest profile with a random user ID on this device and start tracking inst
 <div class="hero-inner">
 
 <p class="hero-kicker" data-i18n="hero.kicker">Offline personal toolkit</p>
-<h1>DailyKit</h1>
+<h1>Life OS</h1>
 <p class="hero-copy" data-i18n="hero.copy">
 Track spending, groceries, and borrowed money in one clean dashboard that still works offline.
 </p>
 
 <div class="search-box">
-<input id="globalSearch" data-i18n-placeholder="search.placeholder" placeholder="Search DailyKit or try coffee 50" autocomplete="off">
+<input id="globalSearch" data-i18n-placeholder="search.placeholder" placeholder="Search Life OS or try coffee 50" autocomplete="off">
 <div id="searchResults"></div>
 </div>
 
@@ -196,8 +198,8 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <script src="app.js" defer></script>
 
 <footer class="disclaimer">
-<span class="app-version" data-i18n="app.version">DailyKit Version 9.8</span>
-<span data-i18n="footer.disclaimer">DailyKit is a personal data tracking tool. It does not provide financial, medical, or legal advice.</span>
+<span class="app-version" data-i18n="app.version">Life OS Version 10.0</span>
+<span data-i18n="footer.disclaimer">Life OS is a personal life operating system. It does not provide financial, medical, or legal advice.</span>
 <span class="footer-links">
 <a href="pages/privacy.html" data-i18n="footer.privacy">Privacy Policy</a>
 <a href="pages/terms.html" data-i18n="footer.terms">Terms &amp; Conditions</a>
@@ -264,7 +266,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 
 <div id="updateToast" class="update-toast" hidden>
 <div class="update-toast-copy">
-<strong data-i18n="update.title">A new DailyKit update is ready</strong>
+<strong data-i18n="update.title">A new Life OS update is ready</strong>
 <span data-i18n="update.copy">Refresh to switch to the latest version and keep your offline tools current.</span>
 </div>
 <div class="update-toast-actions">
@@ -279,27 +281,27 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <div class="panel-heading">
 <div>
 <p class="section-kicker" data-i18n="changelog.kicker">Release Notes</p>
-<h3 data-i18n="changelog.title">What's New in v9.8</h3>
+<h3 data-i18n="changelog.title">What's New in v10.0</h3>
 </div>
 <button type="button" class="secondary-btn" onclick="closeChangelog()" data-i18n="common.close">Close</button>
 </div>
 <div class="changelog-list">
 <article class="settings-learning-item">
 <div class="settings-learning-copy">
-<strong data-i18n="changelog.item1Title">Tasks for the day</strong>
-<span data-i18n="changelog.item1Copy">DailyKit now includes a simple today list so quick task capture and completion live in the same offline workspace.</span>
+<strong data-i18n="changelog.item1Title">Fresh Life OS workspace</strong>
+<span data-i18n="changelog.item1Copy">Version 10.0 completes the internal namespace reset, so storage, sessions, reports, and caches now align with the Life OS brand.</span>
 </div>
 </article>
 <article class="settings-learning-item">
 <div class="settings-learning-copy">
-<strong data-i18n="changelog.item2Title">Daily journal</strong>
-<span data-i18n="changelog.item2Copy">A new journal tool lets you store daily reflections, mood, and short notes without leaving DailyKit.</span>
+<strong data-i18n="changelog.item2Title">Cleaner platform baseline</strong>
+<span data-i18n="changelog.item2Copy">Backup markers, reminder tags, report exports, onboarding state, and service-worker caches now use the new Life OS naming.</span>
 </div>
 </article>
 <article class="settings-learning-item">
 <div class="settings-learning-copy">
-<strong data-i18n="changelog.item3Title">Deeper command and backup support</strong>
-<span data-i18n="changelog.item3Copy">Tasks and journal entries now work in global search, quick add, activity feed, diagnostics, and CSV backup/import.</span>
+<strong data-i18n="changelog.item3Title">Ready for the next product phase</strong>
+<span data-i18n="changelog.item3Copy">This release clears the old app internals so future Life OS updates can move faster without carrying tester-state baggage.</span>
 </div>
 </article>
 </div>
@@ -312,7 +314,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <div class="panel-heading">
 <div>
 <p class="section-kicker" data-i18n="installHelp.kicker">Install Help</p>
-<h3 data-i18n="installHelp.title">Install DailyKit on iPhone or iPad</h3>
+<h3 data-i18n="installHelp.title">Install Life OS on iPhone or iPad</h3>
 </div>
 <button type="button" class="secondary-btn" onclick="closeInstallHelp()" data-i18n="common.close">Close</button>
 </div>
@@ -320,7 +322,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <article class="settings-learning-item">
 <div class="settings-learning-copy">
 <strong data-i18n="installHelp.step1Title">1. Open in Safari</strong>
-<span data-i18n="installHelp.step1Copy">If you are using Chrome or another iPhone browser, open DailyKit in Safari first.</span>
+<span data-i18n="installHelp.step1Copy">If you are using Chrome or another iPhone browser, open Life OS in Safari first.</span>
 </div>
 </article>
 <article class="settings-learning-item">
@@ -332,7 +334,7 @@ Track spending, groceries, and borrowed money in one clean dashboard that still 
 <article class="settings-learning-item">
 <div class="settings-learning-copy">
 <strong data-i18n="installHelp.step3Title">3. Choose Add to Home Screen</strong>
-<span data-i18n="installHelp.step3Copy">After that, DailyKit can launch in standalone mode from your home screen.</span>
+<span data-i18n="installHelp.step3Copy">After that, Life OS can launch in standalone mode from your home screen.</span>
 </div>
 </article>
 </div>

@@ -1,23 +1,28 @@
 {
-"name": "DailyKit",
-"short_name": "DailyKit",
-  "description": "DailyKit Version 9.8 offline personal toolkit",
-"id": "/",
-"scope": "/",
-"display": "standalone",
-"start_url": "/",
-"theme_color": "#2F6FED",
-"background_color": "#ffffff",
-"icons":[
-{
-"src":"icons/icon-192.png",
-"sizes":"192x192",
-"type":"image/png"
-},
-{
-"src":"icons/icon-512.png",
-"sizes":"512x512",
-"type":"image/png"
-}
-]
+  "name": "Life OS",
+  "short_name": "Life OS",
+  "description": "Life OS Version 10.0 personal life operating system",
+  "lang": "en",
+  "dir": "ltr",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "start_url": "/",
+  "theme_color": "#2F6FED",
+  "background_color": "#F7F9FC",
+  "categories": ["productivity", "finance", "lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
 }

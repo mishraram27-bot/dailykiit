@@ -4,7 +4,7 @@ function formatCurrency(amount){
 }
 
 function getCurrentMonthDate(){
-  return DailyKitStorage.parseDateKey(DailyKitStorage.todayKey())
+  return LifeOSStorage.parseDateKey(LifeOSStorage.todayKey())
 }
 
 function isSameMonth(date, baseDate){
@@ -31,16 +31,16 @@ function escapeCsvValue(value){
 
 function getMonthlyReportData(){
   const today = getCurrentMonthDate()
-  const expenses = DailyKitStorage.getExpenses().filter((entry) => {
-    const date = DailyKitStorage.parseDateKey(entry.date)
+  const expenses = LifeOSStorage.getExpenses().filter((entry) => {
+    const date = LifeOSStorage.parseDateKey(entry.date)
     return date && isSameMonth(date, today)
   })
-  const borrow = DailyKitStorage.getBorrow().filter((entry) => {
-    const date = DailyKitStorage.parseDateKey(entry.date)
+  const borrow = LifeOSStorage.getBorrow().filter((entry) => {
+    const date = LifeOSStorage.parseDateKey(entry.date)
     return date && isSameMonth(date, today)
   })
-  const grocery = DailyKitStorage.getGrocery().filter((entry) => {
-    const date = DailyKitStorage.parseDateKey(entry.date)
+  const grocery = LifeOSStorage.getGrocery().filter((entry) => {
+    const date = LifeOSStorage.parseDateKey(entry.date)
     return date && isSameMonth(date, today)
   })
 
@@ -50,7 +50,7 @@ function getMonthlyReportData(){
   }, {})
   const totalExpense = expenses.reduce((sum, entry) => sum + entry.amount, 0)
   const totalBorrow = borrow.reduce((sum, entry) => sum + entry.amount, 0)
-  const budget = DailyKitStorage.getBudgetSettings().monthlyBudget
+  const budget = LifeOSStorage.getBudgetSettings().monthlyBudget
   const topCategory = Object.keys(categoryTotals).sort((left, right) => categoryTotals[right] - categoryTotals[left])[0] || "No data"
 
   return {
@@ -109,14 +109,14 @@ function downloadMonthlyReport(){
   const link = document.createElement("a")
 
   link.href = url
-  link.download = `dailykit-report-${report.monthLabel.replace(/\s+/g, "-").toLowerCase()}.csv`
+  link.download = `life-os-report-${report.monthLabel.replace(/\s+/g, "-").toLowerCase()}.csv`
   link.click()
 
   URL.revokeObjectURL(url)
-  window.DailyKitFeedback?.success("Monthly report downloaded.")
+  window.LifeOSFeedback?.success("Monthly report downloaded.")
 }
 
-window.DailyKitReports = {
+window.LifeOSReports = {
   getMonthlyReportData,
   buildMonthlyReportCsv,
   downloadMonthlyReport,

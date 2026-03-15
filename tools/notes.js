@@ -18,7 +18,7 @@ function escapeNoteHtml(value){
 }
 
 function formatNoteDate(value){
-  const date = DailyKitStorage.parseDateKey(value)
+  const date = LifeOSStorage.parseDateKey(value)
 
   if(!date){
     return tr("common.unknownDate", "Unknown date")
@@ -108,7 +108,7 @@ function setNoteFormState(){
     return
   }
 
-  const entry = DailyKitStorage.getNotes().find((item) => item.id === notesState.editingId)
+  const entry = LifeOSStorage.getNotes().find((item) => item.id === notesState.editingId)
 
   if(!entry){
     notesState.editingId = null
@@ -135,7 +135,7 @@ function saveNoteEntry(){
   const body = bodyInput?.value.trim()
 
   if(!title && !body){
-    DailyKitFeedback.error(tr("messages.noteFirst", "Write a title or note body first."))
+    LifeOSFeedback.error(tr("messages.noteFirst", "Write a title or note body first."))
     return
   }
 
@@ -145,11 +145,11 @@ function saveNoteEntry(){
   }
 
   if(notesState.editingId){
-    DailyKitStorage.updateNote(notesState.editingId, payload)
-    DailyKitFeedback.success(tr("messages.noteUpdated", "Note updated."))
+    LifeOSStorage.updateNote(notesState.editingId, payload)
+    LifeOSFeedback.success(tr("messages.noteUpdated", "Note updated."))
   }else{
-    DailyKitStorage.addNote(payload)
-    DailyKitFeedback.success(tr("messages.noteSaved", "Note saved."))
+    LifeOSStorage.addNote(payload)
+    LifeOSFeedback.success(tr("messages.noteSaved", "Note saved."))
   }
 
   notesState.editingId = null
@@ -158,14 +158,14 @@ function saveNoteEntry(){
 }
 
 function matchesNoteDateFilter(entry, dateFilter, today){
-  const entryDate = DailyKitStorage.parseDateKey(entry.date)
+  const entryDate = LifeOSStorage.parseDateKey(entry.date)
 
   if(!entryDate){
     return false
   }
 
   if(dateFilter === "today"){
-    return entry.date === DailyKitStorage.todayKey()
+    return entry.date === LifeOSStorage.todayKey()
   }
 
   if(dateFilter === "week"){
@@ -213,16 +213,16 @@ function loadNotes(resetPage){
     notesState.currentPage = 1
   }
 
-  const data = DailyKitStorage.getNotes().slice().sort((left, right) => {
-    const leftDate = DailyKitStorage.parseDateKey(left.date)?.getTime() || 0
-    const rightDate = DailyKitStorage.parseDateKey(right.date)?.getTime() || 0
+  const data = LifeOSStorage.getNotes().slice().sort((left, right) => {
+    const leftDate = LifeOSStorage.parseDateKey(left.date)?.getTime() || 0
+    const rightDate = LifeOSStorage.parseDateKey(right.date)?.getTime() || 0
     return rightDate - leftDate
   })
   const list = document.getElementById("noteList")
   const meta = document.getElementById("noteMeta")
   const query = String(document.getElementById("noteSearchInput")?.value || "").trim().toLowerCase()
   const dateFilter = document.getElementById("noteDateFilter")?.value || "all"
-  const today = DailyKitStorage.parseDateKey(DailyKitStorage.todayKey())
+  const today = LifeOSStorage.parseDateKey(LifeOSStorage.todayKey())
 
   if(!list){
     return
@@ -286,31 +286,31 @@ function editNote(id){
 }
 
 function deleteNote(id){
-  const entry = DailyKitStorage.getNotes().find((item) => item.id === id)
+  const entry = LifeOSStorage.getNotes().find((item) => item.id === id)
 
   if(!entry){
     return
   }
 
-  DailyKitStorage.removeNote(id)
+  LifeOSStorage.removeNote(id)
 
   if(notesState.editingId === id){
     cancelNoteEdit()
   }
 
   loadNotes()
-  DailyKitFeedback.show(tr("notes.deleted", "Deleted note {value}.", {value: entry.title}), {
+  LifeOSFeedback.show(tr("notes.deleted", "Deleted note {value}.", {value: entry.title}), {
     type: "info",
     actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
-      DailyKitStorage.addNote(entry)
+      LifeOSStorage.addNote(entry)
       loadNotes()
-      DailyKitFeedback.success(tr("notes.restored", "Note restored."))
+      LifeOSFeedback.success(tr("notes.restored", "Note restored."))
     }
   })
 }
 
-window.registerDailyKitTool?.({
+window.registerLifeOSTool?.({
   id: "notes",
   render: renderTool,
   refresh: renderTool

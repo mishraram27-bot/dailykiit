@@ -15,14 +15,14 @@ function formatCurrency(amount){
 }
 
 function createFingerprint(tools){
-  const expenses = DailyKitStorage.getExpenses()
-  const borrow = DailyKitStorage.getBorrow()
-  const grocery = DailyKitStorage.getGrocery()
-  const habits = DailyKitStorage.getHabits()
-  const notes = DailyKitStorage.getNotes()
-  const tasks = DailyKitStorage.getTasks()
-  const journal = DailyKitStorage.getJournal()
-  const subscriptions = DailyKitStorage.getSubscriptions()
+  const expenses = LifeOSStorage.getExpenses()
+  const borrow = LifeOSStorage.getBorrow()
+  const grocery = LifeOSStorage.getGrocery()
+  const habits = LifeOSStorage.getHabits()
+  const notes = LifeOSStorage.getNotes()
+  const tasks = LifeOSStorage.getTasks()
+  const journal = LifeOSStorage.getJournal()
+  const subscriptions = LifeOSStorage.getSubscriptions()
 
   return JSON.stringify({
     expenses: expenses.map((entry) => [entry.id, entry.name, entry.amount, entry.date, entry.category]),
@@ -61,7 +61,7 @@ function buildIndex(tools){
 
   const items = []
 
-  DailyKitStorage.getExpenses().forEach((expense) => {
+  LifeOSStorage.getExpenses().forEach((expense) => {
     items.push({
       type: "expense",
       toolId: "expenses",
@@ -74,7 +74,7 @@ function buildIndex(tools){
     })
   })
 
-  DailyKitStorage.getGrocery().forEach((item) => {
+  LifeOSStorage.getGrocery().forEach((item) => {
     items.push({
       type: "grocery",
       toolId: "grocery",
@@ -84,7 +84,7 @@ function buildIndex(tools){
     })
   })
 
-  DailyKitStorage.getBorrow().forEach((entry) => {
+  LifeOSStorage.getBorrow().forEach((entry) => {
     items.push({
       type: "borrow",
       toolId: "borrowed",
@@ -97,7 +97,7 @@ function buildIndex(tools){
     })
   })
 
-  DailyKitStorage.getHabits().forEach((entry) => {
+  LifeOSStorage.getHabits().forEach((entry) => {
     items.push({
       type: "habit",
       toolId: "habits",
@@ -107,7 +107,7 @@ function buildIndex(tools){
     })
   })
 
-  DailyKitStorage.getNotes().forEach((entry) => {
+  LifeOSStorage.getNotes().forEach((entry) => {
     items.push({
       type: "note",
       toolId: "notes",
@@ -117,7 +117,7 @@ function buildIndex(tools){
     })
   })
 
-  DailyKitStorage.getTasks().forEach((entry) => {
+  LifeOSStorage.getTasks().forEach((entry) => {
     items.push({
       type: "task",
       toolId: "tasks",
@@ -127,7 +127,7 @@ function buildIndex(tools){
     })
   })
 
-  DailyKitStorage.getJournal().forEach((entry) => {
+  LifeOSStorage.getJournal().forEach((entry) => {
     items.push({
       type: "journal",
       toolId: "journal",
@@ -137,7 +137,7 @@ function buildIndex(tools){
     })
   })
 
-  DailyKitStorage.getSubscriptions().forEach((entry) => {
+  LifeOSStorage.getSubscriptions().forEach((entry) => {
     items.push({
       type: "subscription",
       toolId: "subscriptions",
@@ -174,7 +174,7 @@ function buildResults(query, tools){
   }
 
   const results = []
-  const command = window.DailyKitCommands?.parse(rawValue)
+  const command = window.LifeOSCommands?.parse(rawValue)
 
   if(command){
     results.push({
@@ -182,7 +182,7 @@ function buildResults(query, tools){
       toolId: getCommandToolId(command),
       title: command.title,
       subtitle: command.subtitle,
-      action: () => window.DailyKitCommands.execute(command)
+      action: () => window.LifeOSCommands.execute(command)
     })
   }
 
@@ -193,7 +193,7 @@ function buildResults(query, tools){
   return results.concat(indexedResults).slice(0, 8)
 }
 
-window.DailyKitSearch = {
+window.LifeOSSearch = {
   buildResults,
   buildIndex
 }

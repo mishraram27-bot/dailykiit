@@ -72,7 +72,7 @@ function hideScreen(element){
 }
 
 function resetToolGlobals(){
-  window.DailyKitTool = undefined
+  window.LifeOSTool = undefined
   window.renderTool = undefined
 }
 
@@ -81,8 +81,8 @@ function destroyActiveTool(){
     try{
       activeToolApi.destroy()
     }catch(error){
-      console.error("DailyKit tool destroy failed", error)
-      window.DailyKitStorage?.addErrorLog?.({
+      console.error("Life OS tool destroy failed", error)
+      window.LifeOSStorage?.addErrorLog?.({
         type: "tool-destroy",
         message: error?.message || "Tool destroy failed",
         source: activeToolId || "unknown-tool",
@@ -92,7 +92,7 @@ function destroyActiveTool(){
   }
 
   if(activeToolId){
-    window.DailyKitEvents?.emit?.("tool:destroyed", {toolId: activeToolId})
+    window.LifeOSEvents?.emit?.("tool:destroyed", {toolId: activeToolId})
   }
 
   activeToolApi = null
@@ -101,13 +101,13 @@ function destroyActiveTool(){
 }
 
 function resolveToolApi(toolId){
-  if(window.DailyKitTool && typeof window.DailyKitTool.render === "function"){
+  if(window.LifeOSTool && typeof window.LifeOSTool.render === "function"){
     return {
-      id: window.DailyKitTool.id || toolId,
-      init: typeof window.DailyKitTool.init === "function" ? window.DailyKitTool.init : () => {},
-      render: window.DailyKitTool.render,
-      refresh: typeof window.DailyKitTool.refresh === "function" ? window.DailyKitTool.refresh : window.DailyKitTool.render,
-      destroy: typeof window.DailyKitTool.destroy === "function" ? window.DailyKitTool.destroy : () => {}
+      id: window.LifeOSTool.id || toolId,
+      init: typeof window.LifeOSTool.init === "function" ? window.LifeOSTool.init : () => {},
+      render: window.LifeOSTool.render,
+      refresh: typeof window.LifeOSTool.refresh === "function" ? window.LifeOSTool.refresh : window.LifeOSTool.render,
+      destroy: typeof window.LifeOSTool.destroy === "function" ? window.LifeOSTool.destroy : () => {}
     }
   }
 
@@ -138,8 +138,8 @@ function refreshActiveTool(){
   try{
     refresh()
   }catch(error){
-    console.error("DailyKit tool refresh failed", error)
-    window.DailyKitStorage?.addErrorLog?.({
+    console.error("Life OS tool refresh failed", error)
+    window.LifeOSStorage?.addErrorLog?.({
       type: "tool-refresh",
       message: error?.message || "Tool refresh failed",
       source: activeToolId || "unknown-tool",
@@ -225,8 +225,8 @@ async function openTool(toolId){
     activeToolApi = resolveToolApi(toolId)
 
     if(!activeToolApi){
-      console.error("DailyKit tool did not register correctly", toolId)
-      window.DailyKitStorage?.addErrorLog?.({
+      console.error("Life OS tool did not register correctly", toolId)
+      window.LifeOSStorage?.addErrorLog?.({
         type: "tool-load",
         message: `Tool failed to register: ${toolId}`,
         source: tool.script
@@ -237,10 +237,10 @@ async function openTool(toolId){
     try{
       activeToolApi.init?.()
       activeToolApi.render?.()
-      window.DailyKitEvents?.emit?.("tool:opened", {toolId, tool})
+      window.LifeOSEvents?.emit?.("tool:opened", {toolId, tool})
     }catch(error){
-      console.error("DailyKit tool render failed", error)
-      window.DailyKitStorage?.addErrorLog?.({
+      console.error("Life OS tool render failed", error)
+      window.LifeOSStorage?.addErrorLog?.({
         type: "tool-render",
         message: error?.message || "Tool render failed",
         source: tool.script,
@@ -313,7 +313,7 @@ async function loadTools(){
   })
 }
 
-window.DailyKitRouter = {
+window.LifeOSRouter = {
   ensureToolRegistry,
   getToolRegistry,
   getActiveToolId,
@@ -329,8 +329,8 @@ window.DailyKitRouter = {
   syncNavState
 }
 
-window.registerDailyKitTool = (toolDefinition) => {
-  window.DailyKitTool = toolDefinition
+window.registerLifeOSTool = (toolDefinition) => {
+  window.LifeOSTool = toolDefinition
   return toolDefinition
 }
 

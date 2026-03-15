@@ -18,7 +18,7 @@ function escapeJournalHtml(value){
 }
 
 function formatJournalDate(value){
-  const date = DailyKitStorage.parseDateKey(value)
+  const date = LifeOSStorage.parseDateKey(value)
 
   if(!date){
     return tr("common.unknownDate", "Unknown date")
@@ -117,7 +117,7 @@ function setJournalFormState(){
     return
   }
 
-  const entry = DailyKitStorage.getJournal().find((item) => item.id === journalState.editingId)
+  const entry = LifeOSStorage.getJournal().find((item) => item.id === journalState.editingId)
 
   if(!entry){
     journalState.editingId = null
@@ -144,7 +144,7 @@ function saveJournalEntry(){
   const body = document.getElementById("journalBodyInput")?.value.trim()
 
   if(!title && !body){
-    DailyKitFeedback.error(tr("messages.journalFirst", "Write a title or reflection first."))
+    LifeOSFeedback.error(tr("messages.journalFirst", "Write a title or reflection first."))
     return
   }
 
@@ -155,11 +155,11 @@ function saveJournalEntry(){
   }
 
   if(journalState.editingId){
-    DailyKitStorage.updateJournal(journalState.editingId, payload)
-    DailyKitFeedback.success(tr("messages.journalUpdated", "Journal entry updated."))
+    LifeOSStorage.updateJournal(journalState.editingId, payload)
+    LifeOSFeedback.success(tr("messages.journalUpdated", "Journal entry updated."))
   }else{
-    DailyKitStorage.addJournal(payload)
-    DailyKitFeedback.success(tr("messages.journalSaved", "Journal entry saved."))
+    LifeOSStorage.addJournal(payload)
+    LifeOSFeedback.success(tr("messages.journalSaved", "Journal entry saved."))
   }
 
   journalState.editingId = null
@@ -167,14 +167,14 @@ function saveJournalEntry(){
 }
 
 function matchesJournalDateFilter(entry, dateFilter, today){
-  const entryDate = DailyKitStorage.parseDateKey(entry.date)
+  const entryDate = LifeOSStorage.parseDateKey(entry.date)
 
   if(!entryDate){
     return false
   }
 
   if(dateFilter === "today"){
-    return entry.date === DailyKitStorage.todayKey()
+    return entry.date === LifeOSStorage.todayKey()
   }
 
   if(dateFilter === "week"){
@@ -231,10 +231,10 @@ function loadJournal(resetPage){
 
   const query = String(document.getElementById("journalSearchInput")?.value || "").trim().toLowerCase()
   const dateFilter = document.getElementById("journalDateFilter")?.value || "all"
-  const today = DailyKitStorage.parseDateKey(DailyKitStorage.todayKey())
-  const data = DailyKitStorage.getJournal().slice().sort((left, right) => {
-    const leftDate = DailyKitStorage.parseDateKey(left.date)?.getTime() || 0
-    const rightDate = DailyKitStorage.parseDateKey(right.date)?.getTime() || 0
+  const today = LifeOSStorage.parseDateKey(LifeOSStorage.todayKey())
+  const data = LifeOSStorage.getJournal().slice().sort((left, right) => {
+    const leftDate = LifeOSStorage.parseDateKey(left.date)?.getTime() || 0
+    const rightDate = LifeOSStorage.parseDateKey(right.date)?.getTime() || 0
     return rightDate - leftDate
   })
   const filtered = data.filter((entry) => {
@@ -295,31 +295,31 @@ function editJournal(id){
 }
 
 function deleteJournal(id){
-  const entry = DailyKitStorage.getJournal().find((item) => item.id === id)
+  const entry = LifeOSStorage.getJournal().find((item) => item.id === id)
 
   if(!entry){
     return
   }
 
-  DailyKitStorage.removeJournal(id)
+  LifeOSStorage.removeJournal(id)
 
   if(journalState.editingId === id){
     cancelJournalEdit()
   }
 
   loadJournal()
-  DailyKitFeedback.show(tr("journal.deleted", "Deleted journal entry {value}.", {value: entry.title}), {
+  LifeOSFeedback.show(tr("journal.deleted", "Deleted journal entry {value}.", {value: entry.title}), {
     type: "info",
     actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
-      DailyKitStorage.addJournal(entry)
+      LifeOSStorage.addJournal(entry)
       renderTool()
-      DailyKitFeedback.success(tr("journal.restored", "Journal entry restored."))
+      LifeOSFeedback.success(tr("journal.restored", "Journal entry restored."))
     }
   })
 }
 
-window.registerDailyKitTool?.({
+window.registerLifeOSTool?.({
   id: "journal",
   render: renderTool,
   refresh: renderTool

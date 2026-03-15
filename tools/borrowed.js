@@ -22,7 +22,7 @@ function escapeBorrowHtml(value){
 }
 
 function formatBorrowDate(value){
-  const date = DailyKitStorage.parseDateKey(value)
+  const date = LifeOSStorage.parseDateKey(value)
 
   if(!date){
     return tr("common.unknownDate", "Unknown date")
@@ -108,7 +108,7 @@ function setBorrowFormState(){
     return
   }
 
-  const entry = DailyKitStorage.getBorrow().find((item) => item.id === borrowState.editingId)
+  const entry = LifeOSStorage.getBorrow().find((item) => item.id === borrowState.editingId)
 
   if(!entry){
     borrowState.editingId = null
@@ -135,21 +135,21 @@ function saveBorrowEntry(){
   const amount = Number(amountInput?.value)
 
   if(!person){
-    DailyKitFeedback.error(tr("messages.enterPersonFirst", "Enter a person name first."))
+    LifeOSFeedback.error(tr("messages.enterPersonFirst", "Enter a person name first."))
     return
   }
 
   if(!Number.isFinite(amount) || amount <= 0){
-    DailyKitFeedback.error(tr("messages.validAmount", "Enter a valid amount."))
+    LifeOSFeedback.error(tr("messages.validAmount", "Enter a valid amount."))
     return
   }
 
   if(borrowState.editingId){
-    DailyKitStorage.updateBorrow(borrowState.editingId, {person, amount})
-    DailyKitFeedback.success(tr("messages.borrowUpdated", "Borrowed entry updated."))
+    LifeOSStorage.updateBorrow(borrowState.editingId, {person, amount})
+    LifeOSFeedback.success(tr("messages.borrowUpdated", "Borrowed entry updated."))
   }else{
-    DailyKitStorage.addBorrow({person, amount})
-    DailyKitFeedback.success(tr("messages.borrowAdded", "Borrowed entry added."))
+    LifeOSStorage.addBorrow({person, amount})
+    LifeOSFeedback.success(tr("messages.borrowAdded", "Borrowed entry added."))
   }
 
   borrowState.editingId = null
@@ -159,14 +159,14 @@ function saveBorrowEntry(){
 }
 
 function matchesBorrowDateFilter(entry, dateFilter, today){
-  const entryDate = DailyKitStorage.parseDateKey(entry.date)
+  const entryDate = LifeOSStorage.parseDateKey(entry.date)
 
   if(!entryDate){
     return false
   }
 
   if(dateFilter === "today"){
-    return entry.date === DailyKitStorage.todayKey()
+    return entry.date === LifeOSStorage.todayKey()
   }
 
   if(dateFilter === "week"){
@@ -214,16 +214,16 @@ function loadBorrow(resetPage){
     borrowState.currentPage = 1
   }
 
-  const data = DailyKitStorage.getBorrow().slice().sort((left, right) => {
-    const leftDate = DailyKitStorage.parseDateKey(left.date)?.getTime() || 0
-    const rightDate = DailyKitStorage.parseDateKey(right.date)?.getTime() || 0
+  const data = LifeOSStorage.getBorrow().slice().sort((left, right) => {
+    const leftDate = LifeOSStorage.parseDateKey(left.date)?.getTime() || 0
+    const rightDate = LifeOSStorage.parseDateKey(right.date)?.getTime() || 0
     return rightDate - leftDate
   })
   const list = document.getElementById("borrowList")
   const meta = document.getElementById("borrowHistoryMeta")
   const query = String(document.getElementById("borrowSearchInput")?.value || "").trim().toLowerCase()
   const dateFilter = document.getElementById("borrowDateFilter")?.value || "all"
-  const today = DailyKitStorage.parseDateKey(DailyKitStorage.todayKey())
+  const today = LifeOSStorage.parseDateKey(LifeOSStorage.todayKey())
 
   if(!list){
     return
@@ -293,13 +293,13 @@ function editBorrow(id){
 }
 
 function deleteBorrow(id){
-  const entry = DailyKitStorage.getBorrow().find((item) => item.id === id)
+  const entry = LifeOSStorage.getBorrow().find((item) => item.id === id)
 
   if(!entry){
     return
   }
 
-  DailyKitStorage.removeBorrow(id)
+  LifeOSStorage.removeBorrow(id)
 
   if(borrowState.editingId === id){
     cancelBorrowEdit()
@@ -307,19 +307,19 @@ function deleteBorrow(id){
 
   loadBorrow()
   refreshDashboard()
-  DailyKitFeedback.show(tr("borrow.deleted", "Deleted {value}.", {value: entry.person}), {
+  LifeOSFeedback.show(tr("borrow.deleted", "Deleted {value}.", {value: entry.person}), {
     type: "info",
     actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
-      DailyKitStorage.addBorrow(entry)
+      LifeOSStorage.addBorrow(entry)
       loadBorrow()
       refreshDashboard()
-      DailyKitFeedback.success(tr("borrow.restored", "Borrowed entry restored."))
+      LifeOSFeedback.success(tr("borrow.restored", "Borrowed entry restored."))
     }
   })
 }
 
-window.registerDailyKitTool?.({
+window.registerLifeOSTool?.({
   id: "borrowed",
   render: renderTool,
   refresh: renderTool
