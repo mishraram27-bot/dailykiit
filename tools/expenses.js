@@ -22,7 +22,7 @@ function escapeExpenseHtml(value){
 }
 
 function formatExpenseDate(value){
-  const date = LifeOSStorage.parseDateKey(value)
+  const date = PlifeOSStorage.parseDateKey(value)
 
   if(!date){
     return tr("common.unknownDate", "Unknown date")
@@ -36,10 +36,10 @@ function formatExpenseDate(value){
 }
 
 function getMonthlyExpenseStats(){
-  const today = LifeOSStorage.parseDateKey(LifeOSStorage.todayKey())
-  const expenses = LifeOSStorage.getExpenses()
+  const today = PlifeOSStorage.parseDateKey(PlifeOSStorage.todayKey())
+  const expenses = PlifeOSStorage.getExpenses()
   const monthExpenses = expenses.filter((entry) => {
-    const entryDate = LifeOSStorage.parseDateKey(entry.date)
+    const entryDate = PlifeOSStorage.parseDateKey(entry.date)
     return entryDate &&
       entryDate.getMonth() === today.getMonth() &&
       entryDate.getFullYear() === today.getFullYear()
@@ -54,7 +54,7 @@ function getMonthlyExpenseStats(){
 
 function buildCategoryOptions(selectedValue, config = {}){
   const {includeAuto = false, includeAll = false} = config
-  const categories = LifeOSStorage.getExpenseCategoriesList()
+  const categories = PlifeOSStorage.getExpenseCategoriesList()
   const options = []
 
   if(includeAuto){
@@ -92,7 +92,7 @@ function syncExpenseSelects(){
 
 function renderTool(){
   const area = document.getElementById("toolContainer")
-  const budgetSettings = LifeOSStorage.getBudgetSettings()
+  const budgetSettings = PlifeOSStorage.getBudgetSettings()
   const monthlyStats = getMonthlyExpenseStats()
   const budgetLeft = budgetSettings.monthlyBudget ? budgetSettings.monthlyBudget - monthlyStats.total : null
 
@@ -189,7 +189,7 @@ function setExpenseFormState(){
     return
   }
 
-  const entry = LifeOSStorage.getExpenses().find((item) => item.id === expenseState.editingId)
+  const entry = PlifeOSStorage.getExpenses().find((item) => item.id === expenseState.editingId)
 
   if(!entry){
     expenseState.editingId = null
@@ -219,14 +219,14 @@ function addCustomCategory(){
   const value = input.value.trim()
 
   if(!value){
-    LifeOSFeedback.error(tr("messages.enterCategory", "Enter a category name first."))
+    PlifeOSFeedback.error(tr("messages.enterCategory", "Enter a category name first."))
     return
   }
 
-  LifeOSStorage.addExpenseCategory(value)
+  PlifeOSStorage.addExpenseCategory(value)
   input.value = ""
   syncExpenseSelects()
-  LifeOSFeedback.success(tr("messages.categoryAdded", "Category added: {value}", {value}))
+  PlifeOSFeedback.success(tr("messages.categoryAdded", "Category added: {value}", {value}))
 }
 
 function saveMonthlyBudget(){
@@ -239,14 +239,14 @@ function saveMonthlyBudget(){
   const value = Number(input.value)
 
   if(input.value && (!Number.isFinite(value) || value <= 0)){
-    LifeOSFeedback.error(tr("messages.validMonthlyBudget", "Enter a valid monthly budget."))
+    PlifeOSFeedback.error(tr("messages.validMonthlyBudget", "Enter a valid monthly budget."))
     return
   }
 
-  LifeOSStorage.saveBudgetSettings({monthlyBudget: Number.isFinite(value) && value > 0 ? value : null})
+  PlifeOSStorage.saveBudgetSettings({monthlyBudget: Number.isFinite(value) && value > 0 ? value : null})
   renderTool()
   refreshDashboard()
-  LifeOSFeedback.success(tr("messages.monthlyBudgetUpdated", "Monthly budget updated."))
+  PlifeOSFeedback.success(tr("messages.monthlyBudgetUpdated", "Monthly budget updated."))
 }
 
 function saveExpenseEntry(){
@@ -260,7 +260,7 @@ function saveExpenseEntry(){
   const input = inputElement.value.trim()
 
   if(!input){
-    LifeOSFeedback.error(tr("messages.enterExpenseExample", "Enter an expense like coffee 50."))
+    PlifeOSFeedback.error(tr("messages.enterExpenseExample", "Enter an expense like coffee 50."))
     return
   }
 
@@ -269,25 +269,25 @@ function saveExpenseEntry(){
   const name = parts.join(" ").trim()
 
   if(!name){
-    LifeOSFeedback.error(tr("messages.enterItemName", "Enter an item name."))
+    PlifeOSFeedback.error(tr("messages.enterItemName", "Enter an item name."))
     return
   }
 
   if(!Number.isFinite(amount) || amount <= 0){
-    LifeOSFeedback.error(tr("messages.validAmount", "Enter a valid amount."))
+    PlifeOSFeedback.error(tr("messages.validAmount", "Enter a valid amount."))
     return
   }
 
   const selectedCategory = categoryElement ? categoryElement.value.trim() : ""
-  const category = selectedCategory || LifeOSStorage.inferExpenseCategory(name)
-  LifeOSStorage.addExpenseCategory(category)
+  const category = selectedCategory || PlifeOSStorage.inferExpenseCategory(name)
+  PlifeOSStorage.addExpenseCategory(category)
 
   if(expenseState.editingId){
-    LifeOSStorage.updateExpense(expenseState.editingId, {name, amount, category})
-    LifeOSFeedback.success(tr("messages.expenseUpdated", "Expense updated."))
+    PlifeOSStorage.updateExpense(expenseState.editingId, {name, amount, category})
+    PlifeOSFeedback.success(tr("messages.expenseUpdated", "Expense updated."))
   }else{
-    LifeOSStorage.addExpense({name, amount, category})
-    LifeOSFeedback.success(tr("messages.expenseAdded", "Expense added."))
+    PlifeOSStorage.addExpense({name, amount, category})
+    PlifeOSFeedback.success(tr("messages.expenseAdded", "Expense added."))
   }
 
   expenseState.editingId = null
@@ -297,14 +297,14 @@ function saveExpenseEntry(){
 }
 
 function matchesExpenseDateFilter(entry, dateFilter, today){
-  const entryDate = LifeOSStorage.parseDateKey(entry.date)
+  const entryDate = PlifeOSStorage.parseDateKey(entry.date)
 
   if(!entryDate){
     return false
   }
 
   if(dateFilter === "today"){
-    return entry.date === LifeOSStorage.todayKey()
+    return entry.date === PlifeOSStorage.todayKey()
   }
 
   if(dateFilter === "week"){
@@ -352,9 +352,9 @@ function loadExpenses(resetPage){
     expenseState.currentPage = 1
   }
 
-  const data = LifeOSStorage.getExpenses().slice().sort((left, right) => {
-    const leftDate = LifeOSStorage.parseDateKey(left.date)?.getTime() || 0
-    const rightDate = LifeOSStorage.parseDateKey(right.date)?.getTime() || 0
+  const data = PlifeOSStorage.getExpenses().slice().sort((left, right) => {
+    const leftDate = PlifeOSStorage.parseDateKey(left.date)?.getTime() || 0
+    const rightDate = PlifeOSStorage.parseDateKey(right.date)?.getTime() || 0
     return rightDate - leftDate
   })
   const list = document.getElementById("expenseList")
@@ -370,7 +370,7 @@ function loadExpenses(resetPage){
   const query = String(searchInput?.value || "").trim().toLowerCase()
   const dateFilter = dateFilterInput?.value || "all"
   const categoryFilter = categoryFilterInput?.value || ""
-  const today = LifeOSStorage.parseDateKey(LifeOSStorage.todayKey())
+  const today = PlifeOSStorage.parseDateKey(PlifeOSStorage.todayKey())
 
   const filtered = data.filter((entry) => {
     const matchesQuery = !query || entry.name.toLowerCase().includes(query)
@@ -402,7 +402,7 @@ function loadExpenses(resetPage){
     list.innerHTML = `
 <div class="list-empty">
 <strong>${tr("expenses.emptyTitle", "No expenses yet.")}</strong>
-<span>${tr("expenses.emptyCopy", "Start with something simple like <b>coffee 50</b>. Life OS will auto-categorize it and add it to this week's chart.")}</span>
+<span>${tr("expenses.emptyCopy", "Start with something simple like <b>coffee 50</b>. PlifeOS will auto-categorize it and add it to this week's chart.")}</span>
 </div>
 `
     renderExpensePagination(0)
@@ -447,13 +447,13 @@ function editExpense(id){
 }
 
 function deleteExpense(id){
-  const entry = LifeOSStorage.getExpenses().find((item) => item.id === id)
+  const entry = PlifeOSStorage.getExpenses().find((item) => item.id === id)
 
   if(!entry){
     return
   }
 
-  LifeOSStorage.removeExpense(id)
+  PlifeOSStorage.removeExpense(id)
 
   if(expenseState.editingId === id){
     cancelExpenseEdit()
@@ -461,19 +461,19 @@ function deleteExpense(id){
 
   loadExpenses()
   refreshDashboard()
-  LifeOSFeedback.show(tr("messages.deletedItem", "Deleted {value}.", {value: entry.name}), {
+  PlifeOSFeedback.show(tr("messages.deletedItem", "Deleted {value}.", {value: entry.name}), {
     type: "info",
     actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
-      LifeOSStorage.addExpense(entry)
+      PlifeOSStorage.addExpense(entry)
       loadExpenses()
       refreshDashboard()
-      LifeOSFeedback.success(tr("messages.expenseRestored", "Expense restored."))
+      PlifeOSFeedback.success(tr("messages.expenseRestored", "Expense restored."))
     }
   })
 }
 
-window.registerLifeOSTool?.({
+window.registerPlifeOSTool?.({
   id: "expenses",
   render: renderTool,
   refresh: renderTool

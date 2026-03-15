@@ -15,14 +15,14 @@ function formatCurrency(amount){
 }
 
 function createFingerprint(tools){
-  const expenses = LifeOSStorage.getExpenses()
-  const borrow = LifeOSStorage.getBorrow()
-  const grocery = LifeOSStorage.getGrocery()
-  const habits = LifeOSStorage.getHabits()
-  const notes = LifeOSStorage.getNotes()
-  const tasks = LifeOSStorage.getTasks()
-  const journal = LifeOSStorage.getJournal()
-  const subscriptions = LifeOSStorage.getSubscriptions()
+  const expenses = PlifeOSStorage.getExpenses()
+  const borrow = PlifeOSStorage.getBorrow()
+  const grocery = PlifeOSStorage.getGrocery()
+  const habits = PlifeOSStorage.getHabits()
+  const notes = PlifeOSStorage.getNotes()
+  const tasks = PlifeOSStorage.getTasks()
+  const journal = PlifeOSStorage.getJournal()
+  const subscriptions = PlifeOSStorage.getSubscriptions()
 
   return JSON.stringify({
     expenses: expenses.map((entry) => [entry.id, entry.name, entry.amount, entry.date, entry.category]),
@@ -61,7 +61,7 @@ function buildIndex(tools){
 
   const items = []
 
-  LifeOSStorage.getExpenses().forEach((expense) => {
+  PlifeOSStorage.getExpenses().forEach((expense) => {
     items.push({
       type: "expense",
       toolId: "expenses",
@@ -74,7 +74,7 @@ function buildIndex(tools){
     })
   })
 
-  LifeOSStorage.getGrocery().forEach((item) => {
+  PlifeOSStorage.getGrocery().forEach((item) => {
     items.push({
       type: "grocery",
       toolId: "grocery",
@@ -84,7 +84,7 @@ function buildIndex(tools){
     })
   })
 
-  LifeOSStorage.getBorrow().forEach((entry) => {
+  PlifeOSStorage.getBorrow().forEach((entry) => {
     items.push({
       type: "borrow",
       toolId: "borrowed",
@@ -97,7 +97,7 @@ function buildIndex(tools){
     })
   })
 
-  LifeOSStorage.getHabits().forEach((entry) => {
+  PlifeOSStorage.getHabits().forEach((entry) => {
     items.push({
       type: "habit",
       toolId: "habits",
@@ -107,7 +107,7 @@ function buildIndex(tools){
     })
   })
 
-  LifeOSStorage.getNotes().forEach((entry) => {
+  PlifeOSStorage.getNotes().forEach((entry) => {
     items.push({
       type: "note",
       toolId: "notes",
@@ -117,7 +117,7 @@ function buildIndex(tools){
     })
   })
 
-  LifeOSStorage.getTasks().forEach((entry) => {
+  PlifeOSStorage.getTasks().forEach((entry) => {
     items.push({
       type: "task",
       toolId: "tasks",
@@ -127,7 +127,7 @@ function buildIndex(tools){
     })
   })
 
-  LifeOSStorage.getJournal().forEach((entry) => {
+  PlifeOSStorage.getJournal().forEach((entry) => {
     items.push({
       type: "journal",
       toolId: "journal",
@@ -137,7 +137,7 @@ function buildIndex(tools){
     })
   })
 
-  LifeOSStorage.getSubscriptions().forEach((entry) => {
+  PlifeOSStorage.getSubscriptions().forEach((entry) => {
     items.push({
       type: "subscription",
       toolId: "subscriptions",
@@ -174,7 +174,7 @@ function buildResults(query, tools){
   }
 
   const results = []
-  const command = window.LifeOSCommands?.parse(rawValue)
+  const command = window.PlifeOSCommands?.parse(rawValue)
 
   if(command){
     results.push({
@@ -182,7 +182,7 @@ function buildResults(query, tools){
       toolId: getCommandToolId(command),
       title: command.title,
       subtitle: command.subtitle,
-      action: () => window.LifeOSCommands.execute(command)
+      action: () => window.PlifeOSCommands.execute(command)
     })
   }
 
@@ -193,7 +193,7 @@ function buildResults(query, tools){
   return results.concat(indexedResults).slice(0, 8)
 }
 
-window.LifeOSSearch = {
+window.PlifeOSSearch = {
   buildResults,
   buildIndex
 }

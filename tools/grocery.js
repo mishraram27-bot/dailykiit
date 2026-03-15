@@ -18,7 +18,7 @@ function escapeGroceryHtml(value){
 }
 
 function formatGroceryDate(value){
-  const date = LifeOSStorage.parseDateKey(value)
+  const date = PlifeOSStorage.parseDateKey(value)
 
   if(!date){
     return tr("common.unknownDate", "Unknown date")
@@ -101,7 +101,7 @@ function setGroceryFormState(){
     return
   }
 
-  const entry = LifeOSStorage.getGrocery().find((item) => item.id === groceryState.editingId)
+  const entry = PlifeOSStorage.getGrocery().find((item) => item.id === groceryState.editingId)
 
   if(!entry){
     groceryState.editingId = null
@@ -130,16 +130,16 @@ function saveGroceryEntry(){
   const value = input.value.trim()
 
   if(!value){
-    LifeOSFeedback.error(tr("messages.enterGroceryFirst", "Enter a grocery item first."))
+    PlifeOSFeedback.error(tr("messages.enterGroceryFirst", "Enter a grocery item first."))
     return
   }
 
   if(groceryState.editingId){
-    LifeOSStorage.updateGrocery(groceryState.editingId, {name: value})
-    LifeOSFeedback.success(tr("messages.groceryUpdated", "Grocery item updated."))
+    PlifeOSStorage.updateGrocery(groceryState.editingId, {name: value})
+    PlifeOSFeedback.success(tr("messages.groceryUpdated", "Grocery item updated."))
   }else{
-    LifeOSStorage.addGrocery({name: value})
-    LifeOSFeedback.success(tr("messages.groceryAdded", "Grocery item added."))
+    PlifeOSStorage.addGrocery({name: value})
+    PlifeOSFeedback.success(tr("messages.groceryAdded", "Grocery item added."))
   }
 
   groceryState.editingId = null
@@ -149,14 +149,14 @@ function saveGroceryEntry(){
 }
 
 function matchesGroceryDateFilter(entry, dateFilter, today){
-  const entryDate = LifeOSStorage.parseDateKey(entry.date)
+  const entryDate = PlifeOSStorage.parseDateKey(entry.date)
 
   if(!entryDate){
     return false
   }
 
   if(dateFilter === "today"){
-    return entry.date === LifeOSStorage.todayKey()
+    return entry.date === PlifeOSStorage.todayKey()
   }
 
   if(dateFilter === "week"){
@@ -204,16 +204,16 @@ function loadGroceries(resetPage){
     groceryState.currentPage = 1
   }
 
-  const data = LifeOSStorage.getGrocery().slice().sort((left, right) => {
-    const leftDate = LifeOSStorage.parseDateKey(left.date)?.getTime() || 0
-    const rightDate = LifeOSStorage.parseDateKey(right.date)?.getTime() || 0
+  const data = PlifeOSStorage.getGrocery().slice().sort((left, right) => {
+    const leftDate = PlifeOSStorage.parseDateKey(left.date)?.getTime() || 0
+    const rightDate = PlifeOSStorage.parseDateKey(right.date)?.getTime() || 0
     return rightDate - leftDate
   })
   const list = document.getElementById("groceryList")
   const meta = document.getElementById("groceryHistoryMeta")
   const query = String(document.getElementById("grocerySearchInput")?.value || "").trim().toLowerCase()
   const dateFilter = document.getElementById("groceryDateFilter")?.value || "all"
-  const today = LifeOSStorage.parseDateKey(LifeOSStorage.todayKey())
+  const today = PlifeOSStorage.parseDateKey(PlifeOSStorage.todayKey())
 
   if(!list){
     return
@@ -238,7 +238,7 @@ function loadGroceries(resetPage){
   list.innerHTML = ""
 
   if(!data.length){
-    list.innerHTML = `<div class='list-empty'><strong>${tr("grocery.emptyTitle", "No grocery items yet.")}</strong><span>${tr("grocery.emptyCopy", "Add your first item above and Life OS will keep the archive ready.")}</span></div>`
+    list.innerHTML = `<div class='list-empty'><strong>${tr("grocery.emptyTitle", "No grocery items yet.")}</strong><span>${tr("grocery.emptyCopy", "Add your first item above and PlifeOS will keep the archive ready.")}</span></div>`
     renderGroceryPagination(0)
     setGroceryFormState()
     return
@@ -277,13 +277,13 @@ function editGrocery(id){
 }
 
 function removeGrocery(id){
-  const entry = LifeOSStorage.getGrocery().find((item) => item.id === id)
+  const entry = PlifeOSStorage.getGrocery().find((item) => item.id === id)
 
   if(!entry){
     return
   }
 
-  LifeOSStorage.removeGrocery(id)
+  PlifeOSStorage.removeGrocery(id)
 
   if(groceryState.editingId === id){
     cancelGroceryEdit()
@@ -291,19 +291,19 @@ function removeGrocery(id){
 
   loadGroceries()
   refreshDashboard()
-  LifeOSFeedback.show(tr("grocery.deleted", "Deleted {value}.", {value: entry.name}), {
+  PlifeOSFeedback.show(tr("grocery.deleted", "Deleted {value}.", {value: entry.name}), {
     type: "info",
     actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
-      LifeOSStorage.addGrocery(entry)
+      PlifeOSStorage.addGrocery(entry)
       loadGroceries()
       refreshDashboard()
-      LifeOSFeedback.success(tr("grocery.restored", "Grocery item restored."))
+      PlifeOSFeedback.success(tr("grocery.restored", "Grocery item restored."))
     }
   })
 }
 
-window.registerLifeOSTool?.({
+window.registerPlifeOSTool?.({
   id: "grocery",
   render: renderTool,
   refresh: renderTool

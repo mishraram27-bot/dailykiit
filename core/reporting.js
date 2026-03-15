@@ -4,7 +4,7 @@ function formatCurrency(amount){
 }
 
 function getCurrentMonthDate(){
-  return LifeOSStorage.parseDateKey(LifeOSStorage.todayKey())
+  return PlifeOSStorage.parseDateKey(PlifeOSStorage.todayKey())
 }
 
 function isSameMonth(date, baseDate){
@@ -31,16 +31,16 @@ function escapeCsvValue(value){
 
 function getMonthlyReportData(){
   const today = getCurrentMonthDate()
-  const expenses = LifeOSStorage.getExpenses().filter((entry) => {
-    const date = LifeOSStorage.parseDateKey(entry.date)
+  const expenses = PlifeOSStorage.getExpenses().filter((entry) => {
+    const date = PlifeOSStorage.parseDateKey(entry.date)
     return date && isSameMonth(date, today)
   })
-  const borrow = LifeOSStorage.getBorrow().filter((entry) => {
-    const date = LifeOSStorage.parseDateKey(entry.date)
+  const borrow = PlifeOSStorage.getBorrow().filter((entry) => {
+    const date = PlifeOSStorage.parseDateKey(entry.date)
     return date && isSameMonth(date, today)
   })
-  const grocery = LifeOSStorage.getGrocery().filter((entry) => {
-    const date = LifeOSStorage.parseDateKey(entry.date)
+  const grocery = PlifeOSStorage.getGrocery().filter((entry) => {
+    const date = PlifeOSStorage.parseDateKey(entry.date)
     return date && isSameMonth(date, today)
   })
 
@@ -50,7 +50,7 @@ function getMonthlyReportData(){
   }, {})
   const totalExpense = expenses.reduce((sum, entry) => sum + entry.amount, 0)
   const totalBorrow = borrow.reduce((sum, entry) => sum + entry.amount, 0)
-  const budget = LifeOSStorage.getBudgetSettings().monthlyBudget
+  const budget = PlifeOSStorage.getBudgetSettings().monthlyBudget
   const topCategory = Object.keys(categoryTotals).sort((left, right) => categoryTotals[right] - categoryTotals[left])[0] || "No data"
 
   return {
@@ -113,10 +113,10 @@ function downloadMonthlyReport(){
   link.click()
 
   URL.revokeObjectURL(url)
-  window.LifeOSFeedback?.success("Monthly report downloaded.")
+  window.PlifeOSFeedback?.success("Monthly report downloaded.")
 }
 
-window.LifeOSReports = {
+window.PlifeOSReports = {
   getMonthlyReportData,
   buildMonthlyReportCsv,
   downloadMonthlyReport,

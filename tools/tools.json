@@ -8,7 +8,7 @@
     "searchable": true,
     "commands": ["expense", "spend", "coffee 50"],
     "permissions": ["storage"],
-    "version": "10.0",
+    "version": "10.1",
     "description": "Capture spends fast"
   },
   {
@@ -20,7 +20,7 @@
     "searchable": true,
     "commands": ["borrow", "lend", "borrow ram 200"],
     "permissions": ["storage"],
-    "version": "10.0",
+    "version": "10.1",
     "description": "Track who owes what"
   },
   {
@@ -32,7 +32,7 @@
     "searchable": true,
     "commands": ["grocery", "buy", "grocery milk"],
     "permissions": ["storage"],
-    "version": "10.0",
+    "version": "10.1",
     "description": "Keep your list ready"
   },
   {
@@ -44,7 +44,7 @@
     "searchable": true,
     "commands": ["habit", "habit gym"],
     "permissions": ["storage", "notifications"],
-    "version": "10.0",
+    "version": "10.1",
     "description": "Stay consistent daily"
   },
   {
@@ -56,7 +56,7 @@
     "searchable": true,
     "commands": ["note", "note startup idea"],
     "permissions": ["storage"],
-    "version": "10.0",
+    "version": "10.1",
     "description": "Capture quick thoughts"
   },
   {
@@ -68,7 +68,7 @@
     "searchable": true,
     "commands": ["task", "todo", "task call bank"],
     "permissions": ["storage"],
-    "version": "10.0",
+    "version": "10.1",
     "description": "Keep today organized"
   },
   {
@@ -80,7 +80,7 @@
     "searchable": true,
     "commands": ["journal", "journal Today felt focused"],
     "permissions": ["storage"],
-    "version": "10.0",
+    "version": "10.1",
     "description": "Reflect on the day"
   },
   {
@@ -92,7 +92,7 @@
     "searchable": true,
     "commands": ["subscription", "sub netflix 499"],
     "permissions": ["storage", "notifications"],
-    "version": "10.0",
+    "version": "10.1",
     "description": "Watch recurring costs"
   }
 ]

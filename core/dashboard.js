@@ -2,7 +2,7 @@
 let expenseChartInstance = null
 let weeklyChartInstance = null
 
-const ONBOARDING_KEY = "lifeos:onboarding-dismissed"
+const ONBOARDING_KEY = "plifeos:onboarding-dismissed"
 
 function formatCurrency(amount){
   return `\u20B9${Number(amount) || 0}`
@@ -22,7 +22,7 @@ function escapeHtml(value){
 }
 
 function getTodayDate(){
-  return LifeOSStorage.parseDateKey(LifeOSStorage.todayKey())
+  return PlifeOSStorage.parseDateKey(PlifeOSStorage.todayKey())
 }
 
 function isSameMonth(date, baseDate){
@@ -37,14 +37,14 @@ function getStartOfWeek(date){
 
 function getExpenseCategories(expenses){
   return expenses.reduce((categories, entry) => {
-    const category = entry.category || LifeOSStorage.inferExpenseCategory(entry.name)
+    const category = entry.category || PlifeOSStorage.inferExpenseCategory(entry.name)
     categories[category] = (categories[category] || 0) + entry.amount
     return categories
   }, {})
 }
 
 function formatActivityDate(dateKey){
-  const date = LifeOSStorage.parseDateKey(dateKey)
+  const date = PlifeOSStorage.parseDateKey(dateKey)
 
   if(!date){
     return dateKey || ""
@@ -63,9 +63,9 @@ function renderOnboarding(){
     return
   }
 
-  const expenses = LifeOSStorage.getExpenses()
-  const borrow = LifeOSStorage.getBorrow()
-  const grocery = LifeOSStorage.getGrocery()
+  const expenses = PlifeOSStorage.getExpenses()
+  const borrow = PlifeOSStorage.getBorrow()
+  const grocery = PlifeOSStorage.getGrocery()
   const hasStarted = expenses.length || borrow.length || grocery.length
   const dismissed = localStorage.getItem(ONBOARDING_KEY) === "1"
 
@@ -80,7 +80,7 @@ function renderOnboarding(){
 <section class="onboarding-card">
 <div class="onboarding-copy">
 <p class="section-kicker">${tr("onboarding.kicker", "Start here")}</p>
-<h3>${tr("onboarding.title", "How to use Life OS in under a minute")}</h3>
+<h3>${tr("onboarding.title", "How to use PlifeOS in under a minute")}</h3>
 <p>${hasStarted ? tr("onboarding.started", "You already have data here. Use these shortcuts to keep the flow simple.") : tr("onboarding.empty", "Your dashboard is ready. Start with one quick action, then the app will build around your routine.")}</p>
 </div>
 <div class="onboarding-grid">
@@ -90,7 +90,7 @@ function renderOnboarding(){
 </article>
 <article class="onboarding-step">
 <strong>${tr("onboarding.step2Title", "2. Check the dashboard")}</strong>
-<span>${tr("onboarding.step2Copy", "Life OS updates totals, categories, and this week's spending automatically.")}</span>
+<span>${tr("onboarding.step2Copy", "PlifeOS updates totals, categories, and this week's spending automatically.")}</span>
 </article>
 <article class="onboarding-step">
 <strong>${tr("onboarding.step3Title", "3. Keep a backup")}</strong>
@@ -107,11 +107,11 @@ function renderOnboarding(){
 function renderReportSummary(){
   const host = document.getElementById("reportSummary")
 
-  if(!host || !window.LifeOSReports){
+  if(!host || !window.PlifeOSReports){
     return
   }
 
-  const report = LifeOSReports.getMonthlyReportData()
+  const report = PlifeOSReports.getMonthlyReportData()
 
   host.innerHTML = `
 <section class="report-panel">
@@ -146,49 +146,49 @@ function renderReportSummary(){
 
 function getActivityFeedItems(){
   const collections = [
-    ...LifeOSStorage.getExpenses().map((entry) => ({
+    ...PlifeOSStorage.getExpenses().map((entry) => ({
       id: `expense-${entry.id}`,
       type: tr("nav.expenses", "Expenses"),
       date: entry.date,
       title: entry.name,
       meta: formatCurrency(entry.amount)
     })),
-    ...LifeOSStorage.getBorrow().map((entry) => ({
+    ...PlifeOSStorage.getBorrow().map((entry) => ({
       id: `borrow-${entry.id}`,
       type: tr("nav.borrowed", "Borrowed"),
       date: entry.date,
       title: entry.person,
       meta: formatCurrency(entry.amount)
     })),
-    ...LifeOSStorage.getGrocery().map((entry) => ({
+    ...PlifeOSStorage.getGrocery().map((entry) => ({
       id: `grocery-${entry.id}`,
       type: tr("nav.grocery", "Grocery"),
       date: entry.date,
       title: entry.name,
       meta: tr("activity.itemAdded", "Added")
     })),
-    ...LifeOSStorage.getNotes().map((entry) => ({
+    ...PlifeOSStorage.getNotes().map((entry) => ({
       id: `note-${entry.id}`,
       type: tr("tool.notes", "Notes"),
       date: entry.date,
       title: entry.title,
       meta: tr("activity.noteSaved", "Saved")
     })),
-    ...LifeOSStorage.getTasks().map((entry) => ({
+    ...PlifeOSStorage.getTasks().map((entry) => ({
       id: `task-${entry.id}`,
       type: tr("tool.tasks", "Tasks"),
       date: entry.date,
       title: entry.title,
       meta: entry.done ? tr("activity.taskDone", "Done") : tr("activity.taskOpen", "Open")
     })),
-    ...LifeOSStorage.getJournal().map((entry) => ({
+    ...PlifeOSStorage.getJournal().map((entry) => ({
       id: `journal-${entry.id}`,
       type: tr("tool.journal", "Journal"),
       date: entry.date,
       title: entry.title,
       meta: entry.mood || tr("journal.defaultMood", "Neutral")
     })),
-    ...LifeOSStorage.getSubscriptions().map((entry) => ({
+    ...PlifeOSStorage.getSubscriptions().map((entry) => ({
       id: `subscription-${entry.id}`,
       type: tr("tool.subscriptions", "Subscriptions"),
       date: entry.date,
@@ -200,8 +200,8 @@ function getActivityFeedItems(){
   return collections
     .filter((item) => item.date)
     .sort((left, right) => {
-      const leftDate = LifeOSStorage.parseDateKey(left.date)?.getTime() || 0
-      const rightDate = LifeOSStorage.parseDateKey(right.date)?.getTime() || 0
+      const leftDate = PlifeOSStorage.parseDateKey(left.date)?.getTime() || 0
+      const rightDate = PlifeOSStorage.parseDateKey(right.date)?.getTime() || 0
       return rightDate - leftDate
     })
     .slice(0, 6)
@@ -214,15 +214,15 @@ function renderTrustSummary(){
     return
   }
 
-  const expenses = LifeOSStorage.getExpenses()
+  const expenses = PlifeOSStorage.getExpenses()
   const todayDate = getTodayDate()
   const monthlyTotal = expenses.filter((entry) => {
-    const date = LifeOSStorage.parseDateKey(entry.date)
+    const date = PlifeOSStorage.parseDateKey(entry.date)
     return date && isSameMonth(date, todayDate)
   }).reduce((sum, entry) => sum + entry.amount, 0)
-  const monthlyBudget = LifeOSStorage.getBudgetSettings().monthlyBudget
+  const monthlyBudget = PlifeOSStorage.getBudgetSettings().monthlyBudget
   const usage = monthlyBudget ? Math.round((monthlyTotal / monthlyBudget) * 100) : null
-  const lastExportRaw = localStorage.getItem("lifeos:last-export-at")
+  const lastExportRaw = localStorage.getItem("plifeos:last-export-at")
   const lastExport = lastExportRaw ? Number(lastExportRaw) : null
   const daysSinceBackup = lastExport ? Math.floor((Date.now() - lastExport) / 86400000) : null
   const needsBackup = lastExport == null || daysSinceBackup >= 7
@@ -315,7 +315,7 @@ function generateInsights(expenses){
 
   const todayDate = getTodayDate()
   const monthlyExpenses = expenses.filter((entry) => {
-    const entryDate = LifeOSStorage.parseDateKey(entry.date)
+    const entryDate = PlifeOSStorage.parseDateKey(entry.date)
     return entryDate && isSameMonth(entryDate, todayDate)
   })
   const baseSet = monthlyExpenses.length ? monthlyExpenses : expenses
@@ -325,7 +325,7 @@ function generateInsights(expenses){
     return categories[best] > categories[current] ? best : current
   })
   const dailyAverage = Math.round(total / Math.max(1, todayDate.getDate()))
-  const monthlyBudget = LifeOSStorage.getBudgetSettings().monthlyBudget
+  const monthlyBudget = PlifeOSStorage.getBudgetSettings().monthlyBudget
   const budgetRemaining = monthlyBudget ? monthlyBudget - total : null
 
   box.innerHTML = `
@@ -357,7 +357,7 @@ function renderExpenseChart(){
     return
   }
 
-  const expenses = LifeOSStorage.getExpenses()
+  const expenses = PlifeOSStorage.getExpenses()
 
   if(!expenses.length){
     if(expenseChartInstance){
@@ -393,9 +393,9 @@ function renderExpenseChart(){
 }
 
 function updateDashboardStats(){
-  const expenses = LifeOSStorage.getExpenses()
-  const borrow = LifeOSStorage.getBorrow()
-  const todayKey = LifeOSStorage.todayKey()
+  const expenses = PlifeOSStorage.getExpenses()
+  const borrow = PlifeOSStorage.getBorrow()
+  const todayKey = PlifeOSStorage.todayKey()
 
   const todayTotal = expenses.reduce((sum, entry) => {
     return entry.date === todayKey ? sum + entry.amount : sum
@@ -418,7 +418,7 @@ function renderWeeklyChart(){
   canvas.style.maxHeight = "220px"
   canvas.height = 220
 
-  const expenses = LifeOSStorage.getExpenses()
+  const expenses = PlifeOSStorage.getExpenses()
   const todayDate = getTodayDate()
   const startOfWeek = getStartOfWeek(todayDate)
   const endOfWeek = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + 7)
@@ -426,7 +426,7 @@ function renderWeeklyChart(){
   const totals = [0, 0, 0, 0, 0, 0, 0]
 
   expenses.forEach((entry) => {
-    const date = LifeOSStorage.parseDateKey(entry.date)
+    const date = PlifeOSStorage.parseDateKey(entry.date)
 
     if(!date){
       return
@@ -480,8 +480,8 @@ function renderWeeklySummary(){
   const todayDate = getTodayDate()
   const startOfWeek = getStartOfWeek(todayDate)
   const endOfWeek = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + 7)
-  const weeklyExpenses = LifeOSStorage.getExpenses().filter((entry) => {
-    const date = LifeOSStorage.parseDateKey(entry.date)
+  const weeklyExpenses = PlifeOSStorage.getExpenses().filter((entry) => {
+    const date = PlifeOSStorage.parseDateKey(entry.date)
     return date && date >= startOfWeek && date < endOfWeek
   })
   const weeklySpend = weeklyExpenses.reduce((sum, entry) => sum + entry.amount, 0)
@@ -489,14 +489,14 @@ function renderWeeklySummary(){
   const topCategory = Object.keys(weeklyCategories).length
     ? Object.keys(weeklyCategories).reduce((best, current) => weeklyCategories[best] > weeklyCategories[current] ? best : current)
     : tr("weekly.noCategory", "No category yet")
-  const habitCount = LifeOSStorage.getHabits().reduce((sum, entry) => {
+  const habitCount = PlifeOSStorage.getHabits().reduce((sum, entry) => {
     return sum + (entry.completions || []).filter((value) => {
-      const date = LifeOSStorage.parseDateKey(value)
+      const date = PlifeOSStorage.parseDateKey(value)
       return date && date >= startOfWeek && date < endOfWeek
     }).length
   }, 0)
-  const taskCount = LifeOSStorage.getTasks().filter((entry) => {
-    const date = LifeOSStorage.parseDateKey(entry.date)
+  const taskCount = PlifeOSStorage.getTasks().filter((entry) => {
+    const date = PlifeOSStorage.parseDateKey(entry.date)
     return entry.done && date && date >= startOfWeek && date < endOfWeek
   }).length
 
@@ -618,7 +618,7 @@ function refreshDashboard(){
   }
 }
 
-window.LifeOSDashboard = {
+window.PlifeOSDashboard = {
   refreshDashboard,
   renderExpenseChart,
   renderWeeklyChart,
@@ -631,7 +631,7 @@ window.LifeOSDashboard = {
   renderQuickActions
 }
 
-window.LifeOSEvents?.on?.("storage:changed", ({key}) => {
+window.PlifeOSEvents?.on?.("storage:changed", ({key}) => {
   if(["expenses", "borrow", "grocery", "habits", "notes", "tasks", "journal", "subscriptions", "settings"].includes(key)){
     refreshDashboard()
   }

@@ -72,7 +72,7 @@ function hideScreen(element){
 }
 
 function resetToolGlobals(){
-  window.LifeOSTool = undefined
+  window.PlifeOSTool = undefined
   window.renderTool = undefined
 }
 
@@ -81,8 +81,8 @@ function destroyActiveTool(){
     try{
       activeToolApi.destroy()
     }catch(error){
-      console.error("Life OS tool destroy failed", error)
-      window.LifeOSStorage?.addErrorLog?.({
+      console.error("PlifeOS tool destroy failed", error)
+      window.PlifeOSStorage?.addErrorLog?.({
         type: "tool-destroy",
         message: error?.message || "Tool destroy failed",
         source: activeToolId || "unknown-tool",
@@ -92,7 +92,7 @@ function destroyActiveTool(){
   }
 
   if(activeToolId){
-    window.LifeOSEvents?.emit?.("tool:destroyed", {toolId: activeToolId})
+    window.PlifeOSEvents?.emit?.("tool:destroyed", {toolId: activeToolId})
   }
 
   activeToolApi = null
@@ -101,13 +101,13 @@ function destroyActiveTool(){
 }
 
 function resolveToolApi(toolId){
-  if(window.LifeOSTool && typeof window.LifeOSTool.render === "function"){
+  if(window.PlifeOSTool && typeof window.PlifeOSTool.render === "function"){
     return {
-      id: window.LifeOSTool.id || toolId,
-      init: typeof window.LifeOSTool.init === "function" ? window.LifeOSTool.init : () => {},
-      render: window.LifeOSTool.render,
-      refresh: typeof window.LifeOSTool.refresh === "function" ? window.LifeOSTool.refresh : window.LifeOSTool.render,
-      destroy: typeof window.LifeOSTool.destroy === "function" ? window.LifeOSTool.destroy : () => {}
+      id: window.PlifeOSTool.id || toolId,
+      init: typeof window.PlifeOSTool.init === "function" ? window.PlifeOSTool.init : () => {},
+      render: window.PlifeOSTool.render,
+      refresh: typeof window.PlifeOSTool.refresh === "function" ? window.PlifeOSTool.refresh : window.PlifeOSTool.render,
+      destroy: typeof window.PlifeOSTool.destroy === "function" ? window.PlifeOSTool.destroy : () => {}
     }
   }
 
@@ -138,8 +138,8 @@ function refreshActiveTool(){
   try{
     refresh()
   }catch(error){
-    console.error("Life OS tool refresh failed", error)
-    window.LifeOSStorage?.addErrorLog?.({
+    console.error("PlifeOS tool refresh failed", error)
+    window.PlifeOSStorage?.addErrorLog?.({
       type: "tool-refresh",
       message: error?.message || "Tool refresh failed",
       source: activeToolId || "unknown-tool",
@@ -225,8 +225,8 @@ async function openTool(toolId){
     activeToolApi = resolveToolApi(toolId)
 
     if(!activeToolApi){
-      console.error("Life OS tool did not register correctly", toolId)
-      window.LifeOSStorage?.addErrorLog?.({
+      console.error("PlifeOS tool did not register correctly", toolId)
+      window.PlifeOSStorage?.addErrorLog?.({
         type: "tool-load",
         message: `Tool failed to register: ${toolId}`,
         source: tool.script
@@ -237,10 +237,10 @@ async function openTool(toolId){
     try{
       activeToolApi.init?.()
       activeToolApi.render?.()
-      window.LifeOSEvents?.emit?.("tool:opened", {toolId, tool})
+      window.PlifeOSEvents?.emit?.("tool:opened", {toolId, tool})
     }catch(error){
-      console.error("Life OS tool render failed", error)
-      window.LifeOSStorage?.addErrorLog?.({
+      console.error("PlifeOS tool render failed", error)
+      window.PlifeOSStorage?.addErrorLog?.({
         type: "tool-render",
         message: error?.message || "Tool render failed",
         source: tool.script,
@@ -313,7 +313,7 @@ async function loadTools(){
   })
 }
 
-window.LifeOSRouter = {
+window.PlifeOSRouter = {
   ensureToolRegistry,
   getToolRegistry,
   getActiveToolId,
@@ -329,8 +329,8 @@ window.LifeOSRouter = {
   syncNavState
 }
 
-window.registerLifeOSTool = (toolDefinition) => {
-  window.LifeOSTool = toolDefinition
+window.registerPlifeOSTool = (toolDefinition) => {
+  window.PlifeOSTool = toolDefinition
   return toolDefinition
 }
 

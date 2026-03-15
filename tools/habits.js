@@ -19,7 +19,7 @@ function escapeHabitHtml(value){
 
 function renderTool(){
   const area = document.getElementById("toolContainer")
-  const reminderSettings = LifeOSStorage.getReminderSettings().habits
+  const reminderSettings = PlifeOSStorage.getReminderSettings().habits
   const notificationStatus = "Notification" in window ? Notification.permission : "unsupported"
 
   area.innerHTML = `
@@ -103,7 +103,7 @@ function setHabitFormState(){
     return
   }
 
-  const entry = LifeOSStorage.getHabits().find((item) => item.id === habitState.editingId)
+  const entry = PlifeOSStorage.getHabits().find((item) => item.id === habitState.editingId)
 
   if(!entry){
     habitState.editingId = null
@@ -127,16 +127,16 @@ function saveHabitEntry(){
   const value = input?.value.trim()
 
   if(!value){
-    LifeOSFeedback.error(tr("messages.enterHabitFirst", "Enter a habit name first."))
+    PlifeOSFeedback.error(tr("messages.enterHabitFirst", "Enter a habit name first."))
     return
   }
 
   if(habitState.editingId){
-    LifeOSStorage.updateHabit(habitState.editingId, {name: value})
-    LifeOSFeedback.success(tr("messages.habitUpdated", "Habit updated."))
+    PlifeOSStorage.updateHabit(habitState.editingId, {name: value})
+    PlifeOSFeedback.success(tr("messages.habitUpdated", "Habit updated."))
   }else{
-    LifeOSStorage.addHabit({name: value, completions: []})
-    LifeOSFeedback.success(tr("messages.habitAdded", "Habit added."))
+    PlifeOSStorage.addHabit({name: value, completions: []})
+    PlifeOSFeedback.success(tr("messages.habitAdded", "Habit added."))
   }
 
   habitState.editingId = null
@@ -145,7 +145,7 @@ function saveHabitEntry(){
 }
 
 async function enableHabitNotifications(){
-  await LifeOSReminders.requestPermission()
+  await PlifeOSReminders.requestPermission()
   renderTool()
 }
 
@@ -153,18 +153,18 @@ function saveHabitReminderSettings(){
   const time = document.getElementById("habitReminderTime")?.value
 
   if(!/^\d{2}:\d{2}$/.test(String(time || ""))){
-    LifeOSFeedback.error(tr("messages.validReminderTime", "Choose a valid reminder time."))
+    PlifeOSFeedback.error(tr("messages.validReminderTime", "Choose a valid reminder time."))
     return
   }
 
-  LifeOSStorage.saveReminderSettings({
+  PlifeOSStorage.saveReminderSettings({
     habits: {
       enabled: true,
       time
     }
   })
-  LifeOSReminders.runChecks()
-  LifeOSFeedback.success(tr("messages.habitReminderSaved", "Habit reminder saved."))
+  PlifeOSReminders.runChecks()
+  PlifeOSFeedback.success(tr("messages.habitReminderSaved", "Habit reminder saved."))
 }
 
 function renderHabitPagination(totalItems){
@@ -199,12 +199,12 @@ function loadHabits(resetPage){
     habitState.currentPage = 1
   }
 
-  const data = LifeOSStorage.getHabits()
+  const data = PlifeOSStorage.getHabits()
   const list = document.getElementById("habitList")
   const meta = document.getElementById("habitMeta")
   const query = String(document.getElementById("habitSearchInput")?.value || "").trim().toLowerCase()
   const status = document.getElementById("habitStatusFilter")?.value || "all"
-  const today = LifeOSStorage.todayKey()
+  const today = PlifeOSStorage.todayKey()
 
   if(!list){
     return
@@ -267,9 +267,9 @@ function loadHabits(resetPage){
 }
 
 function toggleHabitToday(id){
-  LifeOSStorage.toggleHabitCompletion(id)
+  PlifeOSStorage.toggleHabitCompletion(id)
   loadHabits()
-  LifeOSFeedback.success(tr("messages.habitUpdatedToday", "Habit updated for today."))
+  PlifeOSFeedback.success(tr("messages.habitUpdatedToday", "Habit updated for today."))
 }
 
 function editHabit(id){
@@ -279,31 +279,31 @@ function editHabit(id){
 }
 
 function deleteHabit(id){
-  const entry = LifeOSStorage.getHabits().find((item) => item.id === id)
+  const entry = PlifeOSStorage.getHabits().find((item) => item.id === id)
 
   if(!entry){
     return
   }
 
-  LifeOSStorage.removeHabit(id)
+  PlifeOSStorage.removeHabit(id)
 
   if(habitState.editingId === id){
     cancelHabitEdit()
   }
 
   loadHabits()
-  LifeOSFeedback.show(tr("habits.deleted", "Deleted habit {value}.", {value: entry.name}), {
+  PlifeOSFeedback.show(tr("habits.deleted", "Deleted habit {value}.", {value: entry.name}), {
     type: "info",
     actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
-      LifeOSStorage.addHabit(entry)
+      PlifeOSStorage.addHabit(entry)
       loadHabits()
-      LifeOSFeedback.success(tr("habits.restored", "Habit restored."))
+      PlifeOSFeedback.success(tr("habits.restored", "Habit restored."))
     }
   })
 }
 
-window.registerLifeOSTool?.({
+window.registerPlifeOSTool?.({
   id: "habits",
   render: renderTool,
   refresh: renderTool

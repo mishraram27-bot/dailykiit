@@ -18,7 +18,7 @@ function escapeTaskHtml(value){
 }
 
 function formatTaskDate(value){
-  const date = LifeOSStorage.parseDateKey(value)
+  const date = PlifeOSStorage.parseDateKey(value)
 
   if(!date){
     return tr("common.unknownDate", "Unknown date")
@@ -43,7 +43,7 @@ function getTaskPriorityLabel(priority){
 
 function renderTool(){
   const area = document.getElementById("toolContainer")
-  const tasks = LifeOSStorage.getTasks()
+  const tasks = PlifeOSStorage.getTasks()
   const openCount = tasks.filter((entry) => !entry.done).length
   const doneCount = tasks.filter((entry) => entry.done).length
 
@@ -133,7 +133,7 @@ function setTaskFormState(){
     return
   }
 
-  const entry = LifeOSStorage.getTasks().find((item) => item.id === taskState.editingId)
+  const entry = PlifeOSStorage.getTasks().find((item) => item.id === taskState.editingId)
 
   if(!entry){
     taskState.editingId = null
@@ -158,7 +158,7 @@ function saveTaskEntry(){
   const priority = document.getElementById("taskPriorityInput")?.value || "medium"
 
   if(!title){
-    LifeOSFeedback.error(tr("messages.enterTaskFirst", "Enter a task title first."))
+    PlifeOSFeedback.error(tr("messages.enterTaskFirst", "Enter a task title first."))
     return
   }
 
@@ -168,14 +168,14 @@ function saveTaskEntry(){
   }
 
   if(taskState.editingId){
-    LifeOSStorage.updateTask(taskState.editingId, payload)
-    LifeOSFeedback.success(tr("messages.taskUpdated", "Task updated."))
+    PlifeOSStorage.updateTask(taskState.editingId, payload)
+    PlifeOSFeedback.success(tr("messages.taskUpdated", "Task updated."))
   }else{
-    LifeOSStorage.addTask({
+    PlifeOSStorage.addTask({
       ...payload,
       done: false
     })
-    LifeOSFeedback.success(tr("messages.taskAdded", "Task added."))
+    PlifeOSFeedback.success(tr("messages.taskAdded", "Task added."))
   }
 
   taskState.editingId = null
@@ -223,9 +223,9 @@ function loadTasks(resetPage){
 
   const query = String(document.getElementById("taskSearchInput")?.value || "").trim().toLowerCase()
   const status = document.getElementById("taskStatusFilter")?.value || "all"
-  const data = LifeOSStorage.getTasks().slice().sort((left, right) => {
-    const leftDate = LifeOSStorage.parseDateKey(left.date)?.getTime() || 0
-    const rightDate = LifeOSStorage.parseDateKey(right.date)?.getTime() || 0
+  const data = PlifeOSStorage.getTasks().slice().sort((left, right) => {
+    const leftDate = PlifeOSStorage.parseDateKey(left.date)?.getTime() || 0
+    const rightDate = PlifeOSStorage.parseDateKey(right.date)?.getTime() || 0
     return rightDate - leftDate
   })
   const filtered = data.filter((entry) => {
@@ -287,9 +287,9 @@ function loadTasks(resetPage){
 }
 
 function toggleTaskDone(id){
-  LifeOSStorage.toggleTaskCompletion(id)
+  PlifeOSStorage.toggleTaskCompletion(id)
   loadTasks()
-  LifeOSFeedback.success(tr("messages.taskToggled", "Task updated."))
+  PlifeOSFeedback.success(tr("messages.taskToggled", "Task updated."))
 }
 
 function editTask(id){
@@ -299,31 +299,31 @@ function editTask(id){
 }
 
 function deleteTask(id){
-  const entry = LifeOSStorage.getTasks().find((item) => item.id === id)
+  const entry = PlifeOSStorage.getTasks().find((item) => item.id === id)
 
   if(!entry){
     return
   }
 
-  LifeOSStorage.removeTask(id)
+  PlifeOSStorage.removeTask(id)
 
   if(taskState.editingId === id){
     cancelTaskEdit()
   }
 
   loadTasks()
-  LifeOSFeedback.show(tr("tasks.deleted", "Deleted task {value}.", {value: entry.title}), {
+  PlifeOSFeedback.show(tr("tasks.deleted", "Deleted task {value}.", {value: entry.title}), {
     type: "info",
     actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
-      LifeOSStorage.addTask(entry)
+      PlifeOSStorage.addTask(entry)
       renderTool()
-      LifeOSFeedback.success(tr("tasks.restored", "Task restored."))
+      PlifeOSFeedback.success(tr("tasks.restored", "Task restored."))
     }
   })
 }
 
-window.registerLifeOSTool?.({
+window.registerPlifeOSTool?.({
   id: "tasks",
   render: renderTool,
   refresh: renderTool

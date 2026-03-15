@@ -1,6 +1,6 @@
 ;(function(){
-const SESSION_KEY = "lifeos_session"
-const CLOUD_DOC_COLLECTION = "lifeosUsers"
+const SESSION_KEY = "plifeos_session"
+const CLOUD_DOC_COLLECTION = "plifeosUsers"
 
 let currentSession = null
 let firebaseState = {
@@ -12,7 +12,7 @@ let firebaseState = {
 }
 
 function getFirebaseConfig(){
-  const config = window.LifeOSFirebaseConfig || {}
+  const config = window.PlifeOSFirebaseConfig || {}
   return config
 }
 
@@ -57,7 +57,7 @@ function writeSession(session){
   }
 
   updateAuthUi()
-  window.dispatchEvent(new CustomEvent("lifeos:session-changed", {detail: session}))
+  window.dispatchEvent(new CustomEvent("plifeos:session-changed", {detail: session}))
 }
 
 function getSession(){
@@ -107,7 +107,7 @@ async function initFirebase(){
     return firebaseState
   }
 
-  const version = window.LifeOSFirebaseSdkVersion || "11.9.0"
+  const version = window.PlifeOSFirebaseSdkVersion || "11.9.0"
   const [appModule, authModule, firestoreModule] = await Promise.all([
     import(`https://www.gstatic.com/firebasejs/${version}/firebase-app.js`),
     import(`https://www.gstatic.com/firebasejs/${version}/firebase-auth.js`),
@@ -151,8 +151,8 @@ async function completeGoogleLogin(user){
     cloudEnabled: true
   }
 
-  if(previousSession?.userId && previousSession.userId !== nextSession.userId && window.LifeOSStorage){
-    LifeOSStorage.transferUserData(previousSession.userId, nextSession.userId)
+  if(previousSession?.userId && previousSession.userId !== nextSession.userId && window.PlifeOSStorage){
+    PlifeOSStorage.transferUserData(previousSession.userId, nextSession.userId)
   }
 
   writeSession(nextSession)
@@ -207,7 +207,7 @@ async function saveBackupToCloud(){
 
   const {firestoreModule} = firebaseState.modules
   const payload = {
-    backup: LifeOSStorage.exportBackup(),
+    backup: PlifeOSStorage.exportBackup(),
     updatedAt: firestoreModule.serverTimestamp(),
     profile: {
       displayName: currentSession.displayName,
@@ -242,8 +242,8 @@ async function restoreBackupFromCloud(){
   }
 
   const data = snapshot.data()
-  LifeOSStorage.importBackup(data.backup || {})
-  window.dispatchEvent(new CustomEvent("lifeos:cloud-restored"))
+  PlifeOSStorage.importBackup(data.backup || {})
+  window.dispatchEvent(new CustomEvent("plifeos:cloud-restored"))
   alert("Cloud backup restored.")
 }
 
@@ -290,7 +290,7 @@ function bindUi(){
   }
 }
 
-window.LifeOSAuth = {
+window.PlifeOSAuth = {
   init,
   hasSession,
   getSession,

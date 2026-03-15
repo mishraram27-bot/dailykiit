@@ -68,7 +68,7 @@ function show(message, options = {}){
   hideTimer = window.setTimeout(hide, duration)
 }
 
-window.LifeOSFeedback = {
+window.PlifeOSFeedback = {
   show,
   hide,
   success(message, options = {}){

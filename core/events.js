@@ -47,12 +47,12 @@ function emit(eventName, payload){
     try{
       handler(payload)
     }catch(error){
-      console.error("Life OS event handler failed", eventName, error)
+      console.error("PlifeOS event handler failed", eventName, error)
     }
   })
 }
 
-window.LifeOSEvents = {
+window.PlifeOSEvents = {
   on,
   once,
   off,

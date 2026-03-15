@@ -348,11 +348,11 @@ function normalizeList(value, normalizer){
 }
 
 function getScopedKey(key, userId){
-  return `lifeos:${userId}:${key}`
+  return `plifeos:${userId}:${key}`
 }
 
 function resolveKey(key){
-  const userId = window.LifeOSAuth?.getStorageNamespace?.()
+  const userId = window.PlifeOSAuth?.getStorageNamespace?.()
 
   if(!userId){
     return key
@@ -379,7 +379,7 @@ function read(key, fallback){
 
 function write(key, value){
   localStorage.setItem(resolveKey(key), JSON.stringify(value))
-  window.LifeOSEvents?.emit?.("storage:changed", {key, value})
+  window.PlifeOSEvents?.emit?.("storage:changed", {key, value})
   return value
 }
 
@@ -963,7 +963,7 @@ const storage = {
 
     ensureStorageVersion()
     storage.validateAllData()
-    window.LifeOSEvents?.emit?.("storage:changed", {key: "workspace-reset"})
+    window.PlifeOSEvents?.emit?.("storage:changed", {key: "workspace-reset"})
     return true
   },
   validateAllData(){
@@ -1026,5 +1026,5 @@ function ensureStorageVersion(){
 ensureStorageVersion()
 storage.validateAllData()
 
-window.LifeOSStorage = storage
+window.PlifeOSStorage = storage
 })()

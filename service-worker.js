@@ -1,4 +1,4 @@
-const CACHE_NAME = "lifeos-v10.0"
+const CACHE_NAME = "plifeos-v10.1"
 
 const urlsToCache = [
 "/",

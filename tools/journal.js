@@ -18,7 +18,7 @@ function escapeJournalHtml(value){
 }
 
 function formatJournalDate(value){
-  const date = LifeOSStorage.parseDateKey(value)
+  const date = PlifeOSStorage.parseDateKey(value)
 
   if(!date){
     return tr("common.unknownDate", "Unknown date")
@@ -117,7 +117,7 @@ function setJournalFormState(){
     return
   }
 
-  const entry = LifeOSStorage.getJournal().find((item) => item.id === journalState.editingId)
+  const entry = PlifeOSStorage.getJournal().find((item) => item.id === journalState.editingId)
 
   if(!entry){
     journalState.editingId = null
@@ -144,7 +144,7 @@ function saveJournalEntry(){
   const body = document.getElementById("journalBodyInput")?.value.trim()
 
   if(!title && !body){
-    LifeOSFeedback.error(tr("messages.journalFirst", "Write a title or reflection first."))
+    PlifeOSFeedback.error(tr("messages.journalFirst", "Write a title or reflection first."))
     return
   }
 
@@ -155,11 +155,11 @@ function saveJournalEntry(){
   }
 
   if(journalState.editingId){
-    LifeOSStorage.updateJournal(journalState.editingId, payload)
-    LifeOSFeedback.success(tr("messages.journalUpdated", "Journal entry updated."))
+    PlifeOSStorage.updateJournal(journalState.editingId, payload)
+    PlifeOSFeedback.success(tr("messages.journalUpdated", "Journal entry updated."))
   }else{
-    LifeOSStorage.addJournal(payload)
-    LifeOSFeedback.success(tr("messages.journalSaved", "Journal entry saved."))
+    PlifeOSStorage.addJournal(payload)
+    PlifeOSFeedback.success(tr("messages.journalSaved", "Journal entry saved."))
   }
 
   journalState.editingId = null
@@ -167,14 +167,14 @@ function saveJournalEntry(){
 }
 
 function matchesJournalDateFilter(entry, dateFilter, today){
-  const entryDate = LifeOSStorage.parseDateKey(entry.date)
+  const entryDate = PlifeOSStorage.parseDateKey(entry.date)
 
   if(!entryDate){
     return false
   }
 
   if(dateFilter === "today"){
-    return entry.date === LifeOSStorage.todayKey()
+    return entry.date === PlifeOSStorage.todayKey()
   }
 
   if(dateFilter === "week"){
@@ -231,10 +231,10 @@ function loadJournal(resetPage){
 
   const query = String(document.getElementById("journalSearchInput")?.value || "").trim().toLowerCase()
   const dateFilter = document.getElementById("journalDateFilter")?.value || "all"
-  const today = LifeOSStorage.parseDateKey(LifeOSStorage.todayKey())
-  const data = LifeOSStorage.getJournal().slice().sort((left, right) => {
-    const leftDate = LifeOSStorage.parseDateKey(left.date)?.getTime() || 0
-    const rightDate = LifeOSStorage.parseDateKey(right.date)?.getTime() || 0
+  const today = PlifeOSStorage.parseDateKey(PlifeOSStorage.todayKey())
+  const data = PlifeOSStorage.getJournal().slice().sort((left, right) => {
+    const leftDate = PlifeOSStorage.parseDateKey(left.date)?.getTime() || 0
+    const rightDate = PlifeOSStorage.parseDateKey(right.date)?.getTime() || 0
     return rightDate - leftDate
   })
   const filtered = data.filter((entry) => {
@@ -295,31 +295,31 @@ function editJournal(id){
 }
 
 function deleteJournal(id){
-  const entry = LifeOSStorage.getJournal().find((item) => item.id === id)
+  const entry = PlifeOSStorage.getJournal().find((item) => item.id === id)
 
   if(!entry){
     return
   }
 
-  LifeOSStorage.removeJournal(id)
+  PlifeOSStorage.removeJournal(id)
 
   if(journalState.editingId === id){
     cancelJournalEdit()
   }
 
   loadJournal()
-  LifeOSFeedback.show(tr("journal.deleted", "Deleted journal entry {value}.", {value: entry.title}), {
+  PlifeOSFeedback.show(tr("journal.deleted", "Deleted journal entry {value}.", {value: entry.title}), {
     type: "info",
     actionLabel: tr("common.undo", "Undo"),
     onAction: () => {
-      LifeOSStorage.addJournal(entry)
+      PlifeOSStorage.addJournal(entry)
       renderTool()
-      LifeOSFeedback.success(tr("journal.restored", "Journal entry restored."))
+      PlifeOSFeedback.success(tr("journal.restored", "Journal entry restored."))
     }
   })
 }
 
-window.registerLifeOSTool?.({
+window.registerPlifeOSTool?.({
   id: "journal",
   render: renderTool,
   refresh: renderTool

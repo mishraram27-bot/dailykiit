@@ -1,4 +1,4 @@
-window.LifeOSFirebaseConfig = {
+window.PlifeOSFirebaseConfig = {
   apiKey: "",
   authDomain: "",
   projectId: "",
@@ -7,4 +7,4 @@ window.LifeOSFirebaseConfig = {
   appId: ""
 }
 
-window.LifeOSFirebaseSdkVersion = "11.9.0"
+window.PlifeOSFirebaseSdkVersion = "11.9.0"

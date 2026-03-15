@@ -1,7 +1,7 @@
 {
-  "name": "Life OS",
-  "short_name": "Life OS",
-  "description": "Life OS Version 10.0 personal life operating system",
+  "name": "PlifeOS",
+  "short_name": "PlifeOS",
+  "description": "PlifeOS Version 10.1 personal life operating system",
   "lang": "en",
   "dir": "ltr",
   "id": "/",

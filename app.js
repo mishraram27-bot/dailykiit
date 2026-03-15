@@ -5,8 +5,8 @@ let toolsPanelOpen = false
 let searchTimer = null
 let appUpdateRegistration = null
 
-const APP_VERSION = "10.0"
-const LAST_EXPORT_KEY = "lifeos:last-export-at"
+const APP_VERSION = "10.1"
+const LAST_EXPORT_KEY = "plifeos:last-export-at"
 
 const searchState = {
   results: [],
@@ -43,12 +43,12 @@ async function loadLanguage(lang){
   renderDiagnostics()
   renderSettings()
 
-  if(window.LifeOSRouter){
-    LifeOSRouter.loadTools()
+  if(window.PlifeOSRouter){
+    PlifeOSRouter.loadTools()
   }
 
-  if(window.LifeOSDashboard){
-    LifeOSDashboard.refreshDashboard()
+  if(window.PlifeOSDashboard){
+    PlifeOSDashboard.refreshDashboard()
   }
 
   localStorage.setItem("language", lang)
@@ -81,7 +81,7 @@ function applyLanguage(){
 }
 
 function exportData(){
-  const data = LifeOSStorage.exportBackup()
+  const data = PlifeOSStorage.exportBackup()
   const csv = buildBackupCsv(data)
   const blob = new Blob([csv], {type: "text/csv;charset=utf-8"})
   const url = URL.createObjectURL(blob)
@@ -94,8 +94,8 @@ function exportData(){
   URL.revokeObjectURL(url)
   localStorage.setItem(LAST_EXPORT_KEY, String(Date.now()))
 
-  if(window.LifeOSDashboard){
-    LifeOSDashboard.refreshDashboard()
+  if(window.PlifeOSDashboard){
+    PlifeOSDashboard.refreshDashboard()
   }
 }
 
@@ -391,7 +391,7 @@ function parseCsvBackup(text){
   const expectedHeader = ["section", "id", "name", "person", "amount", "date", "category", "done", "value"]
 
   if(header.join("|") !== expectedHeader.join("|")){
-    throw new Error("CSV format is not a Life OS backup.")
+    throw new Error("CSV format is not a PlifeOS backup.")
   }
   const data = {
     expenses: [],
@@ -617,7 +617,7 @@ function runSearch(){
     return
   }
 
-  searchState.results = LifeOSSearch.buildResults(query, LifeOSRouter.getToolRegistry())
+  searchState.results = PlifeOSSearch.buildResults(query, PlifeOSRouter.getToolRegistry())
   searchState.activeIndex = searchState.results.length ? 0 : -1
 
   renderSearchResults()
@@ -647,7 +647,7 @@ function selectSearchResult(index){
     return
   }
 
-  LifeOSRouter.openTool(result.toolId)
+  PlifeOSRouter.openTool(result.toolId)
 }
 
 function handleSearchKeydown(event){
@@ -709,10 +709,10 @@ function importData(){
 }
 
 function rerenderActiveTool(){
-  const activeToolId = LifeOSRouter.getActiveToolId()
+  const activeToolId = PlifeOSRouter.getActiveToolId()
 
   if(activeToolId){
-    LifeOSRouter.refreshActiveTool?.()
+    PlifeOSRouter.refreshActiveTool?.()
   }
 }
 
@@ -855,29 +855,29 @@ function submitQuickAdd(){
   const value = String(input?.value || "").trim()
 
   if(!value){
-    LifeOSFeedback.error(t("quickAdd.empty", "Enter something first."))
+    PlifeOSFeedback.error(t("quickAdd.empty", "Enter something first."))
     return
   }
 
-  const command = window.LifeOSCommands?.parse?.(value)
+  const command = window.PlifeOSCommands?.parse?.(value)
 
   if(!command){
-    LifeOSFeedback.error(t("quickAdd.invalid", "Try a command like coffee 50 or borrow ram 200."))
+    PlifeOSFeedback.error(t("quickAdd.invalid", "Try a command like coffee 50 or borrow ram 200."))
     return
   }
 
   closeQuickAdd()
-  window.LifeOSCommands.execute(command)
+  window.PlifeOSCommands.execute(command)
 }
 
 function renderToolsPanel(){
   const container = document.getElementById("toolsPanelList")
 
-  if(!container || !window.LifeOSRouter){
+  if(!container || !window.PlifeOSRouter){
     return
   }
 
-  const tools = LifeOSRouter.getToolRegistry()
+  const tools = PlifeOSRouter.getToolRegistry()
 
   const toolButtons = tools.map((tool) => `
 <button type="button" class="tools-panel-item" onclick="openToolFromPanel('${tool.id}')">
@@ -904,11 +904,11 @@ ${toolButtons}
 function renderToolsPanel(){
   const container = document.getElementById("toolsPanelList")
 
-  if(!container || !window.LifeOSRouter){
+  if(!container || !window.PlifeOSRouter){
     return
   }
 
-  const tools = LifeOSRouter.getToolRegistry()
+  const tools = PlifeOSRouter.getToolRegistry()
 
   const toolButtons = tools.map((tool) => `
 <button type="button" class="tools-panel-item" onclick="openToolFromPanel('${tool.id}')">
@@ -955,7 +955,7 @@ function toggleToolsPanel(forceState){
 
 function openToolFromPanel(toolId){
   toggleToolsPanel(false)
-  LifeOSRouter.openTool(toolId)
+  PlifeOSRouter.openTool(toolId)
 }
 
 function formatBackupAge(){
@@ -981,10 +981,10 @@ function renderDiagnostics(){
     return
   }
 
-  const backup = LifeOSStorage.exportBackup()
-  const errors = LifeOSStorage.getErrorLogs().slice().sort((left, right) => right.timestamp - left.timestamp).slice(0, 8)
-  const storageVersion = LifeOSStorage.getStorageVersion()
-  const namespace = window.LifeOSAuth?.getStorageNamespace?.() || "local"
+  const backup = PlifeOSStorage.exportBackup()
+  const errors = PlifeOSStorage.getErrorLogs().slice().sort((left, right) => right.timestamp - left.timestamp).slice(0, 8)
+  const storageVersion = PlifeOSStorage.getStorageVersion()
+  const namespace = window.PlifeOSAuth?.getStorageNamespace?.() || "local"
   const counts = [
     {label: t("tool.expenses", "Expenses"), value: backup.expenses.length},
     {label: t("tool.borrowed", "Borrowed Money"), value: backup.borrow.length},
@@ -1094,17 +1094,17 @@ function formatLearningLabel(value){
 function renderSettings(){
   const container = document.getElementById("settingsContainer")
 
-  if(!container || !window.LifeOSStorage){
+  if(!container || !window.PlifeOSStorage){
     return
   }
 
-  const namespace = window.LifeOSAuth?.getStorageNamespace?.() || "local"
+  const namespace = window.PlifeOSAuth?.getStorageNamespace?.() || "local"
   const currentLanguage = localStorage.getItem("language") || "en"
   const currentLanguageLabel = currentLanguage === "hi"
     ? t("language.hindi", "Hindi")
     : t("language.english", "English")
-  const categories = LifeOSStorage.getExpenseCategoriesList()
-  const memoryEntries = Object.entries(LifeOSStorage.getExpenseCategoryMemory())
+  const categories = PlifeOSStorage.getExpenseCategoriesList()
+  const memoryEntries = Object.entries(PlifeOSStorage.getExpenseCategoryMemory())
     .sort((left, right) => left[0].localeCompare(right[0]))
 
   container.innerHTML = `
@@ -1154,7 +1154,7 @@ function renderSettings(){
         <h3>${t("settings.categoriesTitle", "Learned expense categories")}</h3>
       </div>
     </div>
-      <p class="panel-copy">${t("settings.categoriesCopy", "Life OS remembers the category you choose for an expense name so future quick adds stay smarter.")}</p>
+      <p class="panel-copy">${t("settings.categoriesCopy", "PlifeOS remembers the category you choose for an expense name so future quick adds stay smarter.")}</p>
     <div class="report-grid">
       <article class="report-tile">
         <span class="insight-label">${t("settings.categoriesKnown", "Known mappings")}</span>
@@ -1176,7 +1176,7 @@ function renderSettings(){
         <button type="button" class="secondary-btn" onclick="removeCategoryLearning(decodeURIComponent('${encodeURIComponent(name)}'))">${t("settings.removeMapping", "Remove")}</button>
       </article>
       `).join("")}
-      </div>` : `<div class="empty-state">${t("settings.categoriesEmpty", "No learned mappings yet. Add or edit expenses with categories and Life OS will remember them here.")}</div>`}
+      </div>` : `<div class="empty-state">${t("settings.categoriesEmpty", "No learned mappings yet. Add or edit expenses with categories and PlifeOS will remember them here.")}</div>`}
     <div class="tool-form diagnostics-actions">
       <button type="button" class="secondary-btn" onclick="clearCategoryLearning()">${t("settings.clearLearning", "Clear learned categories")}</button>
     </div>
@@ -1202,14 +1202,14 @@ function renderSettings(){
 function openDiagnostics(){
   closeQuickAdd()
   toggleToolsPanel(false)
-  LifeOSRouter.showDiagnostics?.()
+  PlifeOSRouter.showDiagnostics?.()
   renderDiagnostics()
 }
 
 function openSettings(){
   closeQuickAdd()
   toggleToolsPanel(false)
-  LifeOSRouter.showSettings?.()
+  PlifeOSRouter.showSettings?.()
   renderSettings()
 }
 
@@ -1224,9 +1224,9 @@ function changeSettingsLanguage(language){
 }
 
 function removeCategoryLearning(name){
-  LifeOSStorage.removeExpenseCategoryMemory(name)
+  PlifeOSStorage.removeExpenseCategoryMemory(name)
   renderSettings()
-  LifeOSFeedback.success(t("settings.mappingRemoved", "Learned category removed."))
+  PlifeOSFeedback.success(t("settings.mappingRemoved", "Learned category removed."))
 }
 
 function clearCategoryLearning(){
@@ -1236,21 +1236,21 @@ function clearCategoryLearning(){
     return
   }
 
-  LifeOSStorage.clearExpenseCategoryMemory()
+  PlifeOSStorage.clearExpenseCategoryMemory()
   renderSettings()
-  LifeOSFeedback.success(t("settings.learningCleared", "Learned categories cleared."))
+  PlifeOSFeedback.success(t("settings.learningCleared", "Learned categories cleared."))
 }
 
 function validateWorkspaceData(){
-  LifeOSStorage.ensureReady()
+  PlifeOSStorage.ensureReady()
   renderDiagnostics()
-  LifeOSFeedback.success(t("diagnostics.validated", "Workspace data checked successfully."))
+  PlifeOSFeedback.success(t("diagnostics.validated", "Workspace data checked successfully."))
 }
 
 function clearDiagnosticsLogs(){
-  LifeOSStorage.clearErrorLogs()
+  PlifeOSStorage.clearErrorLogs()
   renderDiagnostics()
-  LifeOSFeedback.success(t("diagnostics.cleared", "Local error logs cleared."))
+  PlifeOSFeedback.success(t("diagnostics.cleared", "Local error logs cleared."))
 }
 
 function resetWorkspaceData(){
@@ -1261,12 +1261,12 @@ function resetWorkspaceData(){
   }
 
   localStorage.removeItem(LAST_EXPORT_KEY)
-  LifeOSStorage.resetWorkspaceData()
+  PlifeOSStorage.resetWorkspaceData()
   renderDiagnostics()
   renderSettings()
-  LifeOSDashboard.refreshDashboard()
+  PlifeOSDashboard.refreshDashboard()
   rerenderActiveTool()
-  LifeOSFeedback.success(t("diagnostics.resetDone", "Workspace reset completed."))
+  PlifeOSFeedback.success(t("diagnostics.resetDone", "Workspace reset completed."))
 }
 
 function handleImportFileChange(event){
@@ -1278,7 +1278,7 @@ function handleImportFileChange(event){
 
   if(file.size > 2 * 1024 * 1024){
     event.target.value = ""
-    LifeOSFeedback.error(t("backup.fileTooLarge", "Backup file is too large. Keep imports under 2 MB."))
+    PlifeOSFeedback.error(t("backup.fileTooLarge", "Backup file is too large. Keep imports under 2 MB."))
     return
   }
 
@@ -1290,14 +1290,14 @@ function handleImportFileChange(event){
       const data = text.trim().startsWith("{")
         ? JSON.parse(text)
         : parseCsvBackup(text)
-      LifeOSStorage.importBackup(data)
+      PlifeOSStorage.importBackup(data)
       event.target.value = ""
-      LifeOSFeedback.success(t("backup.restored", "Backup restored successfully."))
-      LifeOSDashboard.refreshDashboard()
+      PlifeOSFeedback.success(t("backup.restored", "Backup restored successfully."))
+      PlifeOSDashboard.refreshDashboard()
       rerenderActiveTool()
     }catch(error){
       event.target.value = ""
-      LifeOSFeedback.error(t("backup.invalid", "Backup file is invalid. Use a Life OS CSV backup or a legacy JSON backup."))
+      PlifeOSFeedback.error(t("backup.invalid", "Backup file is invalid. Use a PlifeOS CSV backup or a legacy JSON backup."))
     }
   }
 
@@ -1400,7 +1400,7 @@ function initServiceWorker(){
 
 function logRuntimeError(payload){
   try{
-    LifeOSStorage?.addErrorLog?.({
+    PlifeOSStorage?.addErrorLog?.({
       type: payload.type || "error",
       message: payload.message || "Unknown error",
       source: payload.source || payload.filename || "",
@@ -1408,7 +1408,7 @@ function logRuntimeError(payload){
       timestamp: Date.now()
     })
   }catch(error){
-    console.error("Life OS failed to store runtime error", error)
+    console.error("PlifeOS failed to store runtime error", error)
   }
 }
 
@@ -1489,11 +1489,11 @@ function bindGlobalListeners(){
       stack: reason?.stack || String(reason || "")
     })
   })
-window.addEventListener("lifeos:cloud-restored", () => {
-    LifeOSDashboard.refreshDashboard()
+window.addEventListener("plifeos:cloud-restored", () => {
+    PlifeOSDashboard.refreshDashboard()
     rerenderActiveTool()
   })
-  window.LifeOSEvents?.on?.("storage:changed", () => {
+  window.PlifeOSEvents?.on?.("storage:changed", () => {
     const searchInput = document.getElementById("globalSearch")
 
     if(searchInput?.value.trim()){
@@ -1513,22 +1513,22 @@ window.addEventListener("lifeos:cloud-restored", () => {
 }
 
 async function bootSessionUi(){
-  LifeOSStorage?.ensureReady?.()
+  PlifeOSStorage?.ensureReady?.()
   const savedLanguage = localStorage.getItem("language") || "en"
   await loadLanguage(savedLanguage)
-  await LifeOSRouter.loadTools()
+  await PlifeOSRouter.loadTools()
   renderToolsPanel()
-  LifeOSDashboard.refreshDashboard()
-  LifeOSRouter.showHome()
-  LifeOSReminders?.start?.()
+  PlifeOSDashboard.refreshDashboard()
+  PlifeOSRouter.showHome()
+  PlifeOSReminders?.start?.()
 }
 
 function resetForSignedOutState(){
   closeSearchResults()
-  LifeOSReminders?.stop?.()
+  PlifeOSReminders?.stop?.()
   toggleToolsPanel(false)
   closeQuickAdd()
-  LifeOSRouter.syncNavState("home")
+  PlifeOSRouter.syncNavState("home")
   const home = document.getElementById("screenHome")
   const toolArea = document.getElementById("toolArea")
   const diagnosticsArea = document.getElementById("diagnosticsArea")
@@ -1557,7 +1557,7 @@ function resetForSignedOutState(){
 }
 
 async function handleSessionChange(){
-  if(LifeOSAuth.hasSession()){
+  if(PlifeOSAuth.hasSession()){
     await bootSessionUi()
     return
   }
@@ -1566,16 +1566,16 @@ async function handleSessionChange(){
 }
 
 async function initApp(){
-  await LifeOSAuth.init()
+  await PlifeOSAuth.init()
   bindGlobalListeners()
 
-  if(LifeOSAuth.hasSession()){
+  if(PlifeOSAuth.hasSession()){
     await bootSessionUi()
   }else{
     resetForSignedOutState()
   }
 
-window.addEventListener("lifeos:session-changed", handleSessionChange)
+window.addEventListener("plifeos:session-changed", handleSessionChange)
 }
 
 window.addEventListener("DOMContentLoaded", initApp)
@@ -1588,7 +1588,7 @@ window.exportData = exportData
 window.importData = importData
 window.installApp = installApp
 window.rerenderActiveTool = rerenderActiveTool
-window.exportMonthlyReport = () => window.LifeOSReports?.downloadMonthlyReport()
+window.exportMonthlyReport = () => window.PlifeOSReports?.downloadMonthlyReport()
 window.toggleToolsPanel = toggleToolsPanel
 window.openToolFromPanel = openToolFromPanel
 window.openQuickAdd = openQuickAdd

@@ -123,97 +123,97 @@ function execute(command){
   }
 
   if(command.type === "expense"){
-    LifeOSStorage.addExpense({
+    PlifeOSStorage.addExpense({
       name: command.name,
       amount: command.amount,
-      category: LifeOSStorage.inferExpenseCategory(command.name)
+      category: PlifeOSStorage.inferExpenseCategory(command.name)
     })
-    LifeOSRouter.openTool("expenses")
-    LifeOSDashboard.refreshDashboard()
-    LifeOSFeedback.success(tr("messages.commandExpenseSaved", "Expense saved: {value}", {value: command.name}))
+    PlifeOSRouter.openTool("expenses")
+    PlifeOSDashboard.refreshDashboard()
+    PlifeOSFeedback.success(tr("messages.commandExpenseSaved", "Expense saved: {value}", {value: command.name}))
     return true
   }
 
   if(command.type === "borrow"){
-    LifeOSStorage.addBorrow({
+    PlifeOSStorage.addBorrow({
       person: command.person,
       amount: command.amount
     })
-    LifeOSRouter.openTool("borrowed")
-    LifeOSDashboard.refreshDashboard()
-    LifeOSFeedback.success(tr("messages.commandBorrowSaved", "Borrowed entry saved for {value}", {value: command.person}))
+    PlifeOSRouter.openTool("borrowed")
+    PlifeOSDashboard.refreshDashboard()
+    PlifeOSFeedback.success(tr("messages.commandBorrowSaved", "Borrowed entry saved for {value}", {value: command.person}))
     return true
   }
 
   if(command.type === "grocery"){
-    LifeOSStorage.addGrocery({
+    PlifeOSStorage.addGrocery({
       name: command.name
     })
-    LifeOSRouter.openTool("grocery")
-    LifeOSDashboard.refreshDashboard()
-    LifeOSFeedback.success(tr("messages.commandGrocerySaved", "Grocery item added: {value}", {value: command.name}))
+    PlifeOSRouter.openTool("grocery")
+    PlifeOSDashboard.refreshDashboard()
+    PlifeOSFeedback.success(tr("messages.commandGrocerySaved", "Grocery item added: {value}", {value: command.name}))
     return true
   }
 
   if(command.type === "habit"){
-    LifeOSStorage.addHabit({
+    PlifeOSStorage.addHabit({
       name: command.name,
       completions: []
     })
-    LifeOSRouter.openTool("habits")
-    LifeOSFeedback.success(tr("messages.commandHabitSaved", "Habit added: {value}", {value: command.name}))
+    PlifeOSRouter.openTool("habits")
+    PlifeOSFeedback.success(tr("messages.commandHabitSaved", "Habit added: {value}", {value: command.name}))
     return true
   }
 
   if(command.type === "note"){
-    LifeOSStorage.addNote({
+    PlifeOSStorage.addNote({
       title: command.text.slice(0, 48),
       body: command.text
     })
-    LifeOSRouter.openTool("notes")
-    LifeOSFeedback.success(tr("messages.quickNoteSaved", "Quick note saved."))
+    PlifeOSRouter.openTool("notes")
+    PlifeOSFeedback.success(tr("messages.quickNoteSaved", "Quick note saved."))
     return true
   }
 
   if(command.type === "subscription"){
-    LifeOSStorage.addSubscription({
+    PlifeOSStorage.addSubscription({
       name: command.name,
       amount: command.amount,
       billingDay: new Date().getDate()
     })
-    LifeOSRouter.openTool("subscriptions")
-    LifeOSFeedback.success(tr("messages.commandSubscriptionSaved", "Subscription added: {value}", {value: command.name}))
+    PlifeOSRouter.openTool("subscriptions")
+    PlifeOSFeedback.success(tr("messages.commandSubscriptionSaved", "Subscription added: {value}", {value: command.name}))
     return true
   }
 
   if(command.type === "task"){
-    LifeOSStorage.addTask({
+    PlifeOSStorage.addTask({
       title: command.titleText,
       priority: "medium",
       done: false
     })
-    LifeOSRouter.openTool("tasks")
-    LifeOSDashboard.refreshDashboard()
-    LifeOSFeedback.success(tr("messages.commandTaskSaved", "Task added: {value}", {value: command.titleText}))
+    PlifeOSRouter.openTool("tasks")
+    PlifeOSDashboard.refreshDashboard()
+    PlifeOSFeedback.success(tr("messages.commandTaskSaved", "Task added: {value}", {value: command.titleText}))
     return true
   }
 
   if(command.type === "journal"){
-    LifeOSStorage.addJournal({
+    PlifeOSStorage.addJournal({
       title: command.text.slice(0, 48),
       body: command.text,
       mood: tr("journal.defaultMood", "Neutral")
     })
-    LifeOSRouter.openTool("journal")
-    LifeOSDashboard.refreshDashboard()
-    LifeOSFeedback.success(tr("messages.commandJournalSaved", "Journal entry saved."))
+    PlifeOSRouter.openTool("journal")
+    PlifeOSDashboard.refreshDashboard()
+    PlifeOSFeedback.success(tr("messages.commandJournalSaved", "Journal entry saved."))
     return true
   }
 
   return false
 }
 
-window.LifeOSCommands = {
+window.PlifeOSCommands = {
   parse,
   execute
 }
