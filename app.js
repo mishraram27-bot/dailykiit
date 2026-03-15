@@ -5,7 +5,7 @@ let toolsPanelOpen = false
 let searchTimer = null
 let appUpdateRegistration = null
 
-const APP_VERSION = "10.6"
+const APP_VERSION = "10.9"
 const LAST_EXPORT_KEY = "plifeos:last-export-at"
 const THEME_KEY = "plifeos:theme"
 

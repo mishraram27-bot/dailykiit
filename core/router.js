@@ -3,6 +3,8 @@ let toolRegistry = []
 let toolRegistryPromise = null
 let activeToolId = null
 let activeToolApi = null
+const loadedToolScripts = new Set()
+const toolApiRegistry = new Map()
 const SCREEN_REVEAL_MS = 360
 
 function syncNavState(activeId){
@@ -96,11 +98,22 @@ function destroyActiveTool(){
   }
 
   activeToolApi = null
-  document.querySelectorAll("script[data-tool]").forEach((script) => script.remove())
   resetToolGlobals()
 }
 
 function resolveToolApi(toolId){
+  const registeredTool = toolApiRegistry.get(toolId)
+
+  if(registeredTool && typeof registeredTool.render === "function"){
+    return {
+      id: registeredTool.id || toolId,
+      init: typeof registeredTool.init === "function" ? registeredTool.init : () => {},
+      render: registeredTool.render,
+      refresh: typeof registeredTool.refresh === "function" ? registeredTool.refresh : registeredTool.render,
+      destroy: typeof registeredTool.destroy === "function" ? registeredTool.destroy : () => {}
+    }
+  }
+
   if(window.PlifeOSTool && typeof window.PlifeOSTool.render === "function"){
     return {
       id: window.PlifeOSTool.id || toolId,
@@ -218,10 +231,7 @@ async function openTool(toolId){
   syncNavState(toolId)
   resetToolGlobals()
 
-  const script = document.createElement("script")
-  script.src = tool.script
-  script.dataset.tool = toolId
-  script.onload = () => {
+  const bootTool = () => {
     activeToolApi = resolveToolApi(toolId)
 
     if(!activeToolApi){
@@ -247,6 +257,27 @@ async function openTool(toolId){
         stack: error?.stack || ""
       })
     }
+  }
+
+  if(loadedToolScripts.has(toolId)){
+    bootTool()
+    return
+  }
+
+  const script = document.createElement("script")
+  script.src = tool.script
+  script.dataset.tool = toolId
+  script.onload = () => {
+    loadedToolScripts.add(toolId)
+    bootTool()
+  }
+  script.onerror = () => {
+    console.error("PlifeOS tool script failed to load", toolId)
+    window.PlifeOSStorage?.addErrorLog?.({
+      type: "tool-load",
+      message: `Tool script failed to load: ${toolId}`,
+      source: tool.script
+    })
   }
 
   document.body.appendChild(script)
@@ -330,6 +361,12 @@ window.PlifeOSRouter = {
 }
 
 window.registerPlifeOSTool = (toolDefinition) => {
+  const registrationId = toolDefinition?.id || activeToolId
+
+  if(registrationId && toolDefinition){
+    toolApiRegistry.set(registrationId, toolDefinition)
+  }
+
   window.PlifeOSTool = toolDefinition
   return toolDefinition
 }

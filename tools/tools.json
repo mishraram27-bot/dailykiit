@@ -14,7 +14,7 @@
     "permissions": [
       "storage"
     ],
-    "version": "10.6",
+    "version": "10.9",
     "description": "Capture spends fast"
   },
   {
@@ -32,7 +32,7 @@
     "permissions": [
       "storage"
     ],
-    "version": "10.6",
+    "version": "10.9",
     "description": "Track who owes what"
   },
   {
@@ -50,7 +50,7 @@
     "permissions": [
       "storage"
     ],
-    "version": "10.6",
+    "version": "10.9",
     "description": "Keep your list ready"
   },
   {
@@ -68,7 +68,7 @@
       "storage",
       "notifications"
     ],
-    "version": "10.6",
+    "version": "10.9",
     "description": "Stay consistent daily"
   },
   {
@@ -85,7 +85,7 @@
     "permissions": [
       "storage"
     ],
-    "version": "10.6",
+    "version": "10.9",
     "description": "Capture quick thoughts"
   },
   {
@@ -103,7 +103,7 @@
     "permissions": [
       "storage"
     ],
-    "version": "10.6",
+    "version": "10.9",
     "description": "Keep today organized"
   },
   {
@@ -120,7 +120,7 @@
     "permissions": [
       "storage"
     ],
-    "version": "10.6",
+    "version": "10.9",
     "description": "Reflect on the day"
   },
   {
@@ -138,7 +138,7 @@
       "storage",
       "notifications"
     ],
-    "version": "10.6",
+    "version": "10.9",
     "description": "Watch recurring costs"
   }
 ]
