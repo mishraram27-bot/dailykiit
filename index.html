@@ -206,7 +206,7 @@ See your money, routines, notes, and daily flow in one calm offline home.
 <script src="app.js" defer></script>
 
 <footer class="disclaimer">
-<span class="app-version" data-i18n="app.version">PlifeOS Version 10.12</span>
+<span class="app-version" data-i18n="app.version">PlifeOS Version 10.13</span>
 <span data-i18n="footer.disclaimer">PlifeOS is a personal life operating system. It does not provide financial, medical, or legal advice.</span>
 <span class="footer-links">
 <a href="pages/privacy.html" data-i18n="footer.privacy">Privacy Policy</a>
@@ -216,19 +216,11 @@ See your money, routines, notes, and daily flow in one calm offline home.
 
 <nav class="bottom-nav">
 
-<button data-nav="home" onclick="showHome()"><span class="nav-icon">&#127968;</span><span class="nav-label" data-i18n="nav.home">Home</span></button>
-<button data-nav="tools" onclick="toggleToolsPanel()"><span class="nav-icon">&#9776;</span><span class="nav-label" data-i18n="nav.tools">Tools</span></button>
-<button data-nav="expenses" onclick="openTool('expenses')"><span class="nav-icon">&#128176;</span><span class="nav-label" data-i18n="nav.expenses">Expenses</span></button>
-<button data-nav="borrowed" onclick="openTool('borrowed')"><span class="nav-icon">&#129309;</span><span class="nav-label" data-i18n="nav.borrowed">Borrowed</span></button>
-<button data-nav="grocery" onclick="openTool('grocery')"><span class="nav-icon">&#128722;</span><span class="nav-label" data-i18n="nav.grocery">Grocery</span></button>
-<button data-nav="export" onclick="exportData()"><span class="nav-icon">&#11123;</span><span class="nav-label" data-i18n="nav.export">Export</span></button>
-<button data-nav="import" onclick="importData()"><span class="nav-icon">&#11121;</span><span class="nav-label" data-i18n="nav.import">Import</span></button>
+<button class="nav-btn" data-nav="home" onclick="showHome()"><span class="nav-icon">&#127968;</span><span class="nav-label" data-i18n="nav.home">Home</span></button>
+<button class="nav-btn" data-nav="quick-capture" onclick="triggerQuickCapture()"><span class="nav-icon">+</span><span class="nav-label" data-i18n="nav.quickCapture">Quick Capture</span></button>
+<button class="nav-btn" data-nav="tools" onclick="toggleToolsPanel()"><span class="nav-icon">&#9776;</span><span class="nav-label" data-i18n="nav.tools">Tools</span></button>
 
 </nav>
-
-<button id="quickAddBtn" class="quick-add-btn" type="button" onclick="openQuickAdd()" aria-label="Quick add">
-<span>+</span>
-</button>
 
 <div id="toolsPanel" class="tools-panel" hidden>
 <div class="tools-panel-backdrop" onclick="toggleToolsPanel(false)"></div>
@@ -289,7 +281,7 @@ See your money, routines, notes, and daily flow in one calm offline home.
 <div class="panel-heading">
 <div>
 <p class="section-kicker" data-i18n="changelog.kicker">Release Notes</p>
-<h3 data-i18n="changelog.title">What's New in v10.12</h3>
+<h3 data-i18n="changelog.title">What's New in v10.13</h3>
 </div>
 <button type="button" class="secondary-btn" onclick="closeChangelog()" data-i18n="common.close">Close</button>
 </div>

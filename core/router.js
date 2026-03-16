@@ -8,8 +8,9 @@ const toolApiRegistry = new Map()
 const SCREEN_REVEAL_MS = 360
 
 function syncNavState(activeId){
+  const mappedId = activeId === "home" ? "home" : "tools"
   document.querySelectorAll(".bottom-nav button[data-nav]").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.nav === activeId)
+    button.classList.toggle("is-active", button.dataset.nav === mappedId)
   })
 }
 

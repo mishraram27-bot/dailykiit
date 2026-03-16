@@ -6,7 +6,7 @@
   "borrowed": "उधार",
   "grocery": "किराना",
   "home": "होम",
-  "app.version": "PlifeOS वर्जन 10.12",
+  "app.version": "PlifeOS ??????? 10.13",
   "auth.kicker": "आपका ऑफलाइन वर्कस्पेस",
   "auth.title": "अपना PlifeOS वर्कस्पेस शुरू करें",
   "auth.copy": "इस डिवाइस पर रैंडम यूज़र आईडी वाले गेस्ट प्रोफाइल से तुरंत ट्रैकिंग शुरू करें।",
@@ -190,7 +190,7 @@
   "installHelp.step3Title": "3. Add to Home Screen चुनें",
   "installHelp.step3Copy": "इसके बाद PlifeOS आपकी home screen से standalone mode में खुल सकेगा।",
   "changelog.kicker": "रिलीज़ नोट्स",
-  "changelog.title": "v10.12 में नया क्या है",
+  "changelog.title": "v10.13 में नया क्या है",
   "changelog.item1Title": "Cross-device shell अब मज़बूत है",
   "changelog.item1Copy": "PlifeOS अब safer mobile spacing, stronger install metadata और बेहतर older-device layout fallbacks का उपयोग करता है।",
   "changelog.item2Title": "Dark install experience अब aligned है",
@@ -507,7 +507,10 @@
   "settings.theme.system": "सिस्टम",
   "settings.theme.light": "लाइट",
   "settings.theme.dark": "डार्क",
-  "settings.themeUpdated": "थीम update हो गई।"
+  "settings.themeUpdated": "थीम update हो गई।",
+  "nav.quickCapture": "Quick Capture",
+  "settings.quickCaptureKicker": "Capture",
+  "settings.quickCaptureTitle": "Quick capture button",
+  "settings.quickCaptureCopy": "Choose which tool opens when you tap Quick Capture in the bottom bar.",
+  "settings.quickCaptureUpdated": "Quick capture updated."
 }
-
-
