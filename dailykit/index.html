@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<title>PlifeOS</title>
+
+<meta name="application-name" content="PlifeOS">
+<meta name="description" content="PlifeOS is an offline-first personal life operating system for money, habits, notes, tasks, subscriptions, and daily planning.">
+<meta name="theme-color" content="#111827">
+<meta name="msapplication-TileColor" content="#111827">
+<meta name="color-scheme" content="dark light">
+<meta name="format-detection" content="telephone=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PlifeOS">
+
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon 16.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+
+</head>
+
+<body>
+
+<div id="authGate" class="auth-gate">
+<section class="auth-card">
+<p class="hero-kicker" data-i18n="auth.kicker">Your offline workspace</p>
+<h2 data-i18n="auth.title">Start your PlifeOS workspace</h2>
+<p class="auth-copy" data-i18n="auth.copy">
+Use a guest profile with a random user ID on this device and start tracking instantly.
+</p>
+
+<div class="auth-benefits">
+<article>
+<strong data-i18n="auth.guestTitle">Guest Mode</strong>
+<span data-i18n="auth.guestCopy">Instant access with a random local user ID.</span>
+</article>
+<article>
+<strong data-i18n="auth.privateTitle">Private by default</strong>
+<span data-i18n="auth.privateCopy">Your current release keeps data on this device unless you export it.</span>
+</article>
+</div>
+
+<div class="auth-actions">
+<button id="guestLoginBtn" type="button" data-i18n="auth.continueGuest">Continue as Guest</button>
+</div>
+
+<p id="authHint" class="auth-hint"></p>
+</section>
+</div>
+
+<header class="hero-header">
+
+<div class="hero-inner">
+
+<p class="hero-kicker" data-i18n="hero.kicker">A personal life operating system</p>
+<div class="brand-lockup">
+<img id="brandLogo" src="icons/logo-white.svg" alt="PlifeOS" class="brand-logo">
+<h1 class="visually-hidden">PlifeOS</h1>
+</div>
+<p class="hero-copy" data-i18n="hero.copy">
+See your money, routines, notes, and daily flow in one calm offline home.
+</p>
+
+<div class="search-box">
+<input id="globalSearch" data-i18n-placeholder="search.placeholder" placeholder="Search PlifeOS or try coffee 50" autocomplete="off">
+<div id="searchResults"></div>
+</div>
+
+<div class="header-controls">
+<label class="select-wrap" for="languageSelect">
+<span data-i18n="language.label">Language</span>
+<select id="languageSelect">
+<option value="en" data-i18n="language.english">English</option>
+<option value="hi" data-i18n="language.hindi">&#2361;&#2367;&#2344;&#2381;&#2342;&#2368;</option>
+</select>
+</label>
+
+<div id="sessionBadge" class="session-badge" data-i18n="auth.guestBadge">Guest</div>
+<button id="switchAccountBtn" class="ghost-btn" type="button" data-i18n="auth.switchAccount">Switch Account</button>
+<button id="installBtn" class="ghost-btn" style="display:none" type="button" data-i18n="install.button">Install App</button>
+</div>
+
+</div>
+
+</header>
+
+<main>
+
+<section id="screenHome" class="screen-panel is-active">
+
+<div class="dashboard">
+
+<section class="summary-header">
+<div>
+<p class="section-kicker" data-i18n="dashboard.overview">Overview</p>
+<h2 class="section-title" data-i18n="dashboard.title">Your day at a glance</h2>
+</div>
+</section>
+
+<div id="onboarding" class="onboarding-host" hidden></div>
+
+<div class="summary">
+
+<div class="card">
+<p class="card-label" data-i18n="dashboard.today">Today</p>
+<h3 id="todayExpense">&#8377;0</h3>
+<p data-text="todayExpense">Today's Expense</p>
+</div>
+
+<div class="card">
+<p class="card-label" data-i18n="dashboard.open">Open</p>
+<h3 id="borrowedTotal">&#8377;0</h3>
+<p data-text="borrowedPending">Borrowed Pending</p>
+</div>
+
+</div>
+
+<div class="chart-section">
+
+<h3 data-i18n="dashboard.expenseCategories">Expense Categories</h3>
+
+<canvas id="expenseChart"></canvas>
+
+</div>
+
+<div class="chart-section">
+
+<h3 data-i18n="dashboard.weeklySpending">Weekly Spending</h3>
+
+<canvas id="weeklyChart"></canvas>
+
+</div>
+
+<div id="insights" class="insight-box"></div>
+<div id="reportSummary" class="report-box"></div>
+<div id="weeklySummary" class="report-box"></div>
+<div id="trustSummary" class="report-box"></div>
+<div id="activityFeed" class="report-box"></div>
+
+<div class="tools-header">
+<div>
+<p class="section-kicker" data-i18n="dashboard.shortcuts">Shortcuts</p>
+<h2 class="section-title" data-text="quickTools">Quick Tools</h2>
+</div>
+</div>
+
+<div id="quickActions" class="report-box"></div>
+<div class="home-tools"></div>
+
+</div>
+
+</section>
+
+<section id="toolArea" class="tool-section screen-panel">
+  <div id="toolContainer"></div>
+</section>
+
+<section id="diagnosticsArea" class="tool-section screen-panel" hidden>
+  <div id="diagnosticsContainer"></div>
+</section>
+
+<section id="settingsArea" class="tool-section screen-panel" hidden>
+  <div id="settingsContainer"></div>
+</section>
+
+<section class="backup-section">
+
+<article class="backup-panel">
+<p class="section-kicker" data-i18n="backup.kicker">Safety</p>
+<h3 data-i18n="backup.title">Local Backup</h3>
+<p class="backup-copy" data-i18n="backup.copy">Keep a portable Excel-friendly CSV copy of your offline data whenever you want.</p>
+
+<div class="backup-actions">
+<button onclick="exportData()" data-i18n="backup.export">Export CSV</button>
+
+<input type="file" id="importFile" accept=".csv,.json,text/csv,application/json" hidden>
+<button class="ghost-btn" onclick="document.getElementById('importFile').click()" data-i18n="backup.import">Import Backup</button>
+</div>
+</article>
+
+</section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="firebase-config.js" defer></script>
+<script src="core/auth.js" defer></script>
+<script src="core/events.js" defer></script>
+<script src="core/storage.js" defer></script>
+<script src="core/feedback.js" defer></script>
+<script src="core/commandParser.js" defer></script>
+<script src="core/reporting.js" defer></script>
+<script src="core/reminders.js" defer></script>
+<script src="core/searchEngine.js" defer></script>
+<script src="core/router.js" defer></script>
+<script src="core/dashboard.js" defer></script>
+<script src="app.js" defer></script>
+
+<footer class="disclaimer">
+<span class="app-version" data-i18n="app.version">PlifeOS Version 10.13</span>
+<span data-i18n="footer.disclaimer">PlifeOS is a personal life operating system. It does not provide financial, medical, or legal advice.</span>
+<span class="footer-links">
+<a href="pages/privacy.html" data-i18n="footer.privacy">Privacy Policy</a>
+<a href="pages/terms.html" data-i18n="footer.terms">Terms &amp; Conditions</a>
+</span>
+</footer>
+
+<nav class="bottom-nav">
+
+<button class="nav-btn" data-nav="home" onclick="showHome()"><span class="nav-icon">&#127968;</span><span class="nav-label" data-i18n="nav.home">Home</span></button>
+<button class="nav-btn" data-nav="quick-capture" onclick="triggerQuickCapture()"><span class="nav-icon">+</span><span class="nav-label" data-i18n="nav.quickCapture">Quick Capture</span></button>
+<button class="nav-btn" data-nav="tools" onclick="toggleToolsPanel()"><span class="nav-icon">&#9776;</span><span class="nav-label" data-i18n="nav.tools">Tools</span></button>
+
+</nav>
+
+<div id="toolsPanel" class="tools-panel" hidden>
+<div class="tools-panel-backdrop" onclick="toggleToolsPanel(false)"></div>
+<section class="tools-panel-card">
+<div class="panel-heading">
+<div>
+<p class="section-kicker" data-i18n="toolsPanel.kicker">Library</p>
+<h3 data-i18n="toolsPanel.title">All tools</h3>
+</div>
+<button type="button" class="secondary-btn" onclick="toggleToolsPanel(false)" data-i18n="common.close">Close</button>
+</div>
+<div id="toolsPanelList" class="tools-panel-list"></div>
+</section>
+</div>
+
+<div id="quickAddModal" class="quick-add-modal" hidden>
+<div class="quick-add-backdrop" onclick="closeQuickAdd()"></div>
+<section class="quick-add-card">
+<div class="panel-heading">
+<div>
+<p class="section-kicker" data-i18n="quickAdd.kicker">Quick capture</p>
+<h3 data-i18n="quickAdd.title">Add with one line</h3>
+</div>
+<button type="button" class="secondary-btn" onclick="closeQuickAdd()" data-i18n="common.close">Close</button>
+</div>
+<p class="panel-copy" data-i18n-html="quickAdd.copy">Try a command like <b>coffee 50</b>, <b>borrow ram 200</b>, <b>task call bank</b>, or <b>journal Today felt focused</b>.</p>
+<div class="tool-form">
+<input id="quickAddInput" data-i18n-placeholder="quickAdd.placeholder" placeholder="coffee 50">
+<button type="button" onclick="submitQuickAdd()" data-i18n="quickAdd.run">Run Command</button>
+</div>
+<div class="quick-add-examples">
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('coffee 50')">coffee 50</button>
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('borrow ram 200')">borrow ram 200</button>
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('grocery milk')">grocery milk</button>
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('note startup idea')">note startup idea</button>
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('task call bank')">task call bank</button>
+<button type="button" class="secondary-btn" onclick="fillQuickAdd('journal Today felt focused')">journal Today felt focused</button>
+</div>
+</section>
+</div>
+
+<div id="snackbarHost" class="snackbar-host" aria-live="polite" aria-atomic="true"></div>
+
+<div id="updateToast" class="update-toast" hidden>
+<div class="update-toast-copy">
+<strong data-i18n="update.title">A new PlifeOS update is ready</strong>
+<span data-i18n="update.copy">Refresh to switch to the latest version and keep your offline tools current.</span>
+</div>
+<div class="update-toast-actions">
+<button type="button" onclick="openChangelog()" class="secondary-btn" data-i18n="update.whatsNew">What's New</button>
+<button type="button" onclick="applyAppUpdate()" data-i18n="update.apply">Update Now</button>
+</div>
+</div>
+
+<div id="changelogModal" class="quick-add-modal" hidden>
+<div class="quick-add-backdrop" onclick="closeChangelog()"></div>
+<section class="quick-add-card">
+<div class="panel-heading">
+<div>
+<p class="section-kicker" data-i18n="changelog.kicker">Release Notes</p>
+<h3 data-i18n="changelog.title">What's New in v10.13</h3>
+</div>
+<button type="button" class="secondary-btn" onclick="closeChangelog()" data-i18n="common.close">Close</button>
+</div>
+<div class="changelog-list">
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="changelog.item1Title">Cross-device shell is stronger</strong>
+<span data-i18n="changelog.item1Copy">PlifeOS now uses safer mobile spacing, stronger install metadata, and better older-device layout fallbacks.</span>
+</div>
+</article>
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="changelog.item2Title">Dark install experience is aligned</strong>
+<span data-i18n="changelog.item2Copy">The default dark theme now matches the first-load theme color and installed app presentation more closely.</span>
+</div>
+</article>
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="changelog.item3Title">Older mobile fallbacks improved</strong>
+<span data-i18n="changelog.item3Copy">Safe-area spacing, blur fallbacks, and touch behavior are more reliable on tablets and older-but-modern phones.</span>
+</div>
+</article>
+</div>
+</section>
+</div>
+
+<div id="installHelpModal" class="quick-add-modal" hidden>
+<div class="quick-add-backdrop" onclick="closeInstallHelp()"></div>
+<section class="quick-add-card">
+<div class="panel-heading">
+<div>
+<p class="section-kicker" data-i18n="installHelp.kicker">Install Help</p>
+<h3 data-i18n="installHelp.title">Install PlifeOS on iPhone or iPad</h3>
+</div>
+<button type="button" class="secondary-btn" onclick="closeInstallHelp()" data-i18n="common.close">Close</button>
+</div>
+<div class="changelog-list">
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="installHelp.step1Title">1. Open in Safari</strong>
+<span data-i18n="installHelp.step1Copy">If you are using Chrome or another iPhone browser, open PlifeOS in Safari first.</span>
+</div>
+</article>
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="installHelp.step2Title">2. Tap the Share button</strong>
+<span data-i18n="installHelp.step2Copy">Use the Share icon in Safari to open the action sheet.</span>
+</div>
+</article>
+<article class="settings-learning-item">
+<div class="settings-learning-copy">
+<strong data-i18n="installHelp.step3Title">3. Choose Add to Home Screen</strong>
+<span data-i18n="installHelp.step3Copy">After that, PlifeOS can launch in standalone mode from your home screen.</span>
+</div>
+</article>
+</div>
+</section>
+</div>
+
+</body>
+</html>
