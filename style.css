@@ -2653,8 +2653,13 @@ padding:0 18px;
 border-radius:var(--control-radius);
 font-weight:700;
 font-size:15px;
+line-height:1.2;
 letter-spacing:0.01em;
 border:1px solid transparent;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+text-align:center;
 transition:background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
@@ -2707,6 +2712,28 @@ gap:var(--section-gap);
 #toolContainer textarea{
 min-height:var(--control-height);
 border-radius:var(--control-radius);
+padding:0 16px;
+text-align:left;
+line-height:1.25;
+width:100%;
+}
+
+.tool-form select,
+#toolContainer select{
+padding-right:38px;
+}
+
+.tool-form textarea,
+#toolContainer textarea{
+min-height:130px;
+padding-top:13px;
+padding-bottom:13px;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled{
+opacity:1;
 }
 
 :root[data-theme="dark"] .auth-card,
@@ -2767,6 +2794,13 @@ box-shadow:none !important;
 -webkit-text-fill-color:#e5eefc;
 }
 
+:root[data-theme="dark"] input:disabled,
+:root[data-theme="dark"] select:disabled,
+:root[data-theme="dark"] textarea:disabled{
+color:#b6c2d8 !important;
+-webkit-text-fill-color:#b6c2d8 !important;
+}
+
 :root[data-theme="dark"] .tool-form input::placeholder,
 :root[data-theme="dark"] .tool-form textarea::placeholder,
 :root[data-theme="dark"] #toolContainer input::placeholder,
@@ -2796,8 +2830,10 @@ color:#e5eefc !important;
 }
 
 .bottom-nav{
-left:12px;
-right:12px;
+left:50%;
+right:auto;
+transform:translateX(-50%);
+width:min(960px, calc(100% - 28px));
 bottom:calc(12px + env(safe-area-inset-bottom, 0px));
 padding:8px;
 display:grid;
@@ -2874,8 +2910,10 @@ width:100%;
 }
 
 .bottom-nav{
-left:10px;
-right:10px;
+left:50%;
+right:auto;
+transform:translateX(-50%);
+width:calc(100% - 18px);
 bottom:calc(10px + env(safe-area-inset-bottom, 0px));
 padding:7px;
 gap:6px;

@@ -8,7 +8,6 @@ let appUpdateRegistration = null
 const APP_VERSION = "10.13"
 const LAST_EXPORT_KEY = "plifeos:last-export-at"
 const THEME_KEY = "plifeos:theme"
-const QUICK_CAPTURE_TOOL_KEY = "plifeos:quick-capture-tool"
 const BRAND_LOGO_SOURCES = {
   dark: "icons/logo-white.svg",
   light: "icons/logo-black.svg"
@@ -817,41 +816,10 @@ function openQuickAction(type){
   fillQuickAdd(presets[type] || "")
 }
 
-function getQuickCaptureToolPreference(){
-  const saved = localStorage.getItem(QUICK_CAPTURE_TOOL_KEY)
-  return saved || "expenses"
-}
-
-function setQuickCaptureToolPreference(toolId){
-  if(!toolId){
-    return
-  }
-
-  localStorage.setItem(QUICK_CAPTURE_TOOL_KEY, toolId)
-}
-
-function focusQuickCaptureInput(){
-  window.setTimeout(() => {
-    const focusTarget = document.querySelector(
-      "#toolContainer input:not([type='hidden']), #toolContainer textarea, #toolContainer select"
-    )
-    focusTarget?.focus?.()
-  }, 140)
-}
-
 function triggerQuickCapture(){
-  const preferredTool = getQuickCaptureToolPreference()
-
   closeSearchResults()
   closeQuickAdd()
   toggleToolsPanel(false)
-
-  if(window.PlifeOSRouter?.openTool){
-    window.PlifeOSRouter.openTool(preferredTool)
-      .then(() => focusQuickCaptureInput())
-      .catch(() => openQuickAdd())
-    return
-  }
 
   openQuickAdd()
 }
@@ -1167,18 +1135,6 @@ function renderSettings(){
     : t("language.english", "English")
   const currentTheme = getStoredTheme()
   const currentThemeLabel = t(`settings.theme.${currentTheme}`, currentTheme)
-  const quickCaptureTools = [
-    {id: "expenses", fallback: "Expenses"},
-    {id: "borrowed", fallback: "Borrowed"},
-    {id: "grocery", fallback: "Grocery"},
-    {id: "notes", fallback: "Notes"},
-    {id: "tasks", fallback: "Tasks"},
-    {id: "journal", fallback: "Journal"},
-    {id: "habits", fallback: "Habits"},
-    {id: "subscriptions", fallback: "Subscriptions"}
-  ]
-  const preferredCaptureTool = getQuickCaptureToolPreference()
-  const preferredCaptureLabel = t(`tool.${preferredCaptureTool}`, preferredCaptureTool)
   const categories = PlifeOSStorage.getExpenseCategoriesList()
   const memoryEntries = Object.entries(PlifeOSStorage.getExpenseCategoryMemory())
     .sort((left, right) => left[0].localeCompare(right[0]))
@@ -1224,31 +1180,6 @@ function renderSettings(){
       <button type="button" class="${currentLanguage === "en" ? "is-disabled" : ""}" onclick="changeSettingsLanguage('en')" ${currentLanguage === "en" ? "disabled" : ""}>${t("language.english", "English")}</button>
       <button type="button" class="${currentLanguage === "hi" ? "is-disabled" : ""}" onclick="changeSettingsLanguage('hi')" ${currentLanguage === "hi" ? "disabled" : ""}>${t("language.hindi", "Hindi")}</button>
       <button type="button" class="secondary-btn" onclick="openDiagnostics()">${t("diagnostics.title", "Diagnostics & Recovery")}</button>
-    </div>
-  </section>
-
-  <section class="feature-panel">
-    <div class="panel-heading">
-      <div>
-        <p class="section-kicker">${t("settings.quickCaptureKicker", "Capture")}</p>
-        <h3>${t("settings.quickCaptureTitle", "Quick capture button")}</h3>
-      </div>
-    </div>
-    <p class="panel-copy">${t("settings.quickCaptureCopy", "Choose which tool opens when you tap Quick Capture in the bottom bar.")}</p>
-    <div class="report-grid">
-      <article class="report-tile">
-        <span class="insight-label">${t("nav.quickCapture", "Quick Capture")}</span>
-        <strong>${escapeHtml(preferredCaptureLabel)}</strong>
-      </article>
-    </div>
-    <div class="tool-form diagnostics-actions">
-      ${quickCaptureTools.map((tool) => `
-      <button
-        type="button"
-        class="${preferredCaptureTool === tool.id ? "is-disabled" : "secondary-btn"}"
-        onclick="changeQuickCaptureTool('${tool.id}')"
-        ${preferredCaptureTool === tool.id ? "disabled" : ""}>${escapeHtml(t(`tool.${tool.id}`, tool.fallback))}</button>
-      `).join("")}
     </div>
   </section>
 
@@ -1347,12 +1278,6 @@ function changeThemePreference(theme){
   applyTheme(theme)
   renderSettings()
   PlifeOSFeedback.success(t("settings.themeUpdated", "Theme updated."))
-}
-
-function changeQuickCaptureTool(toolId){
-  setQuickCaptureToolPreference(toolId)
-  renderSettings()
-  PlifeOSFeedback.success(t("settings.quickCaptureUpdated", "Quick capture updated."))
 }
 
 function removeCategoryLearning(name){
@@ -1755,7 +1680,6 @@ window.renderDiagnostics = renderDiagnostics
 window.renderSettings = renderSettings
 window.changeSettingsLanguage = changeSettingsLanguage
 window.changeThemePreference = changeThemePreference
-window.changeQuickCaptureTool = changeQuickCaptureTool
 window.removeCategoryLearning = removeCategoryLearning
 window.clearCategoryLearning = clearCategoryLearning
 window.validateWorkspaceData = validateWorkspaceData

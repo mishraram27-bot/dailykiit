@@ -508,9 +508,5 @@
   "settings.theme.light": "लाइट",
   "settings.theme.dark": "डार्क",
   "settings.themeUpdated": "थीम update हो गई।",
-  "nav.quickCapture": "Quick Capture",
-  "settings.quickCaptureKicker": "Capture",
-  "settings.quickCaptureTitle": "Quick capture button",
-  "settings.quickCaptureCopy": "Choose which tool opens when you tap Quick Capture in the bottom bar.",
-  "settings.quickCaptureUpdated": "Quick capture updated."
+  "nav.quickCapture": "Quick Capture"
 }
