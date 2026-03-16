@@ -2941,3 +2941,28 @@ font-size:16px;
 font-size:10.5px;
 }
 }
+
+/* v10.13.2 micro alignment polish */
+.section-title{
+line-height:1.12;
+}
+
+.tools-header .section-title{
+padding-top:2px;
+}
+
+.bottom-nav .nav-btn{
+align-items:center;
+min-height:42px;
+}
+
+.bottom-nav .nav-label{
+display:inline-block;
+line-height:1.15;
+}
+
+@media (max-width: 430px){
+.tools-header{
+margin-bottom:12px;
+}
+}

@@ -69,7 +69,7 @@ function renderOnboarding(){
   const hasStarted = expenses.length || borrow.length || grocery.length
   const dismissed = localStorage.getItem(ONBOARDING_KEY) === "1"
 
-  if(hasStarted && dismissed){
+  if(dismissed){
     host.innerHTML = ""
     host.hidden = true
     return
